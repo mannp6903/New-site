@@ -1,6 +1,6 @@
 # Third-party notices
 
-What this website uses that was made by others, and on what terms. Checked 8 November 2026.
+What this website uses that was made by others, and on what terms. Checked 8 November 2026; updated 19 November 2026 for the "MANN / IN MOTION" redesign.
 
 ## Shipped to visitors
 
@@ -12,10 +12,11 @@ What this website uses that was made by others, and on what terms. Checked 8 Nov
 | `@astrojs/sitemap` | 3.7.4 | MIT | Generates the sitemap |
 | Geist (variable) | `geist` npm package 1.9.2 (font version 1.900), cut by `scripts/subset-fonts.py` | SIL OFL 1.1 | A Modified Version (subset). Notice and licence: `public/fonts/LICENSES.txt` |
 | Geist Mono | Fontsource latin subset, cut further | SIL OFL 1.1 | `public/fonts/LICENSES.txt` |
+| Mona Sans → **Mann Display** (display headings, since 19 Nov 2026) | `@fontsource-variable/mona-sans` 5.3, cut by `scripts/redesign/make-display-font.py` | SIL OFL 1.1, Reserved Font Name "Mona" | A Modified Version (width fixed at Expanded, weight 500–800, subset), renamed as the RFN requires. `public/fonts/LICENSES.txt` |
 | Geist (outlines in the MΛNN PΛTEL wordmark and monogram: `public/brand/`, `src/components/ui/Wordmark.astro`, `public/favicon.svg`) | Vercel, vercel/geist-font | SIL OFL 1.1 | `public/fonts/LICENSES.txt` |
 
-Everything else on the site (layouts, components, styles, the signal-line portrait, the WebGL dot
-field, the forms and their scripts) is original code in this repository.
+Everything else on the site (layouts, components, styles, the stage and its line, the playground demos, the forms and
+their scripts) is original code in this repository. The studio reel (`public/media/`) is a recording of this site.
 
 ## Not used
 
@@ -23,8 +24,9 @@ No UI component or animation library code was copied into the site. The options 
 8 November 2026 audit were **not** used: shadcn/ui, Radix Primitives, Motion, Motion-Primitives,
 Magic UI, AstroWind, Brittany Chiang’s v4, Nim and React Bits (MIT plus Commons Clause, excluded by
 default). Animmaster Lib is a paid library and was not used. Reference websites (emilkowal.ski,
-rauno.me, brittanychiang.com and the Awwwards examples in `DESIGN.md`) were studied for structure
-and principles only; none of their code, text or assets were copied.
+rauno.me, brittanychiang.com, the Awwwards examples in the archived design notes, and the ten references in
+`RESEARCH.md` (Lusion, Bruno Simon, Dennis Snellenberg, basement.studio, Obys, Aristide Benoist, Active Theory, Igloo Inc,
+Locomotive) were studied for structure and principles only; none of their code, text or assets were copied.
 
 ## Used only to build and test (not shipped)
 

@@ -22,7 +22,7 @@ const mail = emailHref();
 
 <header class="hdr" data-header>
   <div class="hdr__bar container">
-    <a class="hdr__brand" href="/" aria-label={`${profile.name}, home`}>
+    <a class="hdr__brand wordmark" href="/" aria-label={`${profile.name}, home`}>
       <Wordmark class="hdr__logo" cut="small" />
     </a>
 
@@ -55,7 +55,7 @@ const mail = emailHref();
         <span class="visually-hidden">Open quick menu</span>
         <kbd aria-hidden="true"><span data-mod>Ctrl</span> K</kbd>
       </button>
-      <Button href={primaryCta.href} size="sm" class="hdr__cta" aria-current={path.startsWith('/contact/') ? 'page' : undefined}>{primaryCta.label}</Button>
+      <Button href={primaryCta.href} size="sm" class:list={['hdr__cta', path === '/' && 'is-quiet']} data-hdr-cta aria-current={path.startsWith('/contact/') ? 'page' : undefined}>{primaryCta.label}</Button>
       <button class="menu-btn" type="button" data-menu-open aria-haspopup="dialog" aria-controls="site-menu" aria-expanded="false">
         <span class="menu-btn__text">Menu</span>
         <span class="menu-btn__lines" aria-hidden="true"><i></i><i></i></span>
@@ -138,6 +138,8 @@ const mail = emailHref();
   if (header) {
     // Solid bar once the page scrolls; reading progress on the lime line (rAF-throttled, transform only).
     const bar = header.querySelector<HTMLElement>('[data-read]');
+    // Browsers with scroll timelines draw the progress in CSS; others get it from here.
+    const cssProgress = CSS.supports('animation-timeline: scroll()');
     let ticking = false;
     const onScroll = () => {
       if (ticking) return;
@@ -146,8 +148,10 @@ const mail = emailHref();
         ticking = false;
         const y = window.scrollY;
         header.classList.toggle('is-scrolled', y > 8);
-        const max = document.documentElement.scrollHeight - innerHeight;
-        bar?.style.setProperty('--p', String(max > 0 ? Math.min(1, y / max) : 0));
+        if (!cssProgress) {
+          const max = document.documentElement.scrollHeight - innerHeight;
+          bar?.style.setProperty('--p', String(max > 0 ? Math.min(1, y / max) : 0));
+        }
       });
     };
     if ('requestIdleCallback' in window) requestIdleCallback(onScroll, { timeout: 1000 });
@@ -194,23 +198,36 @@ const mail = emailHref();
       if (target === sheet) closeSheet();
     });
     // The menu is for phones and tablets: close it if the window grows to the desktop layout.
-    matchMedia('(min-width: 64em)').addEventListener('change', (q) => q.matches && sheet.open && sheet.close());
+    // (With enlarged text the bar keeps the Menu button at any width, so the menu stays usable.)
+
+    // D5 (17 Nov 2026, kept): on Home the header button is an outline while the hero's lime button is on screen, so only
+    // one lime button shows at a time; it turns lime once the hero button scrolls away. It never moves.
+    const quiet = header.querySelector<HTMLElement>('[data-hdr-cta].is-quiet');
+    const heroCta = document.querySelector('[data-hero-cta]');
+    if (quiet && heroCta) {
+      new IntersectionObserver(([en]) => quiet.classList.toggle('is-quiet', en.isIntersecting), { rootMargin: `-${header.offsetHeight}px 0px 0px 0px` }).observe(heroCta);
+    }
   }
 </script>
 
 <style>
+  /* A solid ink bar (Mann, 18 Nov 2026: text scrolling underneath never shows through the wordmark). The layout follows
+     the header's own width in rem, so with enlarged text it falls back to the Menu button instead of overflowing. */
   .hdr {
     position: sticky;
     top: 0;
     z-index: 50;
     view-transition-name: site-header;
-    background: color-mix(in oklab, var(--ink) 72%, transparent);
-    backdrop-filter: blur(14px) saturate(1.2);
-    -webkit-backdrop-filter: blur(14px) saturate(1.2);
-    transition: background-color var(--dur-3) var(--ease-out);
+    container: hdr / inline-size;
+    isolation: isolate;
   }
-  .hdr.is-scrolled {
-    background: color-mix(in oklab, var(--ink) 92%, transparent);
+  .hdr::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--ink);
+    opacity: 1;
   }
   .hdr__bar {
     display: flex;
@@ -226,7 +243,7 @@ const mail = emailHref();
     flex: none;
   }
   .hdr__brand :global(.hdr__logo) {
-    height: 0.95rem;
+    height: 1rem;
     width: auto;
   }
   .hdr__live {
@@ -314,6 +331,12 @@ const mail = emailHref();
   .hdr__actions :global(.hdr__cta) {
     display: none;
   }
+  .hdr__actions :global(.hdr__cta.is-quiet) {
+    --btn-bg: transparent;
+    --btn-fg: var(--text);
+    --btn-hover-bg: var(--surface);
+    --btn-border: var(--control);
+  }
   .menu-btn {
     display: inline-flex;
     align-items: center;
@@ -361,6 +384,23 @@ const mail = emailHref();
     transform-origin: left;
     transform: scaleX(var(--p, 0));
   }
+  /* Reading progress from the page's own scroll timeline (no script); the script fallback sets --p elsewhere. */
+  @supports (animation-timeline: scroll()) {
+    :global(:root[data-motion='on']) .hdr__line i {
+      animation-name: read-progress;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: scroll(root);
+    }
+  }
+  @keyframes read-progress {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
   /* Without JavaScript: the links show as a plain row and the Menu button hides. */
   :global(html:not(.js)) .menu-btn {
     display: none;
@@ -369,7 +409,7 @@ const mail = emailHref();
     display: block;
     overflow-x: auto;
   }
-  @media (min-width: 64em) {
+  @container hdr (min-width: 64rem) {
     .hdr__nav,
     .qm-trigger {
       display: flex;
@@ -384,7 +424,7 @@ const mail = emailHref();
       display: none;
     }
   }
-  @media (min-width: 80em) {
+  @container hdr (min-width: 80rem) {
     .hdr__live {
       display: inline-flex;
     }
@@ -490,6 +530,47 @@ const mail = emailHref();
     align-items: center;
     min-height: var(--tap);
     color: inherit;
+  }
+  /* Short screens (down to 320 × 568): the whole menu, down to Privacy and Terms, fits on one screen. */
+  @media (max-height: 760px) {
+    .sheet__inner {
+      gap: var(--s-3);
+    }
+    .sheet__top {
+      min-height: var(--tap);
+    }
+    .sheet__links a {
+      min-height: var(--tap);
+      padding-block: 0;
+      align-items: center;
+    }
+    .sheet__label {
+      font-size: var(--fs-h3);
+    }
+    .sheet__foot {
+      gap: var(--s-2);
+    }
+    .sheet__reach {
+      display: flex;
+      flex-wrap: wrap;
+      column-gap: var(--s-4);
+    }
+    .sheet__foot :global(.sheet__cta) {
+      min-height: var(--tap);
+    }
+  }
+  @media (max-height: 600px) {
+    .sheet__inner {
+      padding-top: var(--s-2);
+      padding-bottom: var(--s-3);
+      gap: var(--s-2);
+    }
+    .sheet__reach li + li {
+      display: none;
+    }
+    .sheet__label {
+      font-size: var(--fs-lead);
+    }
   }
   :root[data-motion='on'] .sheet[open] {
     animation: sheet-in var(--dur-3) var(--ease-out);

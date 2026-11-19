@@ -84,6 +84,7 @@ const hostOf = (url: string) => new URL(url).host.replace(/^www\./, '');
                   <p class="reel__labels">
                     <span>{p.relationship}</span>
                     <Status status={p.status} paused={site.paused} />
+                    <span class="num">Checked {fmtDate(p.checked)}</span>
                   </p>
                 </header>
 
@@ -134,14 +135,14 @@ const hostOf = (url: string) => new URL(url).host.replace(/^www\./, '');
                       <dt>B · My role</dt>
                       <dd>{p.roleShort}</dd>
                     </div>
-                    <div>
+                    <div class="reel__spec-wide">
                       <dt>C · Status</dt>
                       <dd>
                         {site.websiteStatus}
                         {p.businessStatus && <> · {p.businessStatus}</>}
                       </dd>
                     </div>
-                    <div>
+                    <div class="reel__spec-wide">
                       <dt>D · Checked</dt>
                       <dd class="num">{fmtDate(p.checked)}</dd>
                     </div>
@@ -232,6 +233,10 @@ const hostOf = (url: string) => new URL(url).host.replace(/^www\./, '');
 </script>
 
 <style>
+  /* Real work starts by y≈1000 on a 1440 × 900 desktop (acceptance target since round 7): a tight top. */
+  .reel {
+    padding-top: clamp(var(--s-6), 3vw, var(--s-7));
+  }
   .reel__head {
     align-items: end;
   }
@@ -495,6 +500,15 @@ const hostOf = (url: string) => new URL(url).host.replace(/^www\./, '');
     }
   }
 
+  /* Phones: status and date already sit in the card's labels. */
+  .reel__spec-wide {
+    display: none !important;
+  }
+  @media (min-width: 64em) {
+    .reel__spec-wide {
+      display: grid !important;
+    }
+  }
   @media (min-width: 40em) {
     .reel__spec {
       grid-template-columns: repeat(2, minmax(0, 1fr));

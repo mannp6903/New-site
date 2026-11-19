@@ -43,17 +43,17 @@ for (const file of (await readdir(`${root}src/content/work`)).filter((f) => f.en
 @font-face{font-family:Sans;src:url(${font('geist-sans-wght.sub.woff2')}) format('woff2');font-weight:100 900}
 @font-face{font-family:Mono;src:url(${font('geist-mono-wght.sub.woff2')}) format('woff2');font-weight:100 900}
 *{margin:0;box-sizing:border-box}
-body{width:1200px;height:630px;background:#0b0b0c;color:#f2f1ec;font-family:Sans;position:relative;overflow:hidden}
+body{width:1200px;height:630px;background:#10110f;color:#f3f1e8;font-family:Sans;position:relative;overflow:hidden}
 .copy{position:absolute;left:64px;top:56px;right:64px;display:grid;gap:18px}
-.k{font-family:Mono;font-size:17px;letter-spacing:.08em;text-transform:uppercase;color:#8d8c86;display:flex;align-items:center;gap:12px}
-.k i{width:10px;height:10px;border-radius:50%;background:#d4f84a}
+.k{font-family:Mono;font-size:17px;letter-spacing:.08em;text-transform:uppercase;color:#94928a;display:flex;align-items:center;gap:12px}
+.k i{width:10px;height:10px;border-radius:50%;background:#c9f64a}
 h1{font-weight:600;font-size:76px;line-height:.95;letter-spacing:-.045em}
 .tags{display:flex;gap:10px;flex-wrap:wrap}
-.tags span{font-family:Mono;font-size:17px;padding:7px 14px;border:1px solid #2a2a2f;border-radius:999px;color:#b3b2ab;display:flex;align-items:center;gap:9px}
-.tags b{width:9px;height:9px;border-radius:50%;background:${live ? '#d4f84a' : '#f5c451'}}
-.shot{position:absolute;left:64px;right:64px;top:300px;height:380px;border-radius:18px 18px 0 0;overflow:hidden;border:1px solid #2a2a2f;border-bottom:0;background:#fff}
+.tags span{font-family:Mono;font-size:17px;padding:7px 14px;border:1px solid #30322b;border-radius:999px;color:#bdbbb0;display:flex;align-items:center;gap:9px}
+.tags b{width:9px;height:9px;border-radius:50%;background:${live ? '#c9f64a' : '#f5c451'}}
+.shot{position:absolute;left:64px;right:64px;top:300px;height:380px;border-radius:18px 18px 0 0;overflow:hidden;border:1px solid #30322b;border-bottom:0;background:#fff}
 .shot img{width:100%;display:block}
-.url{position:absolute;right:64px;top:62px;font-family:Mono;font-size:17px;color:#8d8c86}
+.url{position:absolute;right:64px;top:62px;font-family:Mono;font-size:17px;color:#94928a}
 </style></head><body>
 <div class="copy"><p class="k"><i></i>Case study · Mann Patel</p><h1>${title.replace(/&/g, '&amp;')}</h1>
 <div class="tags">${labels.map((l, i) => `<span>${i === 1 ? '<b></b>' : ''}${l}</span>`).join('')}</div></div>

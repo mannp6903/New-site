@@ -74,10 +74,13 @@ import Icon from './ui/Icon.astro';
     box-shadow: var(--shadow-float);
     opacity: 0;
     transform: translateY(12px);
+    /* Hidden from keyboards and screen readers until it appears (visibility flips after the fade out). */
+    visibility: hidden;
     transition:
       opacity var(--dur-2) var(--ease-out),
       transform var(--dur-2) var(--ease-out),
-      color var(--dur-1);
+      color var(--dur-1),
+      visibility 0s linear var(--dur-2);
   }
   .dock.is-on {
     pointer-events: auto;
@@ -85,6 +88,8 @@ import Icon from './ui/Icon.astro';
   .dock.is-on .dock__top {
     opacity: 1;
     transform: none;
+    visibility: visible;
+    transition-delay: 0s;
   }
   .dock__top:hover,
   .dock__top:focus-visible {

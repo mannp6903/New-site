@@ -45,6 +45,8 @@ export function initPlayground(root: HTMLElement) {
       }),
     );
     let dragging = false;
+    // The images inside must not start the browser's own image drag (it steals the pointer).
+    ba.addEventListener('dragstart', (e) => e.preventDefault());
     const fromPointer = (e: PointerEvent) => {
       const r = ba.getBoundingClientRect();
       set(((e.clientX - r.left) / r.width) * 100);

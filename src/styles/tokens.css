@@ -141,7 +141,7 @@
   /* Fluid from 360 to 1440px. A component picks one of these, never a raw size (tests/unit/design-tokens.test.ts).
      The hierarchy holds at every width: display ≥ hero ≥ h1 > h2 > h3 > lead > base > ui > sm > label. */
   --fs-display: clamp(3rem, 0.9rem + 9.33vw, 9.5rem); /* 48 → 152px: the oversized scene words */
-  --fs-hero: clamp(2.75rem, 1rem + 7.78vw, 8rem); /* 44 → 128px: the Home H1 */
+  --fs-hero: clamp(2.75rem, 0.6rem + 6.4vw, 7rem); /* 44 → 102px at 1440 → 112px: the Home H1, one fluid size at every width */
   --fs-h1: clamp(2.5rem, 1.5rem + 4.44vw, 5.5rem); /* 40 → 88px: page titles */
   --fs-h2: clamp(2rem, 1.25rem + 3.33vw, 4.25rem); /* 32 → 68px: scene titles */
   --fs-h3: clamp(1.375rem, 1.19rem + 0.83vw, 1.875rem); /* 22 → 30px: item titles */
@@ -151,7 +151,6 @@
   --fs-sm: 0.9375rem; /* 15px: hints, captions */
   --fs-label: 0.8125rem; /* 13px: mono labels; the floor for visible text */
   /* Named display sizes for specific places (still fluid, still in the hierarchy). */
-  --fs-hero-wide: clamp(4.5rem, 1rem + 5.6vw, 8rem); /* the Home H1 beside the stage, ≥ 1024px */
   --fs-title: clamp(2.25rem, 1.3rem + 4.2vw, 5rem); /* long, descriptive page titles (PageHead compact) */
   --fs-menu: clamp(1.75rem, 1rem + 4vw, 3rem); /* the full-screen menu's links */
   --fs-deck: clamp(1.5rem, 1rem + 2.2vw, 2.75rem); /* the second line of an editorial title deck (About) */
@@ -183,8 +182,8 @@
   --s-8: 4rem;
   --s-9: 6rem;
   --s-10: 8rem;
-  --section: clamp(4rem, 1.6rem + 10.4vw, 11rem);
-  --section-tight: clamp(2.5rem, 1.3rem + 5.2vw, 6rem);
+  --section: clamp(3rem, 0.2rem + 10.9vw, 11rem); /* 48 → 160px */
+  --section-tight: clamp(2rem, 0.9rem + 5vw, 6rem); /* 32 → 88px */
   --head-gap-1: clamp(0.75rem, 0.6rem + 0.5vw, 1.25rem);
   --head-gap-2: clamp(1rem, 0.75rem + 0.9vw, 1.75rem);
   --container: 96rem;

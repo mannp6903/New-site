@@ -46,10 +46,10 @@ const font = (f) => `file://${root}public/fonts/${f}`;
 const html = `<!doctype html><html><head><meta charset="utf-8"><style>
 @font-face{font-family:Mono;src:url(${font('geist-mono-latin-wght.woff2')}) format('woff2');font-weight:100 900}
 *{margin:0;box-sizing:border-box}
-body{width:1200px;height:630px;background:#000;color:#ededed;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:46px}
+body{width:1200px;height:630px;background:#10110f;color:#f3f1e8;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:46px}
 .wm{width:760px;height:auto;display:block}
-.tag{font-family:Mono;font-weight:400;font-size:15px;letter-spacing:.34em;text-transform:uppercase;color:#8f8f8f;padding-left:.34em}
-.url{position:absolute;left:0;right:0;bottom:56px;text-align:center;font-family:Mono;font-size:15px;letter-spacing:.12em;color:#8f8f8f}
+.tag{font-family:Mono;font-weight:400;font-size:15px;letter-spacing:.34em;text-transform:uppercase;color:#94928a;padding-left:.34em}
+.url{position:absolute;left:0;right:0;bottom:56px;text-align:center;font-family:Mono;font-size:15px;letter-spacing:.12em;color:#94928a}
 </style></head><body>
 ${wordmark}
 <p class="tag">Found. Answered. Booked.</p>

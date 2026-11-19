@@ -64,7 +64,7 @@ const paid = packages.filter((p) => p.price.amount);
             paid.map((p) => (
               <li>
                 <span class="pb__pname">{p.name}</span>
-                <span class="pb__price num">{priceLabel(p).text}</span>
+                <span class="pb__price num" data-price>{priceLabel(p).text}</span>
                 <span class="pb__terms">{priceTerms(p)}</span>
               </li>
             ))

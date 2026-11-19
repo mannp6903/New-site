@@ -457,15 +457,18 @@ p {
   border-color: var(--signal);
   color: var(--signal);
 }
+/* A demo's own action: a lime outline, never a lime fill (a lime fill means the page's main action). */
 .demo-btn--primary {
   border-color: var(--signal);
-  background: var(--signal);
-  color: var(--on-signal);
+  color: var(--text);
+}
+.demo-btn--primary .icon {
+  color: var(--signal);
 }
 .demo-btn--primary:hover,
 .demo-btn--primary:focus-visible {
-  border-color: var(--signal-strong);
-  background: var(--signal-strong);
+  border-color: var(--signal);
+  background: var(--signal-wash);
 }
 .demo-btn .icon {
   width: 1rem;
@@ -655,6 +658,14 @@ p {
 }
 .btn__label > span {
   display: block;
+}
+@media (max-width: 26em) {
+  .btn__label {
+    padding-inline: 1rem 0.85rem;
+  }
+  .btn__icon {
+    width: 2.75rem;
+  }
 }
 .btn__icon {
   position: relative;

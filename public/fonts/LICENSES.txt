@@ -104,3 +104,9 @@ INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
 DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 OTHER DEALINGS IN THE FONT SOFTWARE.
+
+Mann Display (mann-display-wght.woff2), added 19 Nov 2026
+Copyright 2022 The Mona Sans Project Authors (https://github.com/github/mona-sans), with Reserved Font Name "Mona".
+A Modified Version of Mona Sans (from @fontsource-variable/mona-sans 5.3): the width axis fixed at 125 (Expanded),
+the weight axis limited to 500-800, subset to the characters the site uses, hinting removed. Renamed "Mann Display"
+as the Reserved Font Name requires (scripts/redesign/make-display-font.py). Licensed under the SIL Open Font License 1.1.

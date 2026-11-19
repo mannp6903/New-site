@@ -11,11 +11,12 @@
  * First frame: the website scene, complete and static, without waiting for any script. Each scene plays once (under 4 s)
  * and can be replayed; nothing loops. Scene visuals are illustrations (aria-hidden) described by each panel's caption.
  */
-import { Image } from 'astro:assets';
+import { Image, Picture } from 'astro:assets';
 import Button from '../ui/Button.astro';
 import Icon from '../ui/Icon.astro';
 import { packageById, priceLabel } from '../../data/packages';
 import cutout from '../../assets/mann-patel-cutout.png';
+import face from '../../assets/mann-patel-face.jpg';
 import nrDesktop from '../../assets/work/nest-and-rest/live-2026-11-08-desktop.png';
 
 const visibility = packageById('local-visibility')!;
@@ -62,6 +63,7 @@ const needs = [
   <div class="container hero__grid">
     <div class="hero__copy">
       <p class="hero__kicker mono" data-reveal="load">
+        <Image src={face} alt="" width={64} height={64} widths={[64, 128]} sizes="2rem" class="hero__avatar" loading="eager" />
         <span>Mann Patel</span><span aria-hidden="true">·</span><span>Toronto</span><span class="hero__kicker-more" aria-hidden="true">· Web designer and automation builder</span>
       </p>
       <h1 class="hero__title" id="hero-title" data-split="load">
@@ -72,13 +74,13 @@ const needs = [
         <span class="hero__desc" data-reveal="load" style="--d:6">Websites, local SEO and AI automation for Toronto businesses.</span>
       </h1>
       <div class="hero__actions" data-reveal="load" style="--d:8">
-        <Button href="/contact/?package=check-up#check" data-magnetic>Get a free website &amp; Google check</Button>
+        <Button href="/contact/?package=check-up#check" data-magnetic data-hero-cta>Get a free website and Google check</Button>
         <a class="link-arrow hero__work" href="#work">Explore my work <Icon name="arrow-down" /></a>
       </div>
       <p class="hero__prices mono" data-reveal="load" style="--d:10">
-        <a href="/pricing/"><span class="num">{priceLabel(visibility).text}</span> Google and AI visibility setup</a>
+        <a href="/pricing/" data-price><span class="num">{priceLabel(visibility).text}</span> Google and AI visibility setup</a>
         <span aria-hidden="true">·</span>
-        <a href="/pricing/"><span class="num">{priceLabel(launch).text}</span> website</a>
+        <a href="/pricing/" data-price><span class="num">{priceLabel(launch).text}</span> website</a>
         <span aria-hidden="true">·</span>
         <span>CAD, plus tax</span>
       </p>
@@ -122,13 +124,16 @@ const needs = [
         <div class="sc sc-web" aria-hidden="true">
           <div class="sc-web__browser">
             <span class="sc-web__bar"><i></i><i></i><i></i><b>nestnrestcleaning.com</b></span>
-            <Image
+            <Picture
               src={nrDesktop}
               alt=""
+              formats={['avif']}
+              fallbackFormat="webp"
               widths={[480, 720, 960]}
               sizes="(min-width: 64em) 30vw, 66vw"
               quality={60}
               loading="eager"
+              fetchpriority="high"
               class="sc-web__shot"
             />
             <span class="sc-web__select"><i></i><i></i><i></i><i></i><b class="mono">Price on the first screen</b></span>
@@ -183,14 +188,15 @@ const needs = [
         </svg>
 
         <figure class="stage__person">
-          <Image
+          <Picture
             src={cutout}
             alt="Mann Patel, smiling, in a dark green sweatshirt"
+            formats={['avif']}
+            fallbackFormat="webp"
             widths={[240, 360, 480, 640]}
             sizes="(min-width: 64em) 20vw, 44vw"
             quality={70}
             loading="eager"
-            fetchpriority="high"
             class="stage__portrait"
           />
           <figcaption class="stage__name mono"><b>Mann Patel</b> designs, builds and runs it</figcaption>
@@ -259,24 +265,34 @@ const needs = [
     text-transform: uppercase;
     color: var(--text-3);
   }
-  .hero__kicker span:first-child {
+  .hero__kicker {
+    align-items: center;
+  }
+  .hero__kicker > span:first-of-type {
     color: var(--text);
+  }
+  /* Phones: Mann's face beside his name on the first screen (the stage portrait comes after the buttons there). */
+  .hero__kicker :global(.hero__avatar) {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    margin-right: 0.15rem;
+    border: 1px solid var(--line);
+    object-fit: cover;
   }
   .hero__kicker-more {
     display: none;
   }
+  /* The H1 carries the display size itself (the largest text on the page); its service line sets its own. */
   .hero__title {
     display: grid;
     gap: var(--s-4);
-    font-size: inherit;
-    line-height: 1;
-    letter-spacing: 0;
-  }
-  .hero__big {
-    display: block;
     font-size: var(--fs-hero);
     line-height: 0.9;
     letter-spacing: var(--track-display);
+  }
+  .hero__big {
+    display: block;
   }
   .hero__big .stop {
     display: inline-block;
@@ -356,8 +372,8 @@ const needs = [
     font-weight: var(--w-ui);
     line-height: 1.2;
     text-align: left;
+    /* No transition on the background: the selected state shows in the same frame (MOTION.md). */
     transition:
-      background-color var(--dur-1) var(--ease-out),
       border-color var(--dur-1) var(--ease-out),
       color var(--dur-1) var(--ease-out);
   }
@@ -998,11 +1014,11 @@ const needs = [
       grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
       gap: clamp(var(--s-7), 5vw, var(--s-10));
     }
-    .hero__big {
-      font-size: var(--fs-hero-wide);
-    }
     .hero__connector {
       display: block;
+    }
+    .hero__kicker :global(.hero__avatar) {
+      display: none;
     }
     .stage {
       gap: var(--s-3);

@@ -141,7 +141,7 @@ import cutout from '../../assets/mann-patel-cutout.png';
     font-size: var(--fs-label);
   }
   .person__sheet {
-    display: grid;
+    display: none;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--s-2);
     max-width: 22rem;
@@ -174,8 +174,8 @@ import cutout from '../../assets/mann-patel-cutout.png';
     margin-top: calc(var(--head-gap-1) - var(--s-5));
   }
   .person__copy h2 {
-    font-size: var(--fs-display);
-    line-height: 0.92;
+    font-size: var(--fs-h2);
+    line-height: 0.95;
   }
   .person__lead {
     max-width: 38ch;
@@ -206,6 +206,11 @@ import cutout from '../../assets/mann-patel-cutout.png';
   .person__facts dd {
     margin: 0;
     font-size: var(--fs-sm);
+  }
+  @media (min-width: 40em) {
+    .person__sheet {
+      display: grid;
+    }
   }
   @media (min-width: 64em) {
     .person__grid {

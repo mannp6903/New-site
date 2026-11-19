@@ -6,6 +6,7 @@ import PageHead from '../../components/PageHead.astro';
 import Status from '../../components/work/Status.astro';
 import ProjectMedia from '../../components/work/ProjectMedia.astro';
 import Icon from '../../components/ui/Icon.astro';
+import ReelPlayer from '../../components/ReelPlayer.astro';
 import { breadcrumbJsonLd } from '../../lib/seo';
 import { projectSite } from '../../lib/work';
 import { industryPages } from '../../data/industry-pages';
@@ -32,6 +33,17 @@ const crumbs = breadcrumbJsonLd([
     {/* U4 (design upgrade Phase 3): a main button within the first two phone screens. */}
     <div class="btn-row" data-reveal="load" style="--d:5"><Button href="/contact/?package=check-up#check">Get a free website and Google check</Button></div>
   </PageHead>
+
+  <section class="section section--tight work-reel" aria-labelledby="reel-title">
+    <div class="container work-reel__grid">
+      <div class="stack" style="--stack: var(--s-4)">
+        <p class="eyebrow">Studio reel</p>
+        <h2 id="reel-title" class="work-reel__title">Twenty seconds <span class="accent">of the work moving</span><span class="stop">.</span></h2>
+        <p class="muted">A silent recording of this site’s own demonstrations. The projects below are the real thing, each with its case study.</p>
+      </div>
+      <ReelPlayer />
+    </div>
+  </section>
 
   <section class="section section--tight paper" aria-label="Projects">
     <div class="container">
@@ -110,6 +122,21 @@ const crumbs = breadcrumbJsonLd([
 </BaseLayout>
 
 <style>
+  .work-reel__grid {
+    display: grid;
+    gap: var(--s-6);
+    align-items: center;
+  }
+  .work-reel__title {
+    font-size: var(--fs-h2);
+    max-width: 12ch;
+  }
+  @media (min-width: 64em) {
+    .work-reel__grid {
+      grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.6fr);
+      gap: var(--s-9);
+    }
+  }
   .rows {
     display: grid;
     gap: var(--s-5);

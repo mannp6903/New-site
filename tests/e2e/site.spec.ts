@@ -106,7 +106,7 @@ test.describe('pages', () => {
   test('404 page returns a real 404 status and offers a way back', async ({ page }) => {
     const res = await page.goto('/this-does-not-exist/');
     expect(res?.status()).toBe(404);
-    await expect(page.locator('h1')).toHaveText('This page wasn’t found.');
+    await expect(page.locator('h1')).toHaveText('Nothing to connect to here.');
     await expect(page.getByRole('link', { name: 'Go to the home page' })).toHaveAttribute('href', '/');
   });
 
@@ -174,7 +174,8 @@ test.describe('pages', () => {
   // The copy map from the growth report (10 Nov 2026), updated by the SEO audit (14 Nov 2026,
   // docs/seo/PLAN.md): each page names its service and the place.
   const COPY: [string, string, string, string][] = [
-    ['/', 'Web Design & Local SEO in Scarborough, Toronto | Mann Patel', 'Websites and local SEO for Toronto small businesses.', 'Websites, local SEO and Google Business Profile setup for Toronto small businesses. Published prices: websites from $1,950 CAD. Free website check.'],
+    // MANN / IN MOTION (19 Nov 2026): one H1, the line and the service with its place.
+    ['/', 'Web Design & Local SEO in Scarborough, Toronto | Mann Patel', 'Make your next move. Websites, local SEO and AI automation for Toronto businesses.', 'Websites, local SEO and Google Business Profile setup for Toronto small businesses. Published prices: websites from $1,950 CAD. Free website check.'],
     ['/services/', 'Website, Local SEO & Booking Services | Mann Patel', 'Website, local SEO and enquiry services', 'Compare web design, local SEO, Google Business Profile setup and enquiry automation for Toronto service businesses. See packages and request a quote.'],
     ['/services/web-design/', 'Toronto Small Business Web Design | Mann Patel', 'Web design for Toronto small businesses', 'Get a mobile-friendly website or redesign with clear service pages, a tested enquiry path and a written handover. See projects and ask for a quote.'],
     ['/services/local-visibility/', 'Local SEO & Google Business Profile Toronto | Mann Patel', 'Local SEO and Google Business Profile setup in Toronto', 'Improve your Google presence with eligible profile setup, listing updates and a review workflow. Ask about SEO foundations and an AI search check.'],
@@ -326,35 +327,25 @@ test.describe('layout', () => {
     test(`the service-led H1 and the free-check button are visible without scrolling at ${w}px`, async ({ page }) => {
       await page.setViewportSize({ width: w, height: h });
       await page.goto('/');
-      // The H1 names the service and the place (growth report, 10 Nov 2026); the slogan moved to the process strip.
+      // MANN / IN MOTION (19 Nov 2026): one H1, "Make your next move." plus the service and the place.
       const h1 = page.locator('h1');
-      expect((await h1.innerText()).replace(/\s+/g, ' ').trim()).toBe('Websites and local SEO for Toronto small businesses.');
+      expect((await h1.innerText()).replace(/\s+/g, ' ').trim()).toBe('Make your next move. Websites, local SEO and AI automation for Toronto businesses.');
       await expect(h1).toBeInViewport();
       const hero = page.locator('.hero');
-      // 14 Nov 2026: who you're dealing with comes first (round 3: no small face; the photo is the graph's core).
-      await expect(hero.locator('.hero__hi')).toHaveText('Hi, I’m Mann Patel.');
-      await expect(hero.locator('.hero__face')).toHaveCount(0);
+      await expect(hero.locator('.hero__kicker')).toContainText('Mann Patel');
       const cta = hero.getByRole('link', { name: 'Get a free website and Google check' });
       await expect(cta).toBeInViewport();
       await expect(cta).toHaveAttribute('href', '/contact/?package=check-up#check');
-      await expect(hero.getByRole('link', { name: 'See prices' })).toHaveAttribute('href', '/pricing/');
-      await expect(hero.locator('.hero__price')).toContainText('$1,950 website');
-      // D1 (design upgrade, 17 Nov 2026): no service chips in the hero; the services section right below links all three
-      // core services (was: three chips in the hero, 14 Nov 2026).
-      await expect(hero.locator('.hero__services')).toHaveCount(0);
-      for (const href of ['/services/local-visibility/', '/services/enquiry-follow-up/', '/services/web-design/'])
-        await expect(page.locator(`#what-i-do a[href="${href}"]`)).toHaveCount(1);
-      await expect(hero.locator('.hero__price')).toBeInViewport();
-      // D2 (design upgrade, 17 Nov 2026): no recent-work cards in the hero; Selected Work, with both projects, comes
-      // straight after it (was: dated cards next to the buttons, 13 Nov 2026).
-      await expect(hero.locator('.hero__recent')).toHaveCount(0);
-      expect(await page.evaluate(() => document.getElementById('hero')!.nextElementSibling?.id)).toBe('work');
+      await expect(hero.getByRole('link', { name: 'Explore my work' })).toHaveAttribute('href', '#work');
+      await expect(hero.locator('.hero__prices')).toContainText('$1,950 website');
+      await expect(hero.locator('.hero__prices a[href="/pricing/"]').first()).toBeAttached();
+      // The stage's three needs link to the three core services.
+      for (const href of ['/services/local-visibility/', '/services/enquiry-follow-up/', '/work/nest-and-rest-cleaning/'])
+        await expect(hero.locator(`a[href="${href}"]`)).toHaveCount(1);
+      // Selected work comes straight after the hero.
+      expect(await page.evaluate(() => { let n = document.getElementById('hero')!.nextElementSibling; while (n && n.tagName === 'SCRIPT') n = n.nextElementSibling; return n?.id; })).toBe('work');
       await expect(page.locator('#work a[href="/work/samp-hair-spa/"]').first()).toBeAttached();
       await expect(page.locator('#work a[href="/work/nest-and-rest-cleaning/"]').first()).toBeAttached();
-      // The two actions sit side by side, in this order.
-      const actions = await hero.locator('.hero__actions .btn-row a').evaluateAll((els) => els.map((e) => e.textContent!.replace(/\s+/g, ' ').trim()));
-      expect(actions[0]).toContain('Get a free website and Google check');
-      expect(actions[1]).toContain('See prices');
     });
   }
 
@@ -375,7 +366,7 @@ test.describe('layout', () => {
       await page.goto('/');
       const pos = await page.evaluate(() => ({
         heading: document.getElementById('work-title')!.getBoundingClientRect().top + scrollY,
-        card: document.querySelector('#work article')!.getBoundingClientRect().top + scrollY,
+        card: [...document.querySelectorAll('#work article')].find((a) => a.getBoundingClientRect().height > 0)!.getBoundingClientRect().top + scrollY,
       }));
       expect(pos.heading).toBeLessThanOrEqual(maxHeading);
       expect(pos.card).toBeLessThanOrEqual(maxCard);
@@ -393,9 +384,9 @@ test.describe('navigation', () => {
     const sheet = page.locator('#site-menu');
     await expect(sheet).toBeVisible();
     await expect(btn).toHaveAttribute('aria-expanded', 'true');
-    // Home + Work, Services, Pricing, Guides, About (Guides joined in the Nov 2026 audit fixes). D3 (design upgrade,
-    // 17 Nov 2026): Vision moved from the menu to the footer (was 7 links).
-    await expect(sheet.getByRole('navigation', { name: 'Menu' }).getByRole('link')).toHaveCount(6);
+    // Home + Work, Services, Pricing, Guides, About + Contact (MANN / IN MOTION, 19 Nov 2026: Contact joins the numbered
+    // list; the free check is the menu's button). Vision stays in the footer (D3).
+    await expect(sheet.getByRole('navigation', { name: 'Menu' }).getByRole('link')).toHaveCount(7);
     await expect(sheet.getByRole('link', { name: 'Guides', exact: true })).toHaveAttribute('href', '/guides/');
     await expect(sheet.getByRole('link', { name: 'Pricing', exact: true })).toHaveAttribute('href', '/pricing/');
     await expect(sheet.getByRole('link', { name: 'Vision', exact: true })).toHaveCount(0);
@@ -410,15 +401,18 @@ test.describe('navigation', () => {
     await expect(btn).toBeFocused();
   });
 
-  test('phone menu dismisses from the backdrop and marks the current page', async ({ page }) => {
+  test('phone menu closes from its close button, marks the current page, and carries the Motion switch', async ({ page }) => {
+    // MANN / IN MOTION (19 Nov 2026): the menu is a full-screen panel (no backdrop to click), so it closes with its close
+    // button, Escape, or by following a link.
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/services/');
     const btn = page.locator('[data-menu-open]');
     await btn.click();
     const sheet = page.locator('#site-menu');
     await expect(sheet.getByRole('link', { name: 'Services', exact: true })).toHaveAttribute('aria-current', 'page');
+    await expect(sheet.getByRole('button', { name: /Motion/ })).toHaveAttribute('aria-pressed', /true|false/);
     await page.waitForTimeout(400);
-    await page.mouse.click(2, 400);
+    await sheet.getByRole('button', { name: 'Close menu' }).click();
     await expect(sheet).toBeHidden();
     await expect(btn).toBeFocused();
   });
@@ -430,13 +424,16 @@ test.describe('navigation', () => {
     ]) {
       await page.setViewportSize(viewport);
       await page.goto('/');
-      // Past the first-visit lock-on (done by 1.7 s, gate M3).
-      await page.waitForTimeout(2000);
-      // Every letter of the header wordmark is fully shown: on load, scrolled well past the hero, and back at the top.
+      await page.waitForTimeout(1200);
+      // The whole header wordmark is shown, fully opaque and inside the bar: on load, scrolled well past the hero, and
+      // back at the top (MANN / IN MOTION: one outlined SVG, no per-letter animation).
       const shown = () =>
-        page.evaluate(() =>
-          [...document.querySelectorAll('[data-header] .wordmark [data-k-ch]')].map((g) => Number(getComputedStyle(g).opacity)),
-        );
+        page.evaluate(() => {
+          const svg = document.querySelector('[data-header] .hdr__brand svg')!;
+          const r = svg.getBoundingClientRect();
+          const visible = r.width > 100 && r.top >= 0 && r.bottom <= document.querySelector('[data-header]')!.getBoundingClientRect().bottom;
+          return Array(9).fill(visible && Number(getComputedStyle(svg).opacity) === 1 ? 1 : 0);
+        });
       expect(await shown(), `${viewport.width}px on load`).toEqual(Array(9).fill(1));
       await page.mouse.wheel(0, 2500);
       await page.waitForTimeout(800);
@@ -528,74 +525,37 @@ test.describe('navigation', () => {
 });
 
 test.describe('home interactions', () => {
-  test('the hero photo is the core of the agent graph: real, sized for the screen, and loaded first', async ({ page }) => {
-    for (const [w, h, min] of [[390, 844, 170], [1440, 900, 190]]) {
+  // MANN / IN MOTION (19 Nov 2026): the stage replaced the agent graph. Interaction details are in redesign.spec.ts.
+  test('the stage portrait is Mann\'s real photo, sized for the screen, and loaded first', async ({ page }) => {
+    for (const [w, h, min] of [[390, 844, 150], [1440, 900, 200]]) {
       await page.setViewportSize({ width: w, height: h });
       await page.goto('/');
-      const photo = page.locator('.hero [data-agent-graph] .ag__photo');
+      const photo = page.locator('.hero .stage__portrait');
       await expect(photo).toBeVisible();
-      await expect(photo).toHaveAttribute('alt', /Mann Patel smiling/);
-      await expect(photo).toHaveAttribute('fetchpriority', 'high');
-      await page.waitForFunction(() => (document.querySelector('.ag__photo') as HTMLImageElement).naturalWidth > 0);
-      const box = (await photo.boundingBox())!;
-      expect(box.width).toBeGreaterThanOrEqual(min);
-      // Only the layout for this screen is shown: left-to-right on desktop, top-to-bottom on phones.
-      await expect(page.locator(w >= 1024 ? '.ag__svg--wide' : '.ag__svg--tall')).toBeVisible();
-      await expect(page.locator(w >= 1024 ? '.ag__svg--tall' : '.ag__svg--wide')).toBeHidden();
+      await expect(photo).toHaveAttribute('alt', /Mann Patel/);
+      await expect(photo).toHaveAttribute('loading', 'eager');
+      // The stage's largest image (the real capture) is the one high-priority image on the page.
+      await expect(page.locator('.hero .sc-web__shot')).toHaveAttribute('fetchpriority', 'high');
+      await page.waitForFunction(() => (document.querySelector('.stage__portrait') as HTMLImageElement).naturalWidth > 0);
+      expect((await photo.boundingBox())!.width).toBeGreaterThanOrEqual(min);
     }
-    // The radio photo and the signal ribbon are gone.
-    await expect(page.locator('[data-tune], [data-signal-sculpture]')).toHaveCount(0);
   });
 
-  test('the graph labels name where customers come from and what should happen, and the pause button stops the pulses', async ({ page }) => {
-    await page.setViewportSize({ width: 1440, height: 900 });
+  test('the three needs each lead to their demonstration and service, and every illustration says what it is', async ({ page }) => {
     await page.goto('/');
-    const svg = page.locator('.ag__svg--wide');
-    for (const label of ['Google', 'Maps', 'AI answers', 'Enquiry', 'Reply', 'Booking']) await expect(svg).toContainText(label);
-    // SEO audit Phase 4 (speed): the pulses are streaks moved along each route with transform (Web Animations).
-    // D8 (design upgrade Phase 4, 17 Nov 2026): two routes loop for three cycles, then rest, so there is one streak per
-    // leg of those two routes (4, was 12), in the layout on screen only.
-    const sparks = page.locator('.ag__svg--wide .ag__spark');
-    await expect(sparks).toHaveCount(4);
-    const states = () => page.evaluate(() => [...document.querySelectorAll('.ag__spark')].flatMap((e) => e.getAnimations().map((a) => a.playState)));
-    expect(new Set(await states())).toEqual(new Set(['running']));
-    const toggle = page.locator('[data-ag-toggle]');
-    await expect(toggle).toHaveAccessibleName('Pause animation');
-    await toggle.click();
-    await expect(toggle).toHaveAttribute('aria-pressed', 'true');
-    await expect(page.locator('[data-agent-graph]')).toHaveClass(/is-paused/);
-    expect(new Set(await states())).toEqual(new Set(['paused']));
-    expect(await page.locator('.ag__orbit').first().evaluate((e) => getComputedStyle(e).animationPlayState)).toBe('paused');
-    await toggle.click();
-    await expect(toggle).toHaveAttribute('aria-pressed', 'false');
-    expect(new Set(await states())).toEqual(new Set(['running']));
-  });
-
-
-  test('reduced motion: the graph is a still diagram with two lit routes and no pause button', async ({ browser }) => {
-    const ctx = await browser.newContext({ reducedMotion: 'reduce', viewport: { width: 390, height: 844 } });
-    const page = await ctx.newPage();
-    await page.goto('/');
-    expect(await page.locator('.ag__svg--tall .ag__pulse').first().evaluate((e) => getComputedStyle(e).animationName)).toBe('none');
-    expect(await page.locator('.ag__orbit').first().evaluate((e) => getComputedStyle(e).animationName)).toBe('none');
-    await expect(page.locator('.ag__svg--tall .ag__pulse:visible')).toHaveCount(4);
-    await expect(page.locator('.ag__spark')).toHaveCount(0);
-    await expect(page.locator('[data-ag-toggle]')).toBeHidden();
-    await ctx.close();
-  });
-
-  test('the three service summaries each link to their focused page and name their package', async ({ page }) => {
-    await page.goto('/');
-    const items = page.locator('#what-i-do li');
-    await expect(items).toHaveCount(3);
+    const stage = page.locator('[data-stage]');
+    for (const [tab, demo, label] of [
+      ['Upgrade my website', '#demo-website', 'Real capture'],
+      ['Help me get found', '#demo-search', 'Illustration, not a real search result'],
+      ['Automate my admin', '#demo-admin', 'Demo: nothing is sent'],
+    ]) {
+      await stage.getByRole('tab', { name: tab }).click();
+      const panel = stage.getByRole('tabpanel');
+      await expect(panel.locator(`a[href="${demo}"]`)).toBeVisible();
+      await expect(stage.locator('[data-stage-note]')).toContainText(label);
+    }
     for (const slug of ['local-visibility', 'enquiry-follow-up', 'web-design'])
-      await expect(page.locator(`#what-i-do a[href="/services/${slug}/"]`)).toBeVisible();
-    for (const name of ['Local Visibility Setup', 'Website + Enquiry System', 'Website Launch'])
-      await expect(page.locator('#what-i-do')).toContainText(`Package: ${name}`);
-    // Plain service names on the cards, and links that name the service they lead to.
-    for (const name of ['Local SEO and Google Business Profile', 'Enquiry follow-up and online booking', 'Web design and redesign'])
-      await expect(page.locator('#what-i-do').getByRole('heading', { name })).toBeVisible();
-    await expect(page.locator('#what-i-do a[href="/services/web-design/"]')).toContainText('Web design');
+      await expect(page.locator(`#playground a[href="/services/${slug}/"]`)).toBeVisible();
     // Case studies link to the service they are evidence for.
     await page.goto('/work/nest-and-rest-cleaning/');
     await expect(page.locator('main a[href="/services/web-design/"]').first()).toContainText('Web design service');
@@ -603,14 +563,14 @@ test.describe('home interactions', () => {
 
   test('the home page lists every price, each with what it covers, and links to the full pricing page', async ({ page }) => {
     await page.goto('/');
-    const prices = page.locator('#prices');
+    const prices = page.locator('#start .pb__rail');
     for (const [name, price] of [['Website Fix', '$450–$850'], ['Website Launch', '$1,950'], ['Website + Enquiry System', '$3,350'], ['Local Visibility Setup', '$650'], ['Website Care', '$149 a month']]) {
-      const row = prices.locator('.pt__row').filter({ has: page.locator('.pt__name', { hasText: new RegExp(`^${name.replace(/[+]/g, '\\+')}$`) }) });
+      const row = prices.locator('li').filter({ has: page.locator('.pb__pname', { hasText: new RegExp(`^${name.replace(/[+]/g, '\\+')}$`) }) });
       await expect(row.locator('[data-price]')).toHaveText(price);
-      await expect(row.locator('.pt__boundary')).not.toBeEmpty();
+      await expect(row.locator('.pb__terms')).not.toBeEmpty();
     }
-    await expect(prices).toContainText('plus applicable tax');
-    await expect(prices.getByRole('link', { name: 'Full pricing and what’s included' })).toHaveAttribute('href', '/pricing/');
+    await expect(page.locator('#start')).toContainText('CAD, plus tax');
+    await expect(page.locator('#start').getByRole('link', { name: 'Compare what each includes' })).toHaveAttribute('href', '/pricing/');
   });
 
   test('finder recommends a starting point live and pre-fills the brief', async ({ page }) => {
@@ -649,8 +609,9 @@ test.describe('home interactions', () => {
     const ctx = await browser.newContext({ reducedMotion: 'reduce' });
     const page = await ctx.newPage();
     await page.goto('/');
-    expect(await page.locator('.hero__title').evaluate((e) => getComputedStyle(e).animationName)).toBe('none');
-    expect(await page.evaluate(() => document.documentElement.classList.contains('js-motion'))).toBe(false);
+    // MANN / IN MOTION: the OS setting turns the site's Motion preference off before the first paint.
+    expect(await page.evaluate(() => document.documentElement.getAttribute('data-motion'))).toBe('off');
+    expect(await page.locator('.hero__title .line-mask > span').first().evaluate((e) => getComputedStyle(e).transform)).toMatch(/none|matrix\(1, 0, 0, 1, 0, 0\)/);
     // Design upgrade Phase 4 (plan task 4.5): only section heads and media reveal on scroll now (paragraphs, lists and
     // buttons never start hidden), so the check is a scroll-revealed heading line, which must be in place.
     const line = page.locator('[data-split]:not([data-split="load"]) .line-mask > span').first();
@@ -676,17 +637,18 @@ test.describe('home interactions', () => {
     });
   }
 
-  test('phones: the header has only the logo and Menu (no separate Contact button), and the photo graph follows the buttons', async ({ page }) => {
+  test('phones: the header has only the logo and Menu (no separate Contact button), and the stage follows the buttons', async ({ page }) => {
     await page.setViewportSize({ width: 360, height: 800 });
     await page.goto('/');
     // 14 Nov 2026 (round 2): Mann asked to remove the top Contact button on phones; Contact stays in the menu.
     await expect(page.locator('[data-header]').getByRole('link', { name: 'Contact', exact: true })).toBeHidden();
     await expect(page.locator('[data-menu-open]')).toBeVisible();
+    await page.waitForTimeout(1500); // after the stage's entrance
     const gap = await page.evaluate(
-      () => document.querySelector('[data-agent-graph]')!.getBoundingClientRect().top - document.querySelector('.hero__text')!.getBoundingClientRect().bottom,
+      () => document.querySelector('[data-stage]')!.getBoundingClientRect().top - document.querySelector('.hero__copy')!.getBoundingClientRect().bottom,
     );
     expect(gap).toBeGreaterThanOrEqual(0);
-    expect(gap).toBeLessThan(60);
+    expect(gap).toBeLessThan(80);
   });
 
   test('small phones: the headline and both buttons fit on the first screen', async ({ page }) => {
@@ -696,27 +658,21 @@ test.describe('home interactions', () => {
       await page.goto('/');
       await expect(page.locator('h1')).toBeInViewport({ ratio: 1 });
       await expect(page.locator('.hero').getByRole('link', { name: 'Get a free website and Google check' })).toBeInViewport({ ratio: 1 });
-      await expect(page.locator('.hero').getByRole('link', { name: 'See prices' })).toBeInViewport({ ratio: 1 });
+      await expect(page.locator('.hero').getByRole('link', { name: 'Explore my work' })).toBeInViewport({ ratio: 1 });
       await noHorizontalOverflow(page);
     }
   });
 
-  test('the hero graph shows the close-crop photo; the lower section no longer repeats the photo and intro', async ({ page }) => {
-    // 14 Nov 2026 (Mann's call): his photo and introduction appear once, in the hero.
-    for (const [w, h] of [[390, 844], [820, 1180], [1440, 900]]) {
-      await page.setViewportSize({ width: w, height: h });
-      await page.goto('/');
-      const photo = page.locator('.hero .ag__photo');
-      await expect(photo).toBeVisible();
-      await expect(photo).toHaveAttribute('alt', /Mann Patel smiling/);
-      await expect(photo).toHaveAttribute('src', /mann-patel-hero/);
-      await page.waitForFunction(() => (document.querySelector('.hero .ag__photo') as HTMLImageElement).naturalWidth > 0);
-      await expect(page.locator('main img[alt*="Mann Patel smiling"]')).toHaveCount(1);
-      const section = page.locator('#how-i-work');
-      await expect(section.getByRole('heading', { level: 2 })).toHaveText('How a website project works.');
-      await expect(section.getByText('Hi, I’m Mann')).toHaveCount(0);
-      await expect(section.getByRole('link', { name: 'More about me' })).toHaveAttribute('href', '/about/');
-    }
+  test('Mann\'s photos are real and named; the person scene introduces him once, with a link to About', async ({ page }) => {
+    // MANN / IN MOTION (19 Nov 2026, master prompt Scene D): the stage shows the cut-out; the person scene gives the
+    // portrait its own editorial treatment. This supersedes the 14 Nov "photo once, in the hero" choice.
+    await page.goto('/');
+    await expect(page.locator('.hero .stage__portrait')).toHaveAttribute('alt', /Mann Patel/);
+    const person = page.locator('#about');
+    await expect(person.getByRole('heading', { level: 2 })).toHaveText('Hi, I’m Mann.');
+    await expect(person.locator('img[alt*="Mann Patel"]')).toHaveCount(1);
+    await expect(person.getByRole('link', { name: 'More about me' })).toHaveAttribute('href', '/about/');
+    await expect(page.getByText('Hi, I’m Mann.')).toHaveCount(1);
   });
 
   test('without JavaScript, the header links show and content is visible', async ({ browser }) => {
@@ -725,10 +681,12 @@ test.describe('home interactions', () => {
     await page.goto('/');
     await expect(page.locator('.hdr__nav').getByRole('link', { name: 'Services' })).toBeVisible();
     await expect(page.locator('[data-menu-open]')).toBeHidden();
-    // The graph is drawn without JavaScript; only its pause button needs a script.
-    await expect(page.locator('.ag__svg--tall')).toBeVisible();
-    await expect(page.locator('.ag__photo')).toBeVisible();
-    await expect(page.locator('[data-ag-toggle]')).toBeHidden();
+    // The stage's first scene is complete without JavaScript; the needs become links to their demonstrations.
+    await expect(page.locator('.stage__portrait')).toBeVisible();
+    await expect(page.locator('.sc-web')).toBeVisible();
+    await expect(page.locator('.stage__nojs a[href="#demo-search"]')).toBeVisible();
+    await expect(page.getByRole('tab')).toHaveCount(0);
+    await expect(page.locator('[data-dock]')).toBeHidden();
     await ctx.close();
   });
 });
@@ -738,37 +696,24 @@ test.describe('phones: short pages', () => {
   // Case studies: 7 since round 7 added the at-a-glance summary and the tested-behaviour evidence.
   // Round 10 (competitor audit, which judges sections by usefulness rather than length) added the
   // labelled walkthrough to Home, package boundaries to Services and the professional intro to About.
+  // MANN / IN MOTION (19 Nov 2026, master prompt): the expanded display type, the footer's final frame (with every link
+  // still 44px tall) and, on Home, the work films and the playground's three demonstrations add length on phones. Budgets
+  // were re-measured at 390 × 844 and set just above. Home was 11 (D9, Mann's choice, 17 Nov): see docs/redesign/REPORT.md
+  // → Decisions for Mann for how to bring it back down if he prefers the shorter page.
   const BUDGET: Record<string, number> = {
-    // 10 Nov 2026 (growth report): the explained process strip on Home, the three named services
-    // at the top of Services, the repair option, the AI search check, the scoped follow-up options
-    // with a sample test log, and "Offered as" links on case studies each add part of a screen.
-    // 14 Nov 2026: Home swaps the walkthrough for the price list; Pricing gains a fifth offer
-    // (Website Fix) and a worked salon example.
-    // D9 (design upgrade, 17 Nov 2026; applied in Phase 3 with gate S4, Mann's choice): 11 screens, was 13.5. The slimmer
-    // hero (Phase 2) and the service and promise bentos as swipe rails on phones (Phase 3) make the room.
-    '/': 11,
-    // 14 Nov 2026 (SEO audit Phase 2): /services/ is a short overview now; each service's details moved
-    // to its service page as closed "Service by service" accordions (plus the redesign section on web design).
-    '/services/': 9,
-    '/work/': 4.75, // plus industry, location and result under each project (SEO audit Phase 2)
-    // + "For your trade: Websites for cleaning companies / salons and spas" under "Offered as" (SEO audit Phase 3).
-    '/work/nest-and-rest-cleaning/': 7.5,
-    '/work/samp-hair-spa/': 7.5,
-    // 14 Nov 2026 (SEO audit): "Based in Scarborough…" stays visible in the phone footer (+1 line on every page).
-    // + the five-step process with your part and mine, moved from the old /services/ (SEO audit Phase 2).
-    // 16 Nov 2026 (competitor gap work): + "Find me elsewhere", the profiles that are set.
-    '/about/': 9.5,
-    '/contact/': 3.75,
-    '/services/web-design/': 15, // plus the Website Fix package, the redesign section and its services
-    // 16 Nov 2026 (Website Playbook): footer links at least 44 × 44px make the phone footer about 70px taller.
-    '/services/local-visibility/': 12.5,
-    // 19 Nov 2026 (SEO report follow-up): + the missed-call calculator (about 1.35 screens at 390), the line on what
-    // the extra over Website Launch buys, and in previews the draft after-hours study's guide link. Was 14.
-    '/services/enquiry-follow-up/': 15.5,
-    // 14 Nov 2026 (SEO audit): the intro names Toronto and the GTA, one more line on a phone.
-    // 16 Nov 2026 (competitor gap work): + "Which package fits?" (previews also list the draft area pages in the footer).
-    '/pricing/': 16,
+    '/': 14.5,
+    '/services/': 10,
+    '/work/': 6.75, // + the studio reel
+    '/work/nest-and-rest-cleaning/': 8.5,
+    '/work/samp-hair-spa/': 8.5,
+    '/about/': 10.25,
+    '/contact/': 4.75,
+    '/services/web-design/': 16.75, // + the before/after demonstration
+    '/services/local-visibility/': 14.5, // + the search journey demonstration
+    '/services/enquiry-follow-up/': 16.25,
+    '/pricing/': 17,
   };
+
   for (const [path, max] of Object.entries(BUDGET)) {
     test(`${path} stays under ${max} phone screens`, async ({ page }) => {
       await page.setViewportSize({ width: 390, height: 844 });
@@ -840,7 +785,8 @@ test.describe('phones: short pages', () => {
   // SEO audit Phase 2 (14 Nov 2026): the long question list on /services/ was split up, each question in one
   // place. Every FAQPage in structured data lists exactly the questions the page shows.
   test('FAQ structured data matches the questions each page shows', async ({ page }) => {
-    for (const path of ['/', '/services/', '/pricing/', '/services/web-design/', '/services/local-visibility/', '/services/enquiry-follow-up/', '/websites-for-cleaning-companies/', '/websites-for-salons-and-spas/', '/web-design-scarborough/', '/services/website-care/', '/services/ai-search-optimization/']) {
+    // MANN / IN MOTION (19 Nov 2026): Home has no FAQ (and no FAQPage data); the questions live on these pages.
+    for (const path of ['/services/', '/pricing/', '/services/web-design/', '/services/local-visibility/', '/services/enquiry-follow-up/', '/websites-for-cleaning-companies/', '/websites-for-salons-and-spas/', '/web-design-scarborough/', '/services/website-care/', '/services/ai-search-optimization/']) {
       await page.goto(path);
       const blocks = await page.$$eval('script[type="application/ld+json"]', (s) => s.map((x) => JSON.parse(x.textContent || '{}')));
       const faq = blocks.find((b) => b['@type'] === 'FAQPage');
@@ -1091,7 +1037,9 @@ test.describe('content security policy', () => {
 // studies. Every animation and transition now moves only transform or opacity, which browsers can run cheaply. This
 // lists every one on every page, at phone and laptop widths, while the page loads and as it is scrolled through.
 test.describe('motion: transform and opacity only', () => {
-  const ALLOWED = new Set(['transform', 'opacity', 'translate', 'scale', 'rotate']);
+  // MANN / IN MOTION (19 Nov 2026, MOTION.md → Principles): plus the lime line's stroke-dashoffset (small SVG paths that
+  // draw once), clip-path for the stage's one-time search typing, and visibility for the Back to top control.
+  const ALLOWED = new Set(['transform', 'opacity', 'translate', 'scale', 'rotate', 'strokeDashoffset', 'stroke-dashoffset', 'clipPath', 'clip-path', 'visibility']);
   const animated = (page: Page) =>
     page.evaluate(() =>
       document.getAnimations().flatMap((a) => {
@@ -1148,7 +1096,7 @@ test.describe('motion: transform and opacity only', () => {
     // The reading-progress line under the header follows the page's scroll position.
     const progress = () =>
       page.evaluate(() => {
-        const a = document.getAnimations().find((x) => (x as CSSAnimation).animationName === 'read-progress');
+        const a = document.getAnimations().find((x) => ((x as CSSAnimation).animationName ?? '').startsWith('read-progress'));
         return a ? Number(a.effect!.getComputedTiming().progress ?? 0) : -1;
       });
     expect(await progress()).toBeGreaterThanOrEqual(0);
@@ -1162,22 +1110,16 @@ test.describe('motion: transform and opacity only', () => {
     const page = await ctx.newPage();
     await page.goto('/work/nest-and-rest-cleaning/');
     expect(await page.locator('.reveal-clip').first().evaluate((e) => getComputedStyle(e).animationName)).toBe('none');
-    expect(await page.evaluate(() => document.getAnimations().filter((a) => (a as CSSAnimation).animationName === 'read-progress').length)).toBe(0);
+    expect(await page.evaluate(() => document.getAnimations().filter((a) => ((a as CSSAnimation).animationName ?? '').startsWith('read-progress')).length)).toBe(0);
     await ctx.close();
   });
 
-  test('the footer name lights up near the pointer with transform and opacity only', async ({ page }) => {
+  test('the lime line draws itself as it scrolls in (process, footer), and nowhere moves layout', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto('/about/');
-    const name = page.locator('.ftr__name');
-    await name.scrollIntoViewIfNeeded();
-    const box = (await name.boundingBox())!;
-    await page.mouse.move(box.x + box.width * 0.3, box.y + box.height / 2);
-    await page.mouse.move(box.x + box.width * 0.35, box.y + box.height / 2, { steps: 5 });
-    await page.waitForTimeout(100);
-    const props = await animated(page);
-    expect(props.filter((p) => /on (path|g)/.test(p)).length, 'the letters should animate').toBeGreaterThan(0);
-    expect(props.filter((p) => !ALLOWED.has(p.split(' ')[0]))).toEqual([]);
+    await page.goto('/');
+    const line = page.locator('.pb__line path');
+    expect(await line.evaluate((e) => getComputedStyle(e).animationName)).toBe('draw-line');
+    expect(await line.evaluate((e) => getComputedStyle(e).animationTimeline)).toMatch(/view/);
   });
 });
 
@@ -1515,7 +1457,7 @@ test.describe('enquiry form', () => {
       await expect(page.locator('label.area', { hasText: v })).toBeVisible();
     }
     await expect(page.locator('[data-svc-detail]')).not.toHaveAttribute('open', '');
-    await page.getByRole('button', { name: 'Back' }).click();
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
     await expect(page.locator('#f-name')).toHaveValue('Test Owner');
     await expect(page.locator('[data-alt-email]')).toBeVisible();
   });
@@ -1563,8 +1505,8 @@ test.describe('enquiry form', () => {
     await expect(page.locator('#e-message')).toContainText('tell me a little');
     // A bad email found at the end takes you back to step 1, focused on the field.
     await page.locator('#f-message').fill('I run a two-chair salon in Scarborough and need a booking site.');
-    await page.getByRole('button', { name: 'Back' }).click();
-    await page.getByRole('button', { name: 'Back' }).click();
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
     await page.locator('#f-email').fill('owner@');
     await page.locator('#f-email').blur();
     await next(page).click();
@@ -1693,42 +1635,25 @@ test.describe('enquiry form', () => {
 });
 
 test.describe('motion (restrained in round 7)', () => {
-  test('signal field: static dots without a GPU on the 404 page, and nowhere else', async ({ page }) => {
+  test('no canvas or WebGL anywhere: the line and the demos are SVG and CSS (MANN / IN MOTION)', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto('/no-such-page/');
-    const field = page.locator('.fx-field');
-    await expect(field).toHaveAttribute('aria-hidden', 'true');
-    // 14 Nov 2026: the home hero is the agent graph, drawn in SVG, so it needs no WebGL.
-    for (const path of ['/', '/services/', '/work/', '/about/', '/contact/']) {
+    for (const path of ['/', '/services/', '/work/', '/about/', '/contact/', '/no-such-page/']) {
       await page.goto(path);
-      await expect(page.locator('.fx-field')).toHaveCount(0);
-      await expect(page.locator('canvas')).toHaveCount(0);
+      await expect(page.locator('canvas, .fx-field')).toHaveCount(0);
     }
   });
 
-  test('reduced motion: no canvas and no decoding', async ({ browser }) => {
+  test('reduced motion: the stage is complete and still, and nothing replays', async ({ browser }) => {
     const ctx = await browser.newContext({ reducedMotion: 'reduce', viewport: { width: 1440, height: 900 } });
     const page = await ctx.newPage();
-    await page.goto('/?fx=gl');
-    await page.mouse.move(400, 400);
-    await page.waitForTimeout(1200);
-    await expect(page.locator('canvas')).toHaveCount(0);
-    await expect(page.locator('.ag__photo')).toBeVisible();
-    await expect(page.locator('[data-ag-toggle]')).toBeHidden();
-    await expect(page.locator('[data-scramble] [aria-hidden="true"]')).toHaveCount(0);
-    await ctx.close();
-  });
-
-  test('the agent graph pause button works from the keyboard', async ({ page }) => {
-    await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
-    const toggle = page.locator('[data-ag-toggle]');
-    await toggle.focus();
-    await page.keyboard.press('Space');
-    await expect(toggle).toHaveAttribute('aria-pressed', 'true');
-    await expect(page.getByRole('button', { name: 'Play animation' })).toBeVisible();
-    await page.keyboard.press('Space');
-    await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    await page.mouse.move(900, 400);
+    await page.waitForTimeout(600);
+    await expect(page.locator('.stage__portrait')).toBeVisible();
+    await expect(page.locator('[data-stage]')).not.toHaveAttribute('data-play', /.*/);
+    await expect(page.locator('[data-stage-replay]').first()).toBeHidden();
+    expect(await page.evaluate(() => document.getAnimations().filter((a) => a.playState === 'running').length)).toBe(0);
+    await ctx.close();
   });
 
   test('removed effects stay removed: no marquee, cursor follower, tilt or scroll-lit text', async ({ page }) => {
@@ -1752,17 +1677,11 @@ test.describe('motion (restrained in round 7)', () => {
     await expect.poll(() => btn.evaluate((e) => (e as HTMLElement).style.translate)).toBe('');
   });
 
-  test('the hero labels are plain text, with no decoding effect (round 10: fewer elements around the portrait)', async ({ page }) => {
-    await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto('/');
-    await expect(page.locator('.hero [data-scramble]')).toHaveCount(0);
-    expect(await page.locator('.hero__hi').evaluate((e) => e.children.length)).toBe(0);
-  });
-
   test('project cards light up under the pointer', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto('/');
-    const card = page.locator('#work article[data-spotlight]').first();
+    // MANN / IN MOTION: the home reel plays films instead; the work index rows keep the spotlight.
+    await page.goto('/work/');
+    const card = page.locator('[data-spotlight]').first();
     await card.scrollIntoViewIfNeeded();
     const b = (await card.boundingBox())!;
     await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 3 });
@@ -1775,8 +1694,11 @@ test.describe('motion (restrained in round 7)', () => {
     expect(await page.locator('[data-header]').evaluate((e) => getComputedStyle(e).viewTransitionName)).toBe('site-header');
     await page.mouse.wheel(0, 2500);
     await page.waitForTimeout(300);
-    const scale = await page.locator('[data-header]').evaluate((e) => getComputedStyle(e, '::after').transform);
+    // The reading line is the header's lime hairline (view-transition-name site-line), scaled to the scroll position.
+    expect(await page.locator('.hdr__line').evaluate((e) => getComputedStyle(e).viewTransitionName)).toBe('site-line');
+    const scale = await page.locator('[data-read]').evaluate((e) => getComputedStyle(e).transform);
     expect(scale).not.toBe('none');
+    expect(scale).not.toBe('matrix(0, 0, 0, 1, 0, 0)');
   });
 
   test('first-screen content does not wait for scripts (fast LCP)', async ({ browser }) => {
@@ -1798,8 +1720,9 @@ test.describe('motion (restrained in round 7)', () => {
     await page.goto('/');
     await page.evaluate(() => document.fonts.ready);
     const loaded = await page.evaluate(() => [...document.fonts].filter((f) => f.status === 'loaded').map((f) => f.family.replace(/"/g, '')));
-    expect(loaded).toEqual(expect.arrayContaining(['Geist', 'Geist Mono']));
+    expect(loaded).toEqual(expect.arrayContaining(['Mann Display', 'Geist', 'Geist Mono']));
     expect(loaded).not.toContain('Signal Sans');
+    expect(loaded).not.toContain('Mona Sans');
   });
 });
 
@@ -1936,15 +1859,15 @@ test.describe('audit of 11 Nov 2026', () => {
     await page.locator('.hero').getByRole('link', { name: 'Get a free website and Google check' }).click();
     await expect(page).toHaveURL(/\/contact\/\?package=check-up#check$/);
     await expect(page.locator('#check-title')).toHaveText('Free website and Google check');
-    await page.goto('/');
+    // The same name on the services page's free-check band.
+    await page.goto('/services/');
     await expect(page.locator('#check-title')).toContainText('Get a free website and Google check.');
-    await expect(page.locator('#check .fc__lead')).toContainText('Send your website or business name');
   });
 
   test('published prices agree everywhere, and the check stays optional', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('#what-i-do')).toContainText('Website Launch · $1,950');
-    await expect(page.locator('.hero__price')).toContainText('$650 Google and AI visibility setup');
+    await expect(page.locator('#start .pb__rail')).toContainText(/Website Launch\s*\$1,950/);
+    await expect(page.locator('.hero__prices')).toContainText('$650 Google and AI visibility setup');
     await page.goto('/services/');
     await expect(page.locator('#packages')).toContainText('The free check is separate, with no obligation.');
     await page.goto('/pricing/');
@@ -1984,18 +1907,16 @@ test.describe('audit of 11 Nov 2026', () => {
     await expect(page.locator('.hero .hero__place')).toHaveText('Get found on Google and in AI answers, then turn searches into bookings.');
   });
 
-  test('phones: the hero photo is sized for the screen, and the pause button is reachable on touch', async ({ browser }) => {
+  test('phones: the stage portrait is sized for the screen, and the needs are reachable on touch', async ({ browser }) => {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
     const page = await context.newPage();
     await page.goto('/');
-    const photo = page.locator('.ag__photo');
+    const photo = page.locator('.stage__portrait');
     expect(await photo.getAttribute('srcset')).toMatch(/240w.*360w.*480w.*640w/);
-    await page.waitForFunction(() => (document.querySelector('.ag__photo') as HTMLImageElement).complete);
-    const loaded = await photo.evaluate((img: HTMLImageElement) => new URL(img.currentSrc).pathname);
-    expect(loaded).not.toMatch(/240w/);
-    await expect(page.locator('[data-ag-toggle]')).toBeVisible();
-    const box = (await page.locator('[data-ag-toggle]').boundingBox())!;
-    expect(box.width).toBeGreaterThanOrEqual(44);
+    await page.waitForFunction(() => (document.querySelector('.stage__portrait') as HTMLImageElement).complete);
+    for (const tab of await page.getByRole('tab').all()) expect((await tab.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await page.getByRole('tab', { name: 'Help me get found' }).tap();
+    await expect(page.locator('[data-stage]')).toHaveAttribute('data-scene', 'found');
     await context.close();
   });
 
@@ -2123,12 +2044,12 @@ test.describe('competitor gap work (16 Nov 2026)', () => {
 
   test('home: each section heading says what it is about; the slogan is the eyebrow, and the anchors stay', async ({ page }) => {
     await page.goto('/');
+    // MANN / IN MOTION (19 Nov 2026): the scenes and their anchors.
     const sections: [string, string, string][] = [
-      ['#work', 'Website projects in Scarborough.', '01 / Work in the wild'],
-      ['#what-i-do', 'Web design, local SEO and booking services.', '02 / From search to booked'],
-      ['#prices', 'Website prices in Toronto (CAD).', '03 / Prices you can see before you call'],
-      ['#how-i-work', 'How a website project works.', '04 / Clear steps, no surprises'],
-      ['#faq', 'Web design questions.', 'Straight answers'],
+      ['#work', 'Website projects in Scarborough.', 'Selected work · 02 projects'],
+      ['#playground', 'See it working before you ask.', 'Service playground · try it'],
+      ['#about', 'Hi, I’m Mann.', 'The person behind the work'],
+      ['#start', 'Four steps, all in writing.', 'How it works · what it costs'],
     ];
     for (const [id, h2, eyebrow] of sections) {
       const section = page.locator(id);
@@ -2138,7 +2059,7 @@ test.describe('competitor gap work (16 Nov 2026)', () => {
   });
 
   test('every FAQ question is an h3 inside its summary, set exactly like the summary', async ({ page }) => {
-    for (const path of ['/', '/pricing/', '/services/', '/services/web-design/', '/web-design-scarborough/', '/websites-for-cleaning-companies/']) {
+    for (const path of ['/pricing/', '/services/', '/services/web-design/', '/web-design-scarborough/', '/websites-for-cleaning-companies/']) {
       await page.goto(path);
       const faqs = page.locator('details.acc:has(.acc__q)');
       expect(await faqs.count(), path).toBeGreaterThan(0);
@@ -2427,28 +2348,14 @@ test.describe('Website Playbook, accessibility and brand (16 Nov 2026)', () => {
         return [s.outlineStyle, s.outlineWidth, s.outlineColor, s.outlineOffset];
       });
     };
-    expect(await ring('footer .ftr__col--pages a')).toEqual(['solid', '2px', 'rgb(212, 248, 74)', '2px']);
-    expect(await ring('.sw a')).toEqual(['solid', '2px', 'rgb(11, 11, 12)', '2px']);
+    // MANN / IN MOTION (19 Nov 2026): 2px rings, 3px off; lime on dark, ink on ivory.
+    expect(await ring('footer .ftr__col--pages a')).toEqual(['solid', '2px', 'rgb(201, 246, 74)', '3px']);
+    expect(await ring('#work .reel__name a')).toEqual(['solid', '2px', 'rgb(16, 17, 15)', '3px']);
     const tokens = await page.evaluate(() => {
       const s = getComputedStyle(document.documentElement);
-      return [s.getPropertyValue('--accent-on-light').trim(), s.getPropertyValue('--focus-on-light').trim()];
+      return [s.getPropertyValue('--accent-on-light').trim(), s.getPropertyValue('--ink').trim()];
     });
-    expect(tokens).toEqual(['#637b05', '#0b0b0c']);
-  });
-
-  test('the hero "Pause animation" button works from the keyboard (Enter and Space)', async ({ page }) => {
-    await page.goto('/');
-    const btn = page.locator('[data-ag-toggle]');
-    await expect(btn).toBeVisible();
-    await btn.focus();
-    await expect(btn).toBeFocused();
-    await page.keyboard.press('Enter');
-    await expect(btn).toHaveAttribute('aria-pressed', 'true');
-    await expect(btn).toHaveAccessibleName('Play animation');
-    await expect(page.locator('[data-agent-graph]')).toHaveClass(/is-paused/);
-    await page.keyboard.press('Space');
-    await expect(btn).toHaveAttribute('aria-pressed', 'false');
-    await expect(btn).toHaveAccessibleName('Pause animation');
+    expect(tokens).toEqual(['#4e6200', '#10110f']);
   });
 
   test('reduced motion: hover and press give colour feedback only, and nothing moves with the scroll', async ({ page }) => {
@@ -2469,12 +2376,11 @@ test.describe('Website Playbook, accessibility and brand (16 Nov 2026)', () => {
     await btn.hover();
     expect(await btn.locator('.btn__icon').first().evaluate((e) => getComputedStyle(e).transform)).toBe('none');
     // Scroll-linked progress (the free-check badge on the home page) holds still at its end state.
+    // Nothing moves with the scroll: no scroll-driven animation runs with Motion off.
     await page.goto('/');
-    const progress = page.locator('[data-progress]').first();
-    await expect(progress).toHaveAttribute('style', /--p:\s*1/);
     await page.mouse.wheel(0, 2000);
     await page.waitForTimeout(200);
-    await expect(progress).toHaveAttribute('style', /--p:\s*1(;|$)/);
+    expect(await page.evaluate(() => document.getAnimations().filter((a) => a.playState === 'running').length)).toBe(0);
   });
 
   test('images: one priority image per page at most, the LCP image never lazy, every <img> sized', async ({ page }) => {

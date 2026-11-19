@@ -1,0 +1,142 @@
+---
+/**
+ * The studio reel (DESIGN.md → Imagery; docs/redesign/ASSETS.md): a 20-second silent screen recording of this website
+ * (the stage's three needs, the work film, the before/after and the sample enquiry), recorded from the built site on
+ * 19 Nov 2026. Poster first; nothing downloads until the visitor presses play (preload="none"). Native controls, muted,
+ * plays inline. It has no speech, so it needs no captions; the description below is its text alternative.
+ */
+import Icon from './ui/Icon.astro';
+
+interface Props {
+  class?: string;
+}
+const { class: cls } = Astro.props;
+---
+
+<figure class:list={['rp', cls]} data-reel-player>
+  <div class="rp__frame ink">
+    <video
+      class="rp__video"
+      width="1280"
+      height="800"
+      poster="/media/studio-reel-poster.jpg"
+      preload="none"
+      muted
+      playsinline
+      controls
+      aria-describedby="rp-desc"
+    >
+      <source src="/media/studio-reel.mp4" type="video/mp4" />
+      <source src="/media/studio-reel.webm" type="video/webm" />
+    </video>
+    <button class="rp__play" type="button" data-reel-play hidden>
+      <span class="rp__btn"><Icon name="play" /></span>
+      <span class="rp__label">Play the 20-second reel</span>
+    </button>
+  </div>
+  <figcaption class="rp__cap">
+    <span class="mono">Studio reel · 0:20 · silent</span>
+    <span id="rp-desc" class="rp__desc"
+      >A screen recording of this website: choosing each need on the home page stage, the Nest &amp; Rest and Samp Hair &amp; Spa
+      project films, dragging the before-and-after of Nest &amp; Rest, and a sample enquiry being answered.</span
+    >
+  </figcaption>
+</figure>
+
+<script>
+  import { track } from '../scripts/analytics';
+  document.querySelectorAll<HTMLElement>('[data-reel-player]').forEach((fig) => {
+    const video = fig.querySelector('video')!;
+    const play = fig.querySelector<HTMLButtonElement>('[data-reel-play]')!;
+    // With JavaScript, a large play button sits over the poster; native controls take over once it plays.
+    play.hidden = false;
+    video.controls = false;
+    const start = () => {
+      play.hidden = true;
+      video.controls = true;
+      const p = video.play();
+      if (p) p.catch(() => (play.hidden = false)); // autoplay rejected or blocked: keep the button
+      track('reel_play', { location: location.pathname === '/' ? 'home' : 'work' });
+    };
+    play.addEventListener('click', start);
+    video.addEventListener('ended', () => {
+      video.controls = false;
+      play.hidden = false;
+    });
+    // Off screen or tab hidden: pause.
+    new IntersectionObserver(([en]) => !en.isIntersecting && !video.paused && video.pause(), { threshold: 0.2 }).observe(video);
+    document.addEventListener('visibilitychange', () => document.hidden && video.pause());
+  });
+</script>
+
+<style>
+  .rp {
+    display: grid;
+    gap: var(--s-3);
+    margin: 0;
+  }
+  .rp__frame {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--ink);
+    box-shadow: var(--shadow-media);
+  }
+  .rp__video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .rp__play {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
+    gap: var(--s-3);
+    padding: clamp(var(--s-4), 3vw, var(--s-6));
+    border: 0;
+    background: linear-gradient(to top, rgb(16 17 15 / 0.75), transparent 55%);
+    color: var(--text);
+    text-align: left;
+  }
+  .rp__btn {
+    display: grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    background: var(--lime);
+    color: var(--ink);
+    transition: transform var(--dur-2) var(--ease-out);
+  }
+  .rp__btn :global(.icon) {
+    fill: currentColor;
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+  .rp__label {
+    font-weight: var(--w-ui);
+  }
+  :root[data-motion='on'] .rp__play:hover .rp__btn,
+  :root[data-motion='on'] .rp__play:focus-visible .rp__btn {
+    transform: scale(1.08);
+  }
+  .rp__play:focus-visible {
+    outline-offset: -4px;
+  }
+  .rp__cap {
+    display: grid;
+    gap: var(--s-1);
+    font-size: var(--fs-sm);
+    color: var(--text-2);
+  }
+  .rp__cap .mono {
+    font-size: var(--fs-label);
+    color: var(--text-3);
+  }
+  .rp__desc {
+    max-width: 70ch;
+  }
+</style>

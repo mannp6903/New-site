@@ -63,7 +63,7 @@ const footerMore = moreServicePages.filter((sp) => sp.slug === 'website-care' ||
   }
 
   <div class="ftr__grid container">
-    <nav class="ftr__col" aria-label="Footer">
+    <nav class="ftr__col ftr__col--pages" aria-label="Footer">
       <p class="ftr__h">Pages</p>
       <ul role="list">
         <li><a class="link-quiet" href="/">Home</a></li>
@@ -80,7 +80,18 @@ const footerMore = moreServicePages.filter((sp) => sp.slug === 'website-care' ||
         })}
         {footerMore.map((sp) => <li><a class="link-quiet" href={`/services/${sp.slug}/`}>{sp.short}</a></li>)}
         <li><a class="link-quiet" href={pricesPublished ? '/pricing/' : '/services/#packages'}>{pricesPublished ? 'Pricing' : 'Packages'}</a></li>
-        {otherAreas.map((a) => <li><a class="link-quiet" href={areaPath(a)}>Web design in {a.name}</a></li>)}
+        {
+          otherAreas.length > 0 && (
+            <li class="ftr__areas text-links">
+              {otherAreas.map((a, i) => (
+                <>
+                  <a href={areaPath(a)}>Web design in {a.name}</a>
+                  {i < otherAreas.length - 1 && <span aria-hidden="true"> · </span>}
+                </>
+              ))}
+            </li>
+          )
+        }
         <li><a class="link-quiet" href="/services/#check">Free website and Google check</a></li>
       </ul>
     </div>
@@ -258,6 +269,7 @@ const footerMore = moreServicePages.filter((sp) => sp.slug === 'website-care' ||
     align-items: center;
     gap: 0.4em;
     min-height: var(--tap);
+    min-width: var(--tap);
     color: var(--text-2);
     text-decoration: none;
     transition: color var(--dur-1) var(--ease-out);
@@ -295,6 +307,16 @@ const footerMore = moreServicePages.filter((sp) => sp.slug === 'website-care' ||
   }
   .ftr__area {
     color: var(--text-2);
+  }
+  /* Area pages as one sentence of inline links (inline links in text are exempt from the 44px target rule). */
+  .ftr__areas {
+    padding-block: var(--s-2);
+    color: var(--text-2);
+    line-height: 1.9;
+  }
+  .ftr__areas a {
+    color: var(--text-2);
+    text-decoration-color: var(--line);
   }
   .ftr__name {
     padding-block: var(--s-6) var(--s-4);

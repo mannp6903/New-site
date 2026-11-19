@@ -83,7 +83,7 @@ test.describe('design gates: typography (Phase 1)', () => {
 
 test.describe('design gates: colour (Phase 1)', () => {
   for (const [width, height] of SIZES) {
-    test(`C1 at ${width}px: each screen of Home has at most one lime mark`, async ({ page }) => {
+    test(`C1 at ${width}px: each screen of Home has at most two lime marks beyond the line and the stage`, async ({ page }) => {
       await page.setViewportSize({ width, height });
       await page.goto('/');
       const screens = await page.evaluate(() => Math.ceil(document.documentElement.scrollHeight / innerHeight));
@@ -92,10 +92,11 @@ test.describe('design gates: colour (Phase 1)', () => {
         await page.evaluate((y) => window.scrollTo({ top: y, behavior: 'instant' }), i * height);
         await page.waitForTimeout(60);
         const marks = await page.evaluate(() => {
-          const LIME = new Set(['rgb(212, 248, 74)', 'rgb(228, 255, 115)']);
-          // Not counted (plan C1 and the 17 Nov 2026 decision): the sticky header (gate U2 rules its button), the wordmark
-          // and Λ glyphs, the agent graph, the free-check band, a headline's lime full stop, and live markers.
-          const EXEMPT = '.hdr, .wm, .ag, .fc, .status__dot, .sw__state--live, h1 .stop, h2 .stop';
+          const LIME = new Set(['rgb(201, 246, 74)', 'rgb(218, 255, 110)']);
+          // MANN / IN MOTION (19 Nov 2026, DESIGN.md → The idea): not counted are the sticky header (gate U2 rules its
+          // button), the wordmark, the lime line itself wherever it runs (page line, connector, process, footer, demo
+          // ticks), the stage (an instrument whose selected state is lime), headline full stops and live markers.
+          const EXEMPT = '.hdr, .wm, .stage, .hero__connector, .pageline, .pb__track, .pb__step, .ftr__line, .demo-note, .pg__n, .fl, .status__dot, .ba__handle, .jr, .rp__btn, h1 .stop, h2 .stop, .stop';
           const inView = (r: DOMRect) => r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth && r.width * r.height > 4;
           const ownText = (el: Element) => [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent!.trim());
           const hits: Element[] = [];
@@ -120,7 +121,7 @@ test.describe('design gates: colour (Phase 1)', () => {
           }
           return labels;
         });
-        if (marks.length > 1) report.push(`screen ${i + 1}: ${marks.join(' + ')}`);
+        if (marks.length > 2) report.push(`screen ${i + 1}: ${marks.join(' + ')}`);
       }
       expect(report).toEqual([]);
     });
@@ -174,7 +175,8 @@ const MATRIX = [
 ] as const;
 /** The preview built with a stand-in GA4 ID, so the consent prompt is on the page (scripts/build-consent.mjs). */
 const CONSENT = 'http://127.0.0.1:4323';
-const LIME = 'rgb(212, 248, 74)';
+// MANN / IN MOTION (19 Nov 2026): acid lime #c9f64a.
+const LIME = 'rgb(201, 246, 74)';
 
 /** Opens the consent prompt the way a visitor does (it appears on the first scroll), then returns to the top. */
 async function openConsent(page: Page) {
@@ -217,7 +219,8 @@ test.describe('design gates: hero (Phase 2)', () => {
           const px = (el: Element) => parseFloat(getComputedStyle(el).fontSize);
           const h1 = document.querySelector('h1');
           if (!h1) return [];
-          return [...document.querySelectorAll('h2')]
+          // MANN / IN MOTION: the footer's display-size closing line is the final frame, outside main.
+          return [...document.querySelectorAll('main h2')]
             .filter((e) => e.getClientRects().length && e.getBoundingClientRect().width > 1 && px(e) > px(h1) + 0.01)
             .map((e) => `${(e.textContent || '').trim().slice(0, 40)} ${px(e)}px > H1 ${px(h1)}px`);
         });
@@ -230,9 +233,10 @@ test.describe('design gates: hero (Phase 2)', () => {
     for (const [width, height] of [MATRIX[2], MATRIX[7]]) {
       await page.setViewportSize({ width, height });
       await page.goto('/');
-      const kids = await page.locator('.hero__text > *').evaluateAll((els) => els.map((e) => e.className.split(' ')[0]));
-      expect(kids).toEqual(['hero__hello', 'hero__title', 'hero__place', 'hero__actions', 'hero__price']);
-      const lime = await page.locator('.hero__text, .hero__text *').evaluateAll(
+      // MANN / IN MOTION: who (kicker), the H1 (line + service and place), the actions, the prices.
+      const kids = await page.locator('.hero__copy > *').evaluateAll((els) => els.map((e) => e.className.split(' ')[0]));
+      expect(kids).toEqual(['hero__kicker', 'hero__title', 'hero__actions', 'hero__prices']);
+      const lime = await page.locator('.hero__copy, .hero__copy *').evaluateAll(
         (els, lime) => els.filter((e) => getComputedStyle(e).backgroundColor === lime).map((e) => (e.hasAttribute('data-hero-cta') ? 'cta' : e.className)),
         LIME,
       );
@@ -248,7 +252,7 @@ test.describe('design gates: hero (Phase 2)', () => {
       await expect(page.locator('[data-hero-cta]'), `${width}x${height}`).toBeInViewport({ ratio: 1 });
       // "From 375×812 up": every size except the two small phones and the phone held sideways.
       if (width < 375 || height < 500) continue;
-      await expect(page.locator('.hero__price'), `${width}x${height}`).toBeInViewport({ ratio: 1 });
+      await expect(page.locator('.hero__prices'), `${width}x${height}`).toBeInViewport({ ratio: 1 });
       const photo = await page.evaluate(() => {
         const visible = (el: Element | null) => {
           if (!el || !el.getClientRects().length || getComputedStyle(el).display === 'none') return 0;
@@ -256,9 +260,9 @@ test.describe('design gates: hero (Phase 2)', () => {
           const h = Math.max(0, Math.min(r.bottom, innerHeight) - Math.max(r.top, 0));
           return r.height ? h / r.height : 0;
         };
-        return { avatar: visible(document.querySelector('.hero__avatar')), core: visible(document.querySelector('.ag__core')) };
+        return { avatar: visible(document.querySelector('.hero__avatar')), core: visible(document.querySelector('.stage__portrait')) };
       });
-      expect(photo.avatar === 1 || photo.core >= 0.5, `${width}x${height}: avatar ${photo.avatar}, graph core ${photo.core}`).toBe(true);
+      expect(photo.avatar === 1 || photo.core >= 0.5, `${width}x${height}: avatar ${photo.avatar}, stage portrait ${photo.core}`).toBe(true);
     }
   });
 
@@ -278,7 +282,7 @@ test.describe('design gates: hero (Phase 2)', () => {
     for (const [width, height] of [MATRIX[2], MATRIX[7]]) {
       const ctx = await browser.newContext({ viewport: { width, height } });
       await ctx.addInitScript(() => {
-        const m = ((window as unknown as { __h6: { lcp: Element | null; cls: number } }).__h6 = { lcp: null, cls: 0 });
+        const m = ((window as unknown as { __h6: { lcp: Element | null; cls: number } }).__h6 = { lcp: null as Element | null, cls: 0 });
         new PerformanceObserver((l) => l.getEntries().forEach((e) => (m.lcp = (e as PerformanceEntry & { element: Element }).element))).observe({ type: 'largest-contentful-paint', buffered: true });
         new PerformanceObserver((l) => l.getEntries().forEach((e) => (m.cls += (e as PerformanceEntry & { value: number }).value))).observe({ type: 'layout-shift', buffered: true });
       });
@@ -286,7 +290,7 @@ test.describe('design gates: hero (Phase 2)', () => {
       await page.goto('/');
       await page.waitForFunction(() => performance.now() >= 1700);
       const running = await page.evaluate(
-        () => document.getAnimations().filter((a) => a.playState === 'running' && (a.effect as KeyframeEffect)?.target?.closest?.('.hero__text')).length,
+        () => document.getAnimations().filter((a) => a.playState === 'running' && (a.effect as KeyframeEffect)?.target?.closest?.('.hero__copy')).length,
       );
       expect(running, `${width}px: hero entrance still running at 1.7 s`).toBe(0);
       await page.waitForTimeout(1200);
@@ -310,7 +314,7 @@ test.describe('design gates: hero (Phase 2)', () => {
         // The steady state: after the hero's entrance (finished by 1.7 s, gate H6).
         await page.waitForFunction(() => performance.now() >= 1800);
         if (open) await openConsent(page);
-        for (const target of ['[data-hero-cta]', '.hero__price-link', '[data-ag-toggle]']) {
+        for (const target of ['[data-hero-cta]', '.hero__prices a', '#need-website']) {
           const hit = await page.locator(target).evaluate((el) => {
             const inView = () => {
               const r = el.getBoundingClientRect();
@@ -328,10 +332,13 @@ test.describe('design gates: hero (Phase 2)', () => {
     }
   });
 
-  test('R3: the hero is at most 1.35 screens tall at 375×812 and 1.1 at 768×1024', async ({ page }) => {
+  // MANN / IN MOTION (19 Nov 2026): the hero now includes the operable stage (stacked under the copy below 1024px), so the
+  // limits grew; selected work still starts by the targets in site.spec.ts. Desktop: the hero is exactly one screen.
+  test('R3: the hero (copy + stage) is at most 1.85 screens at 375×812, 1.45 at 768×1024 and one screen at 1440×900', async ({ page }) => {
     for (const [width, height, max] of [
-      [375, 812, 1.35],
-      [768, 1024, 1.1],
+      [375, 812, 1.85],
+      [768, 1024, 1.45],
+      [1440, 900, 1.01],
     ]) {
       await page.setViewportSize({ width, height });
       await page.goto('/');
@@ -421,19 +428,22 @@ test.describe('design gates: structure and layout (Phase 3)', () => {
   test('S1: Home runs hero, work, (reviews), services, prices, free check, how I work, questions; at most three lime-tipped rules', async ({ page }) => {
     await page.goto('/');
     const ids = await page.locator('main > section[id]').evaluateAll((els) => els.map((e) => e.id));
-    const expected = ['hero', 'work', 'what-i-do', 'prices', 'check', 'how-i-work', 'faq'];
+    // MANN / IN MOTION (19 Nov 2026): the five scenes (DESIGN.md → Homepage storyboard).
+    const expected = ['hero', 'work', 'playground', 'about', 'start'];
     // Real reviews only (src/data/reviews.ts): the strip sits right after Selected Work once there are some.
     expect(ids.filter((id) => id !== 'reviews')).toEqual(expected);
     if (ids.includes('reviews')) expect(ids[ids.indexOf('work') + 1]).toBe('reviews');
     expect(await page.locator('.rule-signal').count()).toBeLessThanOrEqual(3);
   });
 
-  test('S2: no project is linked from two different Home sections above the questions', async ({ page }) => {
+  // MANN / IN MOTION: the stage's website scene names the case study it demonstrates; otherwise each project is linked from
+  // one section only.
+  test('S2: no project is linked from two different Home sections (the stage may name the case study it shows)', async ({ page }) => {
     await page.goto('/');
     const bySection = await page.evaluate(() => {
       const out: Record<string, string[]> = {};
       for (const s of document.querySelectorAll('main > section[id]')) {
-        if (s.id === 'faq') break;
+        if (s.id === 'hero') continue;
         out[s.id] = [...new Set([...s.querySelectorAll('a[href^="/work/"]')].map((a) => a.getAttribute('href')!).filter((h) => h !== '/work/'))];
       }
       return out;
@@ -450,8 +460,10 @@ test.describe('design gates: structure and layout (Phase 3)', () => {
     test(`S3 at ${width}px: lime buttons on Home lead to the free check or /contact/, one on screen at a time`, async ({ page }) => {
       await page.setViewportSize({ width, height });
       await page.goto('/');
-      const all = await page.locator('main a, main button, footer a, footer button').evaluateAll(
-        (els, lime) => els.filter((e) => getComputedStyle(e).backgroundColor === lime).map((e) => e.getAttribute('href')),
+      // The stage's selected need is a state (role=tab), not a button; the short brief's submit goes to /contact/.
+      const all = await page.locator('main a, main button:not([role="tab"]), footer a, footer button').evaluateAll(
+        (els, lime) =>
+          els.filter((e) => getComputedStyle(e).backgroundColor === lime).map((e) => e.getAttribute('href') ?? (e.closest('form[action="/contact/"]') ? '/contact/' : null)),
         LIME,
       );
       for (const href of all) expect(['/contact/?package=check-up#check', '/contact/']).toContain(href);
@@ -476,17 +488,17 @@ test.describe('design gates: structure and layout (Phase 3)', () => {
     });
   }
 
-  test('S4: Home is at most 11 screens at 390×844 (D9)', async ({ page }) => {
+  // D9 (17 Nov 2026) was 11; MANN / IN MOTION adds the work films and the playground (docs/redesign/REPORT.md).
+  test('S4: Home is at most 14.5 screens at 390×844', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');
-    expect(await page.evaluate(() => document.documentElement.scrollHeight / innerHeight)).toBeLessThanOrEqual(11);
+    expect(await page.evaluate(() => document.documentElement.scrollHeight / innerHeight)).toBeLessThanOrEqual(14.5);
   });
 
-  test('L1: from 1440 the heads of How I work, Prices and the questions stay in view (sticky)', async ({ page }) => {
+  test('L1: from 1440 the work list stays in view beside the film (sticky)', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
-    for (const head of ['#how-i-work .about__head', '#prices .pt__head', '#faq .faq__head'])
-      expect(await page.locator(head).evaluate((e) => getComputedStyle(e).position), head).toBe('sticky');
+    expect(await page.locator('#work .reel__list').evaluate((e) => getComputedStyle(e).position)).toBe('sticky');
   });
 
   test('L3: at 1440 every section’s eyebrow and heading start at the container’s content edge', async ({ page }) => {
@@ -599,13 +611,12 @@ test.describe('design gates: motion (Phase 4)', () => {
     }
   });
 
-  test('M3: the hero entrance (text, graph and the wordmark’s first-visit lock-on) has finished by 1.7 s', async ({ browser }) => {
+  test('M3: the hero entrance (text, stage scene and the line) has finished by 1.7 s', async ({ browser }) => {
     for (const [width, height] of [MATRIX[2], MATRIX[7]]) {
       // A new context is a new visit, so the wordmark's once-per-visit lock-on plays too.
       const ctx = await browser.newContext({ viewport: { width, height } });
       const page = await ctx.newPage();
       await page.goto('/');
-      expect(await page.evaluate(() => document.documentElement.classList.contains('wm-intro')), `${width}px: first visit`).toBe(true);
       await page.waitForTimeout(Math.max(0, 1700 - (await page.evaluate(() => performance.now()))));
       const entrance = await page.evaluate(() =>
         document
@@ -616,14 +627,11 @@ test.describe('design gates: motion (Phase 4)', () => {
           .map(({ name, el }) => `${name} on ${el.tagName.toLowerCase()}.${(el.getAttribute('class') ?? '').split(' ')[0]}`),
       );
       expect(entrance, `${width}px at 1.7 s`).toEqual([]);
-      // The second page of the visit doesn't replay it.
-      await page.goto('/services/');
-      expect(await page.evaluate(() => document.documentElement.classList.contains('wm-intro')), `${width}px: second page`).toBe(false);
       await ctx.close();
     }
   });
 
-  test('M5: with reduced motion nothing animates, all content shows, and the graph is still with its two routes lit', async ({ browser }) => {
+  test('M5: with reduced motion nothing animates, all content shows, and the stage is still with its line drawn', async ({ browser }) => {
     test.setTimeout(90_000);
     for (const [width, height] of [
       [390, 844],
@@ -646,11 +654,12 @@ test.describe('design gates: motion (Phase 4)', () => {
         expect(await hiddenContent(page), `${path} at ${width}px`).toEqual([]);
       }
       await page.goto('/');
-      const layout = width >= 1024 ? 'wide' : 'tall';
-      const lit = page.locator(`.ag__svg--${layout} .ag__pulse:visible`);
-      await expect(lit).toHaveCount(4);
-      for (const o of await lit.evaluateAll((els) => els.map((e) => getComputedStyle(e).opacity))) expect(Number(o)).toBeGreaterThan(0.4);
-      await expect(page.locator('.ag__spark')).toHaveCount(0);
+      await expect(page.locator('.stage__portrait')).toBeVisible();
+      await expect(page.locator('.sc-web')).toBeVisible();
+      if (width >= 1024) {
+        await expect(page.locator('[data-stage]')).toHaveClass(/has-line/);
+        expect(await page.locator('.ln').evaluate((e) => getComputedStyle(e).strokeDashoffset)).toMatch(/^0(px)?$/);
+      }
       await ctx.close();
     }
   });
