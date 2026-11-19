@@ -1,117 +1,114 @@
 ---
+/**
+ * 404 (MANN / IN MOTION): the line that connects everything on the site arrives here and finds nothing to connect to.
+ * It draws once (not on reduced motion), then the page offers the five real destinations.
+ */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Button from '../components/ui/Button.astro';
 import Icon from '../components/ui/Icon.astro';
 import { businesses } from '../data/site';
-import Field from '../components/fx/Field.astro';
 
 const nest = businesses[0];
 const links = [
-  { href: '/', label: 'Home' },
-  { href: '/services/', label: 'Services' },
-  { href: '/work/', label: 'Work' },
-  { href: '/about/', label: 'About' },
-  { href: '/contact/', label: 'Start a project' },
+  { href: '/', label: 'Home', note: 'Start again' },
+  { href: '/work/', label: 'Work', note: 'Two real projects' },
+  { href: '/services/', label: 'Services', note: 'Websites, Google, automation' },
+  { href: '/about/', label: 'About', note: 'Who you’d work with' },
+  { href: '/contact/', label: 'Start a project', note: 'A two-minute brief' },
 ];
 ---
 
 <BaseLayout title="Page not found" description="This page doesn’t exist." noindex>
-  <section class="nf" data-field-zone>
-    <Field preset="lost" class="nf__field" />
+  <section class="nf">
+    <svg class="nf__line" viewBox="0 0 1600 600" preserveAspectRatio="none" aria-hidden="true">
+      <path
+        pathLength="1"
+        d="M-20 420 C 220 420 260 180 520 180 S 860 470 1040 380 S 1260 120 1380 240 S 1480 520 1560 500"
+      />
+      <circle cx="1560" cy="500" r="7" />
+    </svg>
     <div class="container nf__grid">
-      <figure class="nf__mark" data-portrait>
-        <div class="nf__stage">
-          <img src="/404-mark.svg" alt="" width="900" height="380" class="nf__img" data-portrait-img />
-          <canvas class="nf__canvas" aria-hidden="true" data-portrait-canvas></canvas>
-        </div>
-      </figure>
       <div class="nf__text">
-        <p class="eyebrow">Error 404</p>
-        <h1 class="nf__title">This page wasn’t <span class="accent">found</span><span class="stop">.</span></h1>
-        <p class="lead">Which is a little ironic, given what I do. The link may be old, or the address mistyped. These pages do exist:</p>
-        <ul class="nf__links" role="list">
+        <p class="eyebrow">Error 404 · No route</p>
+        <h1 class="nf__title">Nothing to connect to here<span class="stop">.</span></h1>
+        <p class="lead">The link may be old, or the address mistyped. Which is a little ironic, given what I do. These pages do exist:</p>
+        <div class="btn-row">
+          <Button href="/">Go to the home page</Button>
+        </div>
+        {
+          nest.siteLive && (
+            <p class="small subtle text-links">
+              Looking for home cleaning? <a href={nest.url} rel="noopener">Visit {nest.name}</a>.
+            </p>
+          )
+        }
+      </div>
+      <nav class="nf__nav" aria-label="Pages that exist">
+        <ol class="nf__links" role="list">
           {
-            links.map((l) => (
+            links.map((l, i) => (
               <li>
                 <a href={l.href}>
-                  <span class="roll">
-                    <span data-text={l.label}>{l.label}</span>
-                  </span>
+                  <span class="num nf__i">0{i + 1}</span>
+                  <span class="nf__label">{l.label}</span>
+                  <span class="nf__note small subtle">{l.note}</span>
                   <Icon name="arrow" />
                 </a>
               </li>
             ))
           }
-        </ul>
-        {nest.siteLive && (
-          <p class="small subtle text-links">
-            Looking for home cleaning? <a href={nest.url} rel="noopener">Visit {nest.name}</a>.
-          </p>
-        )}
-        <div class="btn-row">
-          <Button href="/">Go to the home page</Button>
-        </div>
-      </div>
+        </ol>
+      </nav>
     </div>
   </section>
 </BaseLayout>
 
-<script>
-  import { mountSignalPortrait } from '../scripts/signal-portrait';
-  document.querySelectorAll<HTMLElement>('[data-portrait]').forEach(mountSignalPortrait);
-</script>
-
 <style>
   .nf {
-    padding-block: clamp(var(--s-6), 6vw, var(--s-9)) var(--section);
+    position: relative;
+    overflow: clip;
+    padding-block: clamp(var(--s-8), 9vw, var(--s-10)) var(--section);
+    min-height: calc(100svh - var(--header-h));
   }
-  /* Radar dots behind the "404": click anywhere to send a ping looking for the page. */
-  .nf :global(.nf__field) {
-    --fx: 50%;
-    --fy: 30%;
-    --fw: 90%;
-    --fh: 70%;
+  .nf__line {
+    position: absolute;
+    inset: 8% 0 auto;
+    width: 100%;
+    height: 70%;
+    pointer-events: none;
+    fill: none;
   }
-  @media (min-width: 64em) {
-    .nf :global(.nf__field) {
-      --fx: 28%;
-      --fy: 50%;
-      --fw: 55%;
-      --fh: 90%;
+  .nf__line path {
+    stroke: var(--signal);
+    stroke-width: var(--line-w);
+    vector-effect: non-scaling-stroke;
+    opacity: 0.55;
+  }
+  .nf__line circle {
+    fill: none;
+    stroke: var(--signal);
+    stroke-width: var(--line-w);
+    vector-effect: non-scaling-stroke;
+    opacity: 0.55;
+  }
+  :root[data-motion='on'] .nf__line path {
+    stroke-dasharray: 1;
+    animation: nf-draw var(--dur-6) var(--ease-out) both;
+    animation-duration: calc(var(--dur-6) * 2);
+  }
+  @keyframes nf-draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
     }
   }
   .nf__grid {
-    display: grid;
-    gap: var(--s-7);
-    align-items: center;
-  }
-  .nf__mark {
-    cursor: crosshair;
-    touch-action: pan-y;
-  }
-  .nf__stage {
     position: relative;
-    aspect-ratio: 900 / 380;
-  }
-  .nf__img,
-  .nf__canvas {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    transition: opacity var(--dur-4) var(--ease-out);
-  }
-  .nf__img {
-    opacity: 0.12;
-  }
-  .nf__canvas {
-    opacity: 0;
-  }
-  .nf__mark:global(.is-ready) .nf__canvas {
-    opacity: 1;
-  }
-  .nf__mark:global(.is-ready) .nf__img {
-    opacity: 0;
+    display: grid;
+    gap: var(--s-8);
+    align-items: end;
   }
   .nf__text {
     display: grid;
@@ -120,32 +117,56 @@ const links = [
   }
   .nf__title {
     font-size: var(--fs-h1);
-    max-width: 14ch;
+    max-width: 12ch;
   }
   .nf__links {
-    width: 100%;
-    max-width: 30rem;
     border-top: 1px solid var(--line);
   }
   .nf__links li {
     border-bottom: 1px solid var(--line);
   }
   .nf__links a {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 2.5rem 1fr auto;
+    grid-template-areas: 'i label icon' 'i note icon';
     align-items: center;
-    min-height: 3.25rem;
+    column-gap: var(--s-3);
+    min-height: 4rem;
+    padding-block: var(--s-3);
     text-decoration: none;
-    font-weight: var(--w-ui);
-    transition: color var(--dur-1);
+    background: var(--bg);
+    transition: color var(--dur-1), padding var(--dur-3) var(--ease-out);
+  }
+  .nf__i {
+    grid-area: i;
+    font-size: var(--fs-label);
+    color: var(--text-3);
+  }
+  .nf__label {
+    grid-area: label;
+    font-family: var(--font-display);
+    font-weight: var(--w-display);
+    font-size: var(--fs-h3);
+    letter-spacing: var(--track-head);
+    line-height: 1.1;
+  }
+  .nf__note {
+    grid-area: note;
+  }
+  .nf__links a > :global(.icon) {
+    grid-area: icon;
   }
   .nf__links a:hover,
   .nf__links a:focus-visible {
     color: var(--signal);
   }
+  :root[data-motion='on'] .nf__links a:hover,
+  :root[data-motion='on'] .nf__links a:focus-visible {
+    padding-left: var(--s-3);
+  }
   @media (min-width: 64em) {
     .nf__grid {
-      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
       gap: var(--s-9);
     }
   }

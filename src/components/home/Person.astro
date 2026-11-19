@@ -1,0 +1,216 @@
+---
+/**
+ * Scene D, the person behind the work (DESIGN.md → Homepage → Scene D).
+ * Mann's real portrait, given an editorial treatment: a tall frame whose crop drifts slowly as it scrolls past (CSS
+ * scroll timeline, transform only), the lime line drawing its frame, and a contact-sheet strip of the same real photos.
+ * The face stays recognisable and still enough to trust. Facts are taken from the About page, nothing new is claimed.
+ */
+import { Picture } from 'astro:assets';
+import Icon from '../ui/Icon.astro';
+import { profile } from '../../data/site';
+import hero from '../../assets/mann-patel-hero.jpg';
+import portrait from '../../assets/mann-patel-portrait.jpg';
+import cutout from '../../assets/mann-patel-cutout.png';
+---
+
+<section class="person paper section" id="about" aria-labelledby="person-title">
+  <div class="container person__grid">
+    <div class="person__media">
+      <figure class="person__frame">
+        <span class="person__crop">
+          <Picture
+            src={portrait}
+            alt={profile.portrait?.alt ?? 'Mann Patel'}
+            formats={['avif']}
+            fallbackFormat="webp"
+            widths={[420, 640, 860, 1060]}
+            sizes="(min-width: 64em) 34vw, 86vw"
+            quality={64}
+            loading="lazy"
+            decoding="async"
+          />
+        </span>
+        <svg class="person__line" viewBox="0 0 100 125" preserveAspectRatio="none" aria-hidden="true">
+          <path class="draw-on-scroll" pathLength="1" d="M-4 112 H96 V4 H12" />
+        </svg>
+        <figcaption class="person__cap mono">Mann Patel · {profile.location}, Toronto</figcaption>
+      </figure>
+      <ul class="person__sheet" role="list" aria-hidden="true">
+        <li><Picture src={hero} alt="" formats={['avif']} fallbackFormat="webp" widths={[160, 320]} sizes="10rem" quality={60} loading="lazy" decoding="async" /></li>
+        <li class="person__sheet-lime"><Picture src={cutout} alt="" formats={['avif']} fallbackFormat="webp" widths={[160, 320]} sizes="10rem" quality={64} loading="lazy" decoding="async" /></li>
+        <li><Picture src={portrait} alt="" formats={['avif']} fallbackFormat="webp" widths={[160, 320]} sizes="10rem" quality={60} loading="lazy" decoding="async" /></li>
+      </ul>
+    </div>
+
+    <div class="person__copy">
+      <p class="eyebrow">The person behind the work</p>
+      <h2 id="person-title" data-split>
+        <span class="line-mask" style="--i:0"><span>Hi, I’m Mann<span class="stop">.</span></span></span>
+      </h2>
+      <p class="lead person__lead">
+        A freelance web designer in Toronto, based in Scarborough. I build clear websites, Google and Maps listings and enquiry follow-up for owner-run businesses,
+        and I do the work myself.
+      </p>
+      <dl class="person__facts">
+        <div>
+          <dt>Replies</dt>
+          <dd>I read and answer every enquiry myself.</dd>
+        </div>
+        <div>
+          <dt>Ownership</dt>
+          <dd>Every account, domain and file stays in your name.</dd>
+        </div>
+        <div>
+          <dt>Area</dt>
+          <dd>{profile.location}, working across {profile.serviceArea}.</dd>
+        </div>
+      </dl>
+      <a class="link-arrow" href="/about/">More about me <Icon name="arrow" /></a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .person__grid {
+    display: grid;
+    gap: var(--s-7);
+    align-items: center;
+  }
+  .person__media {
+    display: grid;
+    gap: var(--s-3);
+  }
+  .person__frame {
+    position: relative;
+    margin: 0;
+    padding: 0 6% 7% 0;
+  }
+  .person__crop {
+    display: block;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border-radius: 4px;
+    background: var(--paper-2);
+  }
+  .person__crop :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 30%;
+    transform: scale(1.08);
+  }
+  @supports (animation-timeline: view()) {
+    :global(:root[data-motion='on']) .person__crop :global(img) {
+      animation-name: crop-drift;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
+    }
+  }
+  @keyframes crop-drift {
+    from {
+      transform: scale(1.16) translateY(3%);
+    }
+    to {
+      transform: scale(1.04) translateY(-2%);
+    }
+  }
+  .person__line {
+    position: absolute;
+    inset: 4% 0 0 6%;
+    width: 94%;
+    height: 96%;
+    overflow: visible;
+    fill: none;
+    pointer-events: none;
+  }
+  .person__line path {
+    stroke: var(--ink);
+    stroke-width: var(--line-w);
+    vector-effect: non-scaling-stroke;
+  }
+  .person__cap {
+    position: absolute;
+    left: var(--s-3);
+    bottom: calc(7% + var(--s-3));
+    padding: 0.25rem 0.5rem;
+    border-radius: 3px;
+    background: var(--ink);
+    color: var(--paper);
+    font-size: var(--fs-label);
+  }
+  .person__sheet {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--s-2);
+    max-width: 22rem;
+  }
+  .person__sheet li {
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: 3px;
+    background: var(--paper-2);
+  }
+  .person__sheet :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 25%;
+  }
+  .person__sheet-lime {
+    background: var(--signal) !important;
+  }
+  .person__sheet-lime :global(img) {
+    object-fit: contain;
+    object-position: 50% 100%;
+  }
+  .person__copy {
+    display: grid;
+    gap: var(--s-5);
+    justify-items: start;
+  }
+  .person__copy > .eyebrow + h2 {
+    margin-top: calc(var(--head-gap-1) - var(--s-5));
+  }
+  .person__copy h2 {
+    font-size: var(--fs-display);
+    line-height: 0.92;
+  }
+  .person__lead {
+    max-width: 38ch;
+    color: var(--text-2);
+  }
+  .person__facts {
+    display: grid;
+    width: 100%;
+    max-width: 34rem;
+    margin: 0;
+    border-top: 1px solid var(--line);
+  }
+  .person__facts div {
+    display: grid;
+    grid-template-columns: 7rem 1fr;
+    gap: var(--s-4);
+    padding-block: var(--s-3);
+    border-bottom: 1px solid var(--line);
+  }
+  .person__facts dt {
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    padding-top: 0.2em;
+  }
+  .person__facts dd {
+    margin: 0;
+    font-size: var(--fs-sm);
+  }
+  @media (min-width: 64em) {
+    .person__grid {
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr);
+      gap: var(--s-10);
+    }
+  }
+</style>

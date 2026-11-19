@@ -21,7 +21,8 @@ window.__revealReady = true;
  * (design upgrade Phase 4, gate M7): read at start-up, it would force that layout inside this script.
  */
 const whenIdle = (fn: () => void) => ('requestIdleCallback' in window ? requestIdleCallback(fn, { timeout: 1000 }) : setTimeout(fn, 1));
-const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+// Reduced = the site's Motion preference is off (html[data-motion], set in <head>; src/scripts/prefs.ts).
+const reduced = { get matches() { return document.documentElement.getAttribute('data-motion') !== 'on'; } };
 
 /* ── Smooth in-page links ───────────────────────────────── */
 // Only clicks on in-page links glide; find-in-page, focus moves and scripts jump instantly.

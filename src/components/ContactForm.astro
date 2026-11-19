@@ -388,7 +388,8 @@ const tick = '<svg viewBox="0 0 16 16"><path d="m3.5 8.5 3 3 6-7" /></svg>';
     const params = new URLSearchParams(location.search);
     // Old package ids (links shared before round 10) map to the current offer.
     let pkg: string = normalizePackageId(params.get('package'));
-    let svcs = (params.get('services') ?? '').split(',').filter(Boolean);
+    // ?services=a,b (one list) or ?services=a&services=b (the home page's short brief without JavaScript).
+    let svcs = params.getAll('services').flatMap((v) => v.split(',')).filter(Boolean);
     const answers = parseAnswers(Object.fromEntries(params.entries()));
     if (answers && !pkg) {
       const rec = recommend(answers);
@@ -402,6 +403,10 @@ const tick = '<svg viewBox="0 0 16 16"><path d="m3.5 8.5 3 3 6-7" /></svg>';
     }
     const single = params.get('service');
     if (single) svcs.push(single);
+    // ?website=… from the home page's short brief.
+    const siteParam = params.get('website');
+    const siteField = form.elements.namedItem('website') as HTMLInputElement | null;
+    if (siteParam && siteField && !siteField.value) siteField.value = siteParam.slice(0, LIMITS.website);
     const details = root.querySelector<HTMLDetailsElement>('[data-svc-detail]');
     form.querySelectorAll<HTMLInputElement>('input[name="services"]').forEach((cb) => {
       if (!svcs.includes(cb.value)) return;

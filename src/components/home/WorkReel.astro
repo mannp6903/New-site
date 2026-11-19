@@ -1,0 +1,580 @@
+---
+/**
+ * Scene B, selected work as moving evidence (DESIGN.md → Homepage → Scene B; MOTION.md → Work reel).
+ *
+ * An ivory editorial band. Wide screens: a list of projects (a tablist) beside one large preview surface. Choosing a
+ * project plays a short authored "film" made only from its real, dated captures: the desktop page settles in, the real
+ * details rise in over it one by one, the phone view slides up, and the line frames the first detail. Then it holds.
+ * Phones (and no JavaScript): every project is a card in reading order with its own media, nothing hidden.
+ * Labels stay honest: own business or client, the website status, and the date it was checked.
+ */
+import { getCollection } from 'astro:content';
+import { Picture } from 'astro:assets';
+import Icon from '../ui/Icon.astro';
+import Status from '../work/Status.astro';
+import { captures } from '../../data/captures';
+import { projectSite } from '../../lib/work';
+
+const work = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
+const fmtDate = (iso: string) =>
+  new Intl.DateTimeFormat('en-CA', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${iso}T12:00:00Z`));
+const hostOf = (url: string) => new URL(url).host.replace(/^www\./, '');
+---
+
+<section class="reel paper section" id="work" aria-labelledby="work-title" data-reel>
+  <div class="container">
+    <header class="section-head section-head--split reel__head">
+      <div class="reel__head-a">
+        <p class="eyebrow">Selected work · {String(work.length).padStart(2, '0')} projects</p>
+        <h2 id="work-title" data-split>
+          <span class="line-mask" style="--i:0"><span>Website projects</span></span>
+          <span class="line-mask" style="--i:1"><span>in Scarborough<span class="stop">.</span></span></span>
+        </h2>
+      </div>
+      <div class="reel__head-b">
+        <p>A business I’m building and a client site in progress. Every screen here is a dated capture of the real site.</p>
+        <a class="link-arrow" href="/work/">All work <Icon name="arrow" /></a>
+      </div>
+    </header>
+
+    <div class="reel__body">
+      <div class="reel__list" role="tablist" aria-label="Projects" aria-orientation="vertical" data-reel-tabs>
+        {
+          work.map((entry, i) => {
+            const site = projectSite(entry.data);
+            return (
+              <button
+                class="reel__tab"
+                type="button"
+                role="tab"
+                id={`reel-tab-${entry.id}`}
+                aria-controls={`reel-${entry.id}`}
+                aria-selected={i === 0 ? 'true' : 'false'}
+                tabindex={i === 0 ? 0 : -1}
+              >
+                <span class="reel__n num" aria-hidden="true">
+                  0{i + 1}
+                </span>
+                <span class="reel__tab-name">{entry.data.title}</span>
+                <span class="reel__tab-kind">
+                  {entry.data.relationship} · {site.websiteStatus}
+                </span>
+              </button>
+            );
+          })
+        }
+      </div>
+
+      <div class="reel__panels">
+        {
+          work.map((entry, i) => {
+            const p = entry.data;
+            const site = projectSite(p);
+            const shots = captures[p.scene];
+            const href = `/work/${entry.id}/`;
+            return (
+              <article class="reel__panel" id={`reel-${entry.id}`} role="tabpanel" aria-labelledby={`reel-tab-${entry.id}`} data-reel-panel data-on={i === 0 ? '' : undefined}>
+                <header class="reel__card-head">
+                  <p class="reel__n num" aria-hidden="true">
+                    0{i + 1} / 0{work.length}
+                  </p>
+                  <h3 class="reel__name">
+                    <a href={href}>{p.title}</a>
+                  </h3>
+                  <p class="reel__labels">
+                    <span>{p.relationship}</span>
+                    <Status status={p.status} paused={site.paused} />
+                  </p>
+                </header>
+
+                <a class="reel__film" href={href} tabindex="-1" aria-hidden="true">
+                  <span class="reel__browser">
+                    <span class="reel__bar">
+                      <i />
+                      <i />
+                      <i />
+                      <b>{hostOf(shots.url)}</b>
+                    </span>
+                    <span class="reel__shot">
+                      <Picture
+                        src={shots.desktop.src}
+                        alt=""
+                        formats={['avif']}
+                        fallbackFormat="webp"
+                        widths={[640, 960, 1280, 1440]}
+                        sizes="(min-width: 64em) 52vw, 92vw"
+                        quality={58}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </span>
+                  </span>
+                  <span class="reel__phone">
+                    <Picture src={shots.mobile.src} alt="" formats={['avif']} fallbackFormat="webp" widths={[180, 360]} sizes="(min-width: 64em) 11vw, 24vw" quality={58} loading="lazy" decoding="async" />
+                  </span>
+                  {shots.details.slice(0, 2).map((d, k) => (
+                    <span class={`reel__detail reel__detail--${k + 1}`}>
+                      <Picture src={d.src} alt="" formats={['avif']} fallbackFormat="webp" widths={[240, 480]} sizes="(min-width: 64em) 16vw, 36vw" quality={62} loading="lazy" decoding="async" />
+                      <b class="mono">{d.title}</b>
+                    </span>
+                  ))}
+                  <svg class="reel__line" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <rect pathLength="1" x="0.5" y="0.5" width="99" height="99" rx="1" />
+                  </svg>
+                </a>
+                <p class="visually-hidden">{shots.desktop.alt}</p>
+
+                <div class="reel__info">
+                  <dl class="reel__spec">
+                    <div>
+                      <dt>A · Problem</dt>
+                      <dd>{p.problem}</dd>
+                    </div>
+                    <div>
+                      <dt>B · My role</dt>
+                      <dd>{p.roleShort}</dd>
+                    </div>
+                    <div>
+                      <dt>C · Status</dt>
+                      <dd>
+                        {site.websiteStatus}
+                        {p.businessStatus && <> · {p.businessStatus}</>}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>D · Checked</dt>
+                      <dd class="num">{fmtDate(p.checked)}</dd>
+                    </div>
+                  </dl>
+                  <div class="reel__actions">
+                    <a class="btn reel__cta" href={href} data-project-open={entry.id}>
+                      <span class="btn__label">
+                        <span>
+                          Read the case study<span class="visually-hidden">: {p.title}</span>
+                        </span>
+                      </span>
+                      <span class="btn__icon" aria-hidden="true">
+                        <Icon name="arrow" />
+                      </span>
+                    </a>
+                    {site.links.map((l) => (
+                      <a class="link-arrow" href={l.url} rel="noopener">
+                        {l.label} <Icon name="arrow-ne" class="icon--ne" />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              </article>
+            );
+          })
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { track } from '../../scripts/analytics';
+  import { motionOn } from '../../scripts/prefs';
+
+  document.querySelectorAll<HTMLElement>('[data-reel]').forEach((reel) => {
+    const tabs = [...reel.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+    const panels = [...reel.querySelectorAll<HTMLElement>('[data-reel-panel]')];
+    const wide = matchMedia('(min-width: 64em)');
+    reel.classList.add('is-tabs');
+
+    const play = (panel: HTMLElement) => {
+      panel.removeAttribute('data-play');
+      if (!motionOn()) return;
+      void panel.offsetWidth;
+      panel.setAttribute('data-play', '');
+    };
+    const select = (i: number, focus = false) => {
+      tabs.forEach((t, j) => {
+        t.setAttribute('aria-selected', String(j === i));
+        t.tabIndex = j === i ? 0 : -1;
+      });
+      panels.forEach((p, j) => p.toggleAttribute('data-on', j === i));
+      if (focus) tabs[i].focus();
+      if (wide.matches) play(panels[i]);
+    };
+    tabs.forEach((t, i) => {
+      t.addEventListener('click', () => select(i));
+      t.addEventListener('keydown', (e) => {
+        const last = tabs.length - 1;
+        const next = { ArrowDown: i === last ? 0 : i + 1, ArrowRight: i === last ? 0 : i + 1, ArrowUp: i === 0 ? last : i - 1, ArrowLeft: i === 0 ? last : i - 1, Home: 0, End: last }[e.key];
+        if (next === undefined) return;
+        e.preventDefault();
+        select(next, true);
+      });
+    });
+
+    // Films play once, when their surface first comes into view (each card on phones; the active panel on desktop).
+    const seen = new WeakSet<Element>();
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((en) => {
+          if (!en.isIntersecting || seen.has(en.target)) return;
+          seen.add(en.target);
+          const panel = en.target.closest<HTMLElement>('[data-reel-panel]')!;
+          if (!wide.matches || panel.hasAttribute('data-on')) play(panel);
+        });
+      },
+      { threshold: 0.35 },
+    );
+    panels.forEach((p) => io.observe(p.querySelector('.reel__film')!));
+
+    reel.addEventListener('click', (e) => {
+      const a = (e.target as Element).closest<HTMLAnchorElement>('[data-project-open]');
+      if (a) track('project_open', { project: a.dataset.projectOpen!, location: 'home_reel' });
+    });
+  });
+</script>
+
+<style>
+  .reel__head {
+    align-items: end;
+  }
+  .reel__head-a {
+    display: grid;
+    row-gap: var(--head-gap-1);
+  }
+  .reel__head-a h2 {
+    max-width: none;
+  }
+  .reel__head-b {
+    display: grid;
+    gap: var(--s-3);
+    justify-items: start;
+    color: var(--text-2);
+  }
+  .reel__head-b p {
+    max-width: 44ch;
+  }
+  .reel__list {
+    display: none;
+  }
+  .reel__panels {
+    display: grid;
+    gap: var(--s-8);
+  }
+  .reel__panel {
+    display: grid;
+    gap: var(--s-5);
+  }
+  .reel__card-head {
+    display: grid;
+    gap: var(--s-2);
+  }
+  .reel__n {
+    font-size: var(--fs-label);
+    color: var(--text-3);
+  }
+  .reel__name {
+    font-family: var(--font-display);
+    font-weight: var(--w-display);
+    font-size: var(--fs-h2);
+    line-height: 1;
+    letter-spacing: var(--track-hero);
+  }
+  .reel__name a {
+    text-decoration: none;
+  }
+  .reel__name a:hover,
+  .reel__name a:focus-visible {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+  }
+  .reel__labels {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-2) var(--s-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+
+  /* The film surface: a dark stage set into the ivory page. */
+  .reel__film {
+    position: relative;
+    display: block;
+    aspect-ratio: 16 / 11;
+    border-radius: 6px;
+    background: var(--ink);
+    overflow: clip;
+    isolation: isolate;
+  }
+  .reel__browser {
+    position: absolute;
+    left: 6%;
+    top: 8%;
+    width: 78%;
+    border-radius: 6px;
+    background: var(--frame-screen);
+    box-shadow: var(--shadow-media);
+    overflow: hidden;
+  }
+  .reel__bar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 1.5rem;
+    padding-inline: 0.6rem;
+    background: var(--frame-bar);
+  }
+  .reel__bar i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--frame-dot);
+  }
+  .reel__bar b {
+    margin-left: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    font-weight: var(--w-ui);
+    color: var(--frame-url);
+  }
+  .reel__shot {
+    display: block;
+    overflow: hidden;
+  }
+  .reel__shot :global(img) {
+    width: 100%;
+    height: auto;
+    transform-origin: 70% 30%;
+  }
+  .reel__phone {
+    position: absolute;
+    right: 5%;
+    bottom: -6%;
+    width: 20%;
+    padding: 0.35rem;
+    border-radius: 14px;
+    background: var(--frame-bezel);
+    box-shadow: var(--shadow-media);
+  }
+  .reel__phone :global(img) {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+  }
+  .reel__detail {
+    position: absolute;
+    display: grid;
+    gap: 0.35rem;
+    width: 34%;
+    padding: 0.4rem;
+    border-radius: 6px;
+    background: var(--paper);
+    box-shadow: var(--shadow-media);
+  }
+  .reel__detail :global(img) {
+    width: 100%;
+    height: auto;
+    border-radius: 3px;
+  }
+  .reel__detail b {
+    padding-inline: 0.2rem;
+    font-size: var(--fs-label);
+    font-weight: var(--w-ui);
+    color: var(--paper-text-2);
+  }
+  .reel__detail--1 {
+    left: 3%;
+    bottom: 7%;
+  }
+  .reel__detail--2 {
+    left: 40%;
+    bottom: 4%;
+    width: 28%;
+  }
+  .reel__line {
+    position: absolute;
+    left: calc(3% - 6px);
+    bottom: calc(7% - 6px);
+    width: calc(34% + 12px);
+    height: auto;
+    aspect-ratio: 1.6;
+    overflow: visible;
+    fill: none;
+    pointer-events: none;
+    display: none;
+  }
+  .reel__line rect {
+    stroke: var(--signal);
+    stroke-width: var(--line-w);
+    vector-effect: non-scaling-stroke;
+  }
+
+  .reel__info {
+    display: grid;
+    gap: var(--s-5);
+  }
+  .reel__spec {
+    display: grid;
+    gap: var(--s-3);
+    margin: 0;
+  }
+  .reel__spec div {
+    display: grid;
+    gap: var(--s-1);
+    padding-top: var(--s-3);
+    border-top: 1px solid var(--line);
+  }
+  .reel__spec dt {
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .reel__spec dd {
+    margin: 0;
+    font-size: var(--fs-sm);
+    color: var(--text);
+  }
+  .reel__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-3) var(--s-5);
+  }
+
+  /* ── The film (MOTION.md → Work reel): once, when the surface comes into view or the project is chosen. ── */
+  :global(:root[data-motion='on']) .reel__panel[data-play] .reel__shot :global(img) {
+    animation: film-push calc(var(--dur-loop) * 1.6) var(--ease-out) both;
+  }
+  :global(:root[data-motion='on']) .reel__panel[data-play] .reel__browser {
+    animation: film-in var(--dur-6) var(--ease-out) both;
+  }
+  :global(:root[data-motion='on']) .reel__panel[data-play] .reel__detail,
+  :global(:root[data-motion='on']) .reel__panel[data-play] .reel__phone {
+    animation: film-rise var(--dur-5) var(--ease-out) both;
+  }
+  :global(:root[data-motion='on']) .reel__panel[data-play] .reel__detail--1 {
+    animation-delay: calc(var(--stagger) * 24);
+  }
+  :global(:root[data-motion='on']) .reel__panel[data-play] .reel__detail--2 {
+    animation-delay: calc(var(--stagger) * 36);
+  }
+  :global(:root[data-motion='on']) .reel__panel[data-play] .reel__phone {
+    animation-delay: calc(var(--stagger) * 14);
+  }
+  :global(:root[data-motion='on']) .reel__panel[data-play] .reel__line rect {
+    stroke-dasharray: 1;
+    animation: film-draw var(--dur-6) var(--ease-out) both;
+    animation-delay: calc(var(--stagger) * 44);
+  }
+  @keyframes film-in {
+    from {
+      transform: translateY(24px) scale(0.96);
+      opacity: 0;
+    }
+  }
+  @keyframes film-push {
+    from {
+      transform: scale(1.08) translate(2%, 2%);
+    }
+  }
+  @keyframes film-rise {
+    from {
+      transform: translateY(40px);
+      opacity: 0;
+    }
+  }
+  @keyframes film-draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @media (min-width: 40em) {
+    .reel__spec {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .reel__line {
+      display: block;
+    }
+  }
+
+  /* Wide screens with JavaScript: list + one preview surface. */
+  @media (min-width: 64em) {
+    .reel.is-tabs .reel__body {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 2fr);
+      gap: var(--s-7);
+      align-items: start;
+    }
+    .reel.is-tabs .reel__list {
+      position: sticky;
+      top: calc(var(--header-h) + var(--s-5));
+      display: grid;
+      border-top: 1px solid var(--line);
+    }
+    .reel__tab {
+      display: grid;
+      grid-template-columns: 2.5rem 1fr;
+      grid-template-areas: 'n name' 'n kind';
+      row-gap: var(--s-1);
+      padding: var(--s-5) 0;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      background: none;
+      color: var(--text-3);
+      text-align: left;
+      transition: color var(--dur-1) var(--ease-out);
+    }
+    .reel__tab .reel__n {
+      grid-area: n;
+      padding-top: 0.4em;
+    }
+    .reel__tab-name {
+      grid-area: name;
+      font-family: var(--font-display);
+      font-weight: var(--w-display);
+      font-size: var(--fs-h3);
+      line-height: 1.1;
+      letter-spacing: var(--track-head);
+    }
+    .reel__tab-kind {
+      grid-area: kind;
+      font-family: var(--font-mono);
+      font-size: var(--fs-label);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .reel__tab:hover,
+    .reel__tab:focus-visible {
+      color: var(--text-2);
+    }
+    .reel__tab[aria-selected='true'] {
+      color: var(--text);
+      box-shadow: inset 0 -2px 0 var(--ink);
+    }
+    .reel.is-tabs .reel__panel {
+      display: none;
+    }
+    .reel.is-tabs .reel__panel[data-on] {
+      display: grid;
+    }
+    .reel.is-tabs .reel__card-head {
+      display: none;
+    }
+    .reel__info {
+      grid-template-columns: minmax(0, 1.4fr) auto;
+      align-items: end;
+      gap: var(--s-6);
+    }
+    .reel__actions {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>

@@ -1,8 +1,18 @@
-/* Design tokens — "Signal" direction (round 5). Documented in /DESIGN.md. */
+/* Design tokens — "MANN / IN MOTION" (19 Nov 2026). Documented in /DESIGN.md; motion in /MOTION.md.
+   Token names are kept from the "Signal" system so every page reads the new values without code changes. */
 
-/* Tech type system (Nov 2026): Geist for everything, Geist Mono for labels and numbers. The same
-   family as the MΛNN PΛTEL wordmark. Both are subsets cut to the characters the site uses
-   (scripts/subset-fonts.py); other characters fall back to the metric-matched system font below. */
+/* ── Fonts ──
+   Mann Display: Mona Sans (GitHub, SIL OFL 1.1) pinned to its Expanded width (wdth 125), weight 500–800 kept variable,
+   subset to the characters the copy uses. A Modified Version, renamed because "Mona" is a Reserved Font Name
+   (public/fonts/LICENSES.txt). Display only: headings and the oversized scenes.
+   Geist / Geist Mono: reading text, UI and labels (unchanged subsets from the previous system). */
+@font-face {
+  font-family: 'Mann Display';
+  font-style: normal;
+  font-weight: 500 800;
+  font-display: swap;
+  src: url('/fonts/mann-display-wght.woff2') format('woff2-variations'), url('/fonts/mann-display-wght.woff2') format('woff2');
+}
 @font-face {
   font-family: 'Geist';
   font-style: normal;
@@ -23,7 +33,7 @@
   unicode-range: U+0020-007E, U+00A0, U+00A9, U+00B0, U+00B7, U+00D7, U+2013-2014, U+2018-2019, U+201C-201D, U+2022,
     U+2026, U+2191-2193;
 }
-/* Metric-adjusted fallback keeps layout steady while Geist loads (Arial scaled to Geist's widths). */
+/* Metric-adjusted fallbacks keep the layout steady while the web fonts load. */
 @font-face {
   font-family: 'Geist Fallback';
   src: local('Arial'), local('Helvetica Neue'), local('Helvetica');
@@ -32,106 +42,115 @@
   descent-override: 28%;
   line-gap-override: 0%;
 }
+@font-face {
+  font-family: 'Display Fallback';
+  src: local('Arial Black'), local('Arial Bold'), local('Helvetica Neue Bold'), local('Arial');
+  size-adjust: 112%;
+  ascent-override: 86%;
+  descent-override: 22%;
+  line-gap-override: 0%;
+}
 
 :root {
   color-scheme: dark;
 
-  /* ── Colour roles ── */
-  --bg: #0b0b0c;
-  --bg-2: #111113;
-  --surface: #18181b;
-  --surface-2: #212125;
-  --line: #2a2a2f;
-  --control: #6f6f78;
-  --text: #f2f1ec;
-  --text-2: #b3b2ab;
-  --text-3: #8d8c86;
-  --signal: #d4f84a;
-  --signal-strong: #e4ff73;
-  --on-signal: #0b0b0c;
-  --signal-wash: rgb(212 248 74 / 0.12);
-  --error: #ff6b57;
+  /* ── Colour: the dark stage (immersive scenes, header, footer) ── */
+  --ink: #10110f; /* the stage and ink text on ivory */
+  --bg: var(--ink);
+  --bg-2: #171815; /* a quieter dark band */
+  --surface: #1d1e1a; /* panels on the stage */
+  --surface-2: #262722; /* raised controls, chips */
+  --line: #30322b; /* hairlines on dark */
+  --control: #7a7c71; /* control borders on dark: 4.46:1 on ink, 3.95:1 on surface */
+  --text: #f3f1e8; /* ivory text: 16.7:1 on ink */
+  --text-2: #bdbbb0; /* secondary text: 9.8:1 */
+  --text-3: #94928a; /* metadata: 6.1:1 on ink, 4.8:1 on surface-2 */
+  --signal: #c9f64a; /* acid lime: the line, the selected state, the primary action. 15.1:1 with ink */
+  --signal-strong: #daff6e; /* lime hover */
+  --on-signal: var(--ink);
+  --signal-wash: rgb(201 246 74 / 0.12);
+  --error: #ff6b57; /* 6.8:1 on ink */
   --error-wash: rgb(255 107 87 / 0.1);
   --warn: #f5c451;
   --warn-wash: rgb(245 196 81 / 0.1);
-  --paper: #f2f1ec;
-  --ink: #0b0b0c;
   --focus: var(--signal);
-  /* The lime glow behind a lime button on hover or focus (design upgrade Phase 4, task 4.9): live things and the
-     primary action only. */
-  --signal-glow: 0 0 0 1px rgb(212 248 74 / 0.45), 0 12px 40px -12px rgb(212 248 74 / 0.55);
-  /* Website Playbook (16 Nov 2026): on light surfaces the lime fails (1.21:1 on white). Focus rings there are
-     near-black; lime text or icons there use the darker accent (4.81:1 on white). */
-  --focus-on-light: var(--ink);
-  --accent-on-light: #637b05;
 
-  /* The light Selected Work band (paper). Lime never sits on paper as text: tags take a lime fill with ink text
-     (16.2:1) and accents are ink (design upgrade Phase 1). */
-  --paper-section: #f0f0e8;
-  --paper-text: #181a13;
-  --paper-text-2: #43473b;
-  --paper-text-3: #575a50;
-  --paper-line: #c7c8ba;
-  /* Backdrops behind project mockups (design upgrade task 3.5): two tints of the paper band toward the surface colour,
-     so the mockups sit in the palette instead of on off-palette teal and pink. */
-  --media-bg-1: color-mix(in oklab, var(--paper-section) 80%, var(--surface));
-  --media-bg-2: color-mix(in oklab, var(--paper-section) 68%, var(--surface));
-  /* Browser and phone frames around project captures. */
+  /* ── Colour: the ivory editorial pages (work, portrait, inner-page reading) ── */
+  --paper: #f3f1e8; /* warm ivory */
+  --paper-section: var(--paper);
+  --paper-2: #e8e5d8; /* a card or band on ivory */
+  --paper-text: var(--ink); /* 16.7:1 */
+  --paper-text-2: #45463f; /* 8.4:1 */
+  --paper-text-3: #5c5d55; /* 5.9:1 on ivory, 5.3:1 on paper-2 */
+  --paper-line: #d3d0c3; /* hairlines on ivory (decorative) */
+  --paper-control: #807e74; /* control borders on ivory: 3.3:1 */
+  --focus-on-light: var(--ink);
+  /* Lime fails on ivory (1.1:1). Lime marks there become ink, and lime text becomes this olive (6.0:1). */
+  --accent-on-light: #4e6200;
+  --error-on-light: #b42318; /* 5.8:1 on ivory */
+
+  /* ── Glow and depth ── */
+  --signal-glow: 0 0 0 1px rgb(201 246 74 / 0.5), 0 14px 44px -14px rgb(201 246 74 / 0.6);
+  --shadow-media: 0 28px 48px rgb(0 0 0 / 0.5);
+  --shadow-pop: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 30px 60px -20px rgb(0 0 0 / 0.75), 0 0 0 1px rgb(255 255 255 / 0.06);
+
+  /* ── Frames around real project captures (components/work/MediaFrame.astro) ── */
+  --media-bg-1: color-mix(in oklab, var(--paper) 78%, var(--surface));
+  --media-bg-2: color-mix(in oklab, var(--paper) 64%, var(--surface));
   --frame-screen: #ffffff;
-  --frame-bar: #e9e9ec;
-  --frame-dot: #c4c4ca;
-  --frame-url: #5b5b63;
-  --frame-bezel: #1c1c20;
-  /* The one shadow for mockups: project captures, the portrait core and the free-check receipt (design upgrade Phase
-     5, task 5.1). The single exception to "depth comes from surfaces" (DESIGN.md → Shape and depth); floating UI keeps
-     --shadow-pop. One plain shadow with no spread, so it works in box-shadow and in filter: drop-shadow() alike. */
-  --shadow-media: 0 24px 36px rgb(0 0 0 / 0.55);
-  /* The wordmark's crossbar-less Λ (components/ui/Wordmark.astro), as a mask: eyebrows paint it lime. */
+  --frame-bar: #e9e8e2;
+  --frame-dot: #c4c3bb;
+  --frame-url: #5b5b55;
+  --frame-bezel: #1a1b18;
+
+  /* The wordmark's crossbar-less Λ, as a mask (eyebrows). */
   --lambda: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='1102 0 628 710'%3E%3Cpath d='M1102 710 1358 0 1474 0 1582 299 1502 324 1416 75 1196 710ZM1603 359 1730 710 1636 710 1523 384Z'/%3E%3C/svg%3E");
-  /* Agent graph strokes: lime-tinted greys for the network (components/home/AgentGraph.astro). */
-  --graph-mesh: #3a3e2c;
-  --graph-spoke: #5b6236;
-  --graph-ring: #4a4f37;
-  --graph-node: #8d9a4a;
-  --graph-pill-line: #3d3f33;
-  /* Line weights shared by the agent graph, the services scenes and the promise icons (design upgrade Phase 5, task
-     5.4): hairline for the mesh and outlines, regular for nodes, spokes and drawings, bold for one highlighted mark, and
-     signal for a lit route. Ends are round; lime marks only the signal. */
+
+  /* ── The line (the one motif): stroke weights and greys for diagrams ── */
+  --line-w: 2; /* the lime line */
+  --line-w-fine: 1; /* grid and mesh hairlines */
+  --graph-mesh: #3a3c33;
+  --graph-spoke: #5d6040;
+  --graph-ring: #4a4c3c;
+  --graph-node: #8f9a52;
+  --graph-pill-line: #3e4036;
   --graph-stroke-fine: 1;
   --graph-stroke: 1.5;
   --graph-stroke-bold: 2;
   --graph-stroke-signal: 3;
 
   /* ── Type ── */
+  --font-display: 'Mann Display', 'Display Fallback', 'Arial Black', ui-sans-serif, system-ui, sans-serif;
   --font-sans: 'Geist', 'Geist Fallback', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
 
-  /* Type scale (design upgrade Phase 1, 17 Nov 2026; DESIGN_AUDIT.md → Typography). Fluid from 375 to 1440px.
-     A component picks one of these, never a raw size (tests/unit/design-tokens.test.ts, gate T1). The hierarchy holds at
-     every width: hero ≥ h1 > h2 > h3 > lead > base > ui > sm > label. */
-  --fs-hero: clamp(2.6rem, 1.4rem + 5.11vw, 6rem); /* 41.6 → 96px: the Home H1 (from Phase 2) */
-  --fs-h1: clamp(2.4rem, 1.48rem + 3.91vw, 5rem); /* 38.4 → 80px: page titles */
-  --fs-h2: clamp(2rem, 1.38rem + 2.63vw, 3.75rem); /* 32 → 60px: section titles, never above --fs-h1 */
-  --fs-h3: clamp(1.375rem, 1.2rem + 0.75vw, 1.875rem); /* 22 → 30px: item titles, project names, prices */
-  --fs-lead: clamp(1.125rem, 1.04rem + 0.38vw, 1.375rem); /* 18 → 22px: intros, sublines */
-  --fs-base: clamp(1.0625rem, 1.03rem + 0.12vw, 1.125rem); /* 17 → 18px: body */
-  --fs-ui: 1rem; /* 16px: button labels and form labels */
-  --fs-sm: 0.9375rem; /* 15px: hints, captions, small UI */
-  --fs-label: 0.8125rem; /* 13px: mono labels and metadata; the floor for any visible text (gate T5) */
+  /* Fluid from 360 to 1440px. A component picks one of these, never a raw size (tests/unit/design-tokens.test.ts).
+     The hierarchy holds at every width: display ≥ hero ≥ h1 > h2 > h3 > lead > base > ui > sm > label. */
+  --fs-display: clamp(3rem, 0.9rem + 9.33vw, 9.5rem); /* 48 → 152px: the oversized scene words */
+  --fs-hero: clamp(2.75rem, 1rem + 7.78vw, 8rem); /* 44 → 128px: the Home H1 */
+  --fs-h1: clamp(2.5rem, 1.33rem + 5.19vw, 6rem); /* 40 → 96px: page titles */
+  --fs-h2: clamp(2rem, 1.25rem + 3.33vw, 4.25rem); /* 32 → 68px: scene titles */
+  --fs-h3: clamp(1.375rem, 1.19rem + 0.83vw, 1.875rem); /* 22 → 30px: item titles */
+  --fs-lead: clamp(1.125rem, 1.04rem + 0.37vw, 1.375rem); /* 18 → 22px */
+  --fs-base: clamp(1.0625rem, 1.04rem + 0.09vw, 1.125rem); /* 17 → 18px */
+  --fs-ui: 1rem; /* 16px: buttons and labels */
+  --fs-sm: 0.9375rem; /* 15px: hints, captions */
+  --fs-label: 0.8125rem; /* 13px: mono labels; the floor for visible text */
 
-  --lh-display: 0.92;
+  --lh-display: 0.9;
   --lh-tight: 0.98;
   --lh-snug: 1.15;
   --lh-body: 1.6;
-  /* Tracking never goes below -0.035em (gate T4). */
-  --track-hero: -0.035em; /* H1s */
-  --track-head: -0.025em; /* H2, H3 */
-  --track-label: 0.08em; /* mono uppercase labels */
-  /* Three weights (gate T3): body, UI and emphasis, headings. Mono text is always --w-ui. */
+  --track-display: -0.03em; /* the expanded display face sits tight, never touching */
+  --track-hero: -0.028em;
+  --track-head: -0.022em;
+  --track-label: 0.08em;
+  /* Weights: Geist uses three (400 body, 500 UI, 600 emphasis); the display face uses one (720). */
   --w-body: 400;
   --w-ui: 500;
   --w-head: 600;
-  --measure: 68ch;
+  --w-display: 720;
+  --measure: 66ch;
 
   /* ── Space (4px base) ── */
   --s-1: 0.25rem;
@@ -144,55 +163,62 @@
   --s-8: 4rem;
   --s-9: 6rem;
   --s-10: 8rem;
-  /* Section padding comes only from these two (gate L2). --section: tighter on phones (3.5rem). --section-tight: the
-     hero, the Selected Work band and compact sections (32 → 64px). */
-  --section: clamp(3.5rem, 1.4rem + 8.6vw, 10rem);
-  --section-tight: clamp(2rem, 0.75rem + 3.5vw, 4rem);
-  /* Section heads: eyebrow → heading, then heading → lead or intro. The same everywhere. */
+  --section: clamp(4rem, 1.6rem + 10.4vw, 11rem);
+  --section-tight: clamp(2.5rem, 1.3rem + 5.2vw, 6rem);
   --head-gap-1: clamp(0.75rem, 0.6rem + 0.5vw, 1.25rem);
   --head-gap-2: clamp(1rem, 0.75rem + 0.9vw, 1.75rem);
-  --container: 90rem;
-  --gutter: clamp(1rem, 0.35rem + 2.8vw, 3rem);
-  --header-h: 4.25rem;
+  --container: 96rem;
+  --gutter: clamp(1rem, 0.25rem + 3.33vw, 3.5rem);
+  --header-h: 4.5rem;
   --tap: 2.75rem;
 
-  /* ── Shape ── */
-  --r-sm: 8px;
-  --r-md: 14px;
-  --r-lg: 28px;
+  /* ── Shape: square editorial frames, pill controls ── */
+  --r-sm: 6px;
+  --r-md: 12px;
+  --r-lg: 20px;
   --r-pill: 999px;
-  --shadow-pop: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 30px 60px -20px rgb(0 0 0 / 0.75), 0 0 0 1px rgb(255 255 255 / 0.06);
 
-  /* ── Motion (design upgrade Phase 4, 17 Nov 2026; DESIGN_AUDIT.md → Motion system → Tokens) ──
-     One set, used everywhere: a component picks one of these, never a raw duration (tests/unit/design-tokens.test.ts,
-     gate M1). Entrances ease out, exits ease in at about 70% of the entrance, and nothing loops forever. */
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1); /* entrances, reveals, the hero */
-  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); /* state changes, accordions */
-  --ease-in: cubic-bezier(0.7, 0, 0.84, 0); /* exits: menu close, toast out, the old page */
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* magnetic return, small pops */
-  --dur-1: 120ms; /* colour, press */
-  --dur-2: 200ms; /* small UI: chips, icon buttons; exits */
-  --dur-3: 320ms; /* menus, accordions, toasts */
-  --dur-4: 560ms; /* element reveals, the label roll */
-  --dur-5: 800ms; /* hero headline lines */
-  --stagger: 60ms; /* lists and lines */
-  --dur-loop: 4200ms; /* one agent-graph cycle; it plays three, then rests (D8) */
-  /* Page transitions: the old page leaves in 220ms (--ease-in), the new one arrives in 420ms (--ease-out); gate M4
-     keeps both at or under 450ms. */
+  /* ── Motion (MOTION.md). Entrances ease out, exits ease in, state changes ease in-out. ── */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1); /* entrances, the line drawing */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); /* state changes, the stage switching scenes */
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0); /* exits */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* small pops, magnetic return */
+  --dur-1: 140ms; /* press, colour */
+  --dur-2: 200ms; /* small UI, back to top, chips */
+  --dur-3: 280ms; /* menu, page arrival, project preview */
+  --dur-4: 420ms; /* the stage switching scenes, reveals */
+  --dur-5: 640ms; /* headline line reveals */
+  --dur-6: 960ms; /* the hero entrance and the line drawing in */
+  --stagger: 28ms; /* lines and lists */
+  --dur-loop: 3600ms; /* one demo cycle; demos play once, never loop */
   --dur-page-out: 220ms;
-  --dur-page-in: 420ms;
+  --dur-page-in: 340ms;
 }
 
+/* Reduced motion: from the OS setting, or the site's own "Motion: off" switch (html[data-motion='off']). */
 @media (prefers-reduced-motion: reduce) {
-  :root {
+  :root:not([data-motion='on']) {
     --dur-1: 0ms;
     --dur-2: 0ms;
     --dur-3: 0ms;
     --dur-4: 0ms;
     --dur-5: 0ms;
+    --dur-6: 0ms;
     --stagger: 0ms;
     --dur-loop: 0ms;
     --dur-page-out: 0ms;
     --dur-page-in: 0ms;
   }
+}
+:root[data-motion='off'] {
+  --dur-1: 0ms;
+  --dur-2: 0ms;
+  --dur-3: 0ms;
+  --dur-4: 0ms;
+  --dur-5: 0ms;
+  --dur-6: 0ms;
+  --stagger: 0ms;
+  --dur-loop: 0ms;
+  --dur-page-out: 0ms;
+  --dur-page-in: 0ms;
 }

@@ -1,26 +1,25 @@
 ---
+/**
+ * Home (MANN / IN MOTION): five scenes on one visual grammar, the lime line (DESIGN.md → Homepage).
+ *   A Stage       who, what, where, the free check, and the operable stage (three needs)
+ *   B WorkReel    real work as moving evidence (ivory)
+ *   C Playground  three local demonstrations
+ *   D Person      the person behind the work (ivory)
+ *   E ProcessBrief four steps, published prices and a short brief hand-off
+ * The footer is the final frame.
+ */
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Hero from '../components/home/Hero.astro';
-import SelectedWork from '../components/home/SelectedWork.astro';
-import ServiceSummary from '../components/home/ServiceSummary.astro';
-import PricingTeaser from '../components/home/PricingTeaser.astro';
-import FreeCheck from '../components/home/FreeCheck.astro';
-import HowIWork from '../components/home/HowIWork.astro';
-import Faq from '../components/Faq.astro';
+import Stage from '../components/home/Stage.astro';
+import WorkReel from '../components/home/WorkReel.astro';
+import Playground from '../components/home/Playground.astro';
+import Person from '../components/home/Person.astro';
+import ProcessBrief from '../components/home/ProcessBrief.astro';
 import ReviewsStrip from '../components/ReviewsStrip.astro';
 import { packageById, priceLabel } from '../data/packages';
-import { faqs } from '../data/faqs';
 import { businessJsonLd, personJsonLd, websiteJsonLd } from '../lib/seo';
 
-// SEO audit copy (14 Nov 2026, 147 characters). The price comes from src/data/packages.ts.
+// SEO copy (14 Nov 2026 audit, kept). The price comes from src/data/packages.ts.
 const launch = packageById('website-launch')!;
-// FAQPage for the questions this page shows (SEO audit Phase 2: they used to be marked up only on /services/).
-const homeFaqs = faqs.slice(0, 5).filter((f) => !f.confirm); // the same five <Faq limit={5}> shows
-const faqLd = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: homeFaqs.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
-};
 const description = `Websites, local SEO and Google Business Profile setup for Toronto small businesses. Published prices: websites from ${priceLabel(launch).text} CAD. Free website check.`;
 ---
 
@@ -28,15 +27,13 @@ const description = `Websites, local SEO and Google Business Profile setup for T
   title="Home"
   fullTitle="Web Design & Local SEO in Scarborough, Toronto | Mann Patel"
   description={description}
-  jsonLd={[websiteJsonLd(), businessJsonLd({ withServices: true }), { '@context': 'https://schema.org', ...personJsonLd() }, faqLd]}
+  jsonLd={[websiteJsonLd(), businessJsonLd({ withServices: true }), { '@context': 'https://schema.org', ...personJsonLd() }]}
 >
-  <Hero />
-  <SelectedWork />
+  <Stage />
+  <WorkReel />
   <!-- Real client reviews only (src/data/reviews.ts); renders nothing until there are some. -->
   <ReviewsStrip />
-  <ServiceSummary />
-  <PricingTeaser />
-  <FreeCheck />
-  <HowIWork />
-  <Faq limit={5} more rule />
+  <Playground />
+  <Person />
+  <ProcessBrief />
 </BaseLayout>

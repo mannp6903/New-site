@@ -1,0 +1,1045 @@
+---
+/**
+ * Scene A, the opening (DESIGN.md → Homepage → Scene A; MOTION.md → Stage).
+ *
+ * Left: who, what and where in one H1 ("Make your next move." + the plain service line, so search engines and screen
+ * readers get the service and the place), the free-check button and the prices. Right: the stage, a crafted instrument
+ * the visitor operates. Three needs (a real tablist: click, tap, arrow keys) each play a short demonstration on the same
+ * stage, with Mann's real cut-out portrait standing in front of his work. The full stop of the headline is where the lime
+ * line starts: on wide screens it runs from there to the chosen need (src/scripts/stage.ts draws it).
+ *
+ * First frame: the website scene, complete and static, without waiting for any script. Each scene plays once (under 4 s)
+ * and can be replayed; nothing loops. Scene visuals are illustrations (aria-hidden) described by each panel's caption.
+ */
+import { Image } from 'astro:assets';
+import Button from '../ui/Button.astro';
+import Icon from '../ui/Icon.astro';
+import { packageById, priceLabel } from '../../data/packages';
+import cutout from '../../assets/mann-patel-cutout.png';
+import nrDesktop from '../../assets/work/nest-and-rest/live-2026-11-08-desktop.png';
+
+const visibility = packageById('local-visibility')!;
+const launch = packageById('website-launch')!;
+
+const needs = [
+  {
+    id: 'website',
+    tab: 'Upgrade my website',
+    title: 'A website that answers first.',
+    text: 'Price, area and trust on the first screen. This is Nest & Rest Cleaning, my own business, designed and built from scratch.',
+    links: [
+      { href: '/work/nest-and-rest-cleaning/', label: 'Read the case study' },
+      { href: '#demo-website', label: 'Compare before and after' },
+    ],
+    note: 'Real capture, 8 Nov 2026',
+  },
+  {
+    id: 'found',
+    tab: 'Help me get found',
+    title: 'Get found, then chosen.',
+    text: 'Correct details on Google, Apple Maps and Bing, and pages that answer what people search, so the click goes to you.',
+    links: [
+      { href: '/services/local-visibility/', label: 'Local visibility' },
+      { href: '#demo-search', label: 'Follow a search' },
+    ],
+    note: 'Illustration, not a real search result',
+  },
+  {
+    id: 'admin',
+    tab: 'Automate my admin',
+    title: 'Every enquiry answered.',
+    text: 'Missed calls and form enquiries get an instant, honest reply and land in one list, with a reminder before anyone waits.',
+    links: [
+      { href: '/services/enquiry-follow-up/', label: 'Enquiry follow-up' },
+      { href: '#demo-admin', label: 'Send a sample enquiry' },
+    ],
+    note: 'Demo: nothing is sent',
+  },
+];
+---
+
+<section class="hero" id="hero" aria-labelledby="hero-title" data-hero>
+  <div class="container hero__grid">
+    <div class="hero__copy">
+      <p class="hero__kicker mono" data-reveal="load">
+        <span>Mann Patel</span><span aria-hidden="true">·</span><span>Toronto</span><span class="hero__kicker-more" aria-hidden="true">· Web designer and automation builder</span>
+      </p>
+      <h1 class="hero__title" id="hero-title" data-split="load">
+        <span class="hero__big">
+          <span class="line-mask" style="--i:0"><span>Make your</span></span>
+          <span class="line-mask" style="--i:1"><span>next move<span class="stop" data-line-origin>.</span></span></span>
+        </span>
+        <span class="hero__desc" data-reveal="load" style="--d:6">Websites, local SEO and AI automation for Toronto businesses.</span>
+      </h1>
+      <div class="hero__actions" data-reveal="load" style="--d:8">
+        <Button href="/contact/?package=check-up#check" data-magnetic>Get a free website &amp; Google check</Button>
+        <a class="link-arrow hero__work" href="#work">Explore my work <Icon name="arrow-down" /></a>
+      </div>
+      <p class="hero__prices mono" data-reveal="load" style="--d:10">
+        <a href="/pricing/"><span class="num">{priceLabel(visibility).text}</span> Google and AI visibility setup</a>
+        <span aria-hidden="true">·</span>
+        <a href="/pricing/"><span class="num">{priceLabel(launch).text}</span> website</a>
+        <span aria-hidden="true">·</span>
+        <span>CAD, plus tax</span>
+      </p>
+    </div>
+
+    <div class="stage" data-stage data-scene="website" data-reveal="load-media" style="--d:4">
+      <div class="stage__head">
+        <p class="stage__q mono" id="stage-q">What do you need?</p>
+        <div class="stage__tabs" role="tablist" aria-labelledby="stage-q" data-stage-tabs>
+          {
+            needs.map((n, i) => (
+              <button
+                class="stage__tab"
+                type="button"
+                role="tab"
+                id={`need-${n.id}`}
+                aria-selected={i === 0 ? 'true' : 'false'}
+                aria-controls={`panel-${n.id}`}
+                tabindex={i === 0 ? 0 : -1}
+                data-need={n.id}
+              >
+                <span class="stage__tab-n num" aria-hidden="true">
+                  0{i + 1}
+                </span>
+                <span>{n.tab}</span>
+              </button>
+            ))
+          }
+        </div>
+        {/* Without JavaScript the three needs are links to their demonstrations further down. */}
+        <ul class="stage__nojs" role="list">
+          {needs.map((n) => <li><a href={n.links[1].href}>{n.tab}</a></li>)}
+        </ul>
+      </div>
+
+      <div class="stage__screen" data-stage-screen>
+        <div class="stage__grid" aria-hidden="true"></div>
+        <p class="stage__label mono" aria-hidden="true"><span data-stage-count>01</span>/03 <span data-stage-note>{needs[0].note}</span></p>
+
+        <!-- Scene 01 · website: the real Nest & Rest home page, with the line selecting the price box. -->
+        <div class="sc sc-web" aria-hidden="true">
+          <div class="sc-web__browser">
+            <span class="sc-web__bar"><i></i><i></i><i></i><b>nestnrestcleaning.com</b></span>
+            <Image
+              src={nrDesktop}
+              alt=""
+              widths={[480, 720, 960]}
+              sizes="(min-width: 64em) 30vw, 66vw"
+              quality={60}
+              loading="eager"
+              class="sc-web__shot"
+            />
+            <span class="sc-web__select"><i></i><i></i><i></i><i></i><b class="mono">Price on the first screen</b></span>
+          </div>
+          <span class="sc-web__chip sc-web__chip--a mono">Postal-code check</span>
+          <span class="sc-web__chip sc-web__chip--b mono">Owner at the door</span>
+          <svg class="sc-cursor" viewBox="0 0 24 24"><path d="M5 3l14 8-6.5 1.6L9.8 19z" /></svg>
+        </div>
+
+        <!-- Scene 02 · found: an illustrated local search, from the query to the page to the call. -->
+        <div class="sc sc-found" aria-hidden="true">
+          <div class="sc-found__search"><Icon name="search" /><span class="sc-found__typed">house cleaning near me</span></div>
+          <div class="sc-found__map">
+            <svg viewBox="0 0 200 140" preserveAspectRatio="none">
+              <path d="M0 40 H200 M0 96 H200 M60 0 V140 M140 0 V140 M0 130 L200 20" />
+            </svg>
+            <span class="sc-found__pin"></span>
+          </div>
+          <div class="sc-found__result">
+            <b>Your business</b>
+            <span>Cleaning service · Scarborough</span>
+            <span class="sc-found__open">Open · closes 6 PM</span>
+            <span class="sc-found__btns"><i class="is-hit">Website</i><i>Call</i><i>Directions</i></span>
+          </div>
+          <div class="sc-found__page">
+            <span class="mono">yourbusiness.ca/deep-cleaning</span>
+            <b>Deep cleaning in Scarborough</b>
+            <i>Book a clean</i>
+          </div>
+        </div>
+
+        <!-- Scene 03 · admin: a sample enquiry, the instant reply, the list and the reminder. -->
+        <div class="sc sc-admin" aria-hidden="true">
+          <div class="sc-admin__in">
+            <span class="mono">New enquiry · website form · 9:41 PM</span>
+            <b>Deep clean, 2-bedroom condo. Saturday?</b>
+          </div>
+          <div class="sc-admin__reply">
+            <span class="mono">Instant reply · 4 s</span>
+            <p>Thanks! I got your request and will confirm a time by 10 AM tomorrow.</p>
+          </div>
+          <ul class="sc-admin__list">
+            <li><span>Deep clean · 2-bed</span><i class="is-new">New</i></li>
+            <li><span>Move-out clean</span><i>Quoted</i></li>
+            <li><span>Regular clean</span><i>Booked</i></li>
+          </ul>
+          <span class="sc-admin__remind mono"><Icon name="clock" />Follow up tomorrow, 9:00</span>
+        </div>
+
+        <svg class="stage__line" aria-hidden="true" data-stage-svg>
+          <path class="ln" pathLength="1" data-stage-path />
+        </svg>
+
+        <figure class="stage__person">
+          <Image
+            src={cutout}
+            alt="Mann Patel, smiling, in a dark green sweatshirt"
+            widths={[240, 360, 480, 640]}
+            sizes="(min-width: 64em) 20vw, 44vw"
+            quality={70}
+            loading="eager"
+            fetchpriority="high"
+            class="stage__portrait"
+          />
+          <figcaption class="stage__name mono"><b>Mann Patel</b> designs, builds and runs it</figcaption>
+        </figure>
+      </div>
+
+      <div class="stage__panels">
+        {
+          needs.map((n, i) => (
+            <div class="stage__panel" role="tabpanel" id={`panel-${n.id}`} aria-labelledby={`need-${n.id}`} hidden={i !== 0} data-panel={n.id}>
+              <div class="stage__caption">
+                <h2 class="stage__title">{n.title}</h2>
+                <p class="stage__text">{n.text}</p>
+              </div>
+              <div class="stage__links">
+                {n.links.map((l) => (
+                  <a class="link-arrow" href={l.href}>
+                    {l.label} <Icon name={l.href.startsWith('#') ? 'arrow-down' : 'arrow'} />
+                  </a>
+                ))}
+                <button class="stage__replay" type="button" data-stage-replay>
+                  <Icon name="replay" />
+                  <span>Replay</span>
+                  <span class="visually-hidden"> the {n.tab.toLowerCase()} demonstration</span>
+                </button>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+  <svg class="hero__connector" aria-hidden="true" data-connector><path pathLength="1" /></svg>
+</section>
+
+<script>
+  import { initStage } from '../../scripts/stage';
+  document.querySelectorAll<HTMLElement>('[data-hero]').forEach(initStage);
+</script>
+
+<style>
+  .hero {
+    position: relative;
+    padding-block: clamp(var(--s-5), 3vw, var(--s-7)) clamp(var(--s-7), 6vw, var(--s-9));
+    overflow: clip;
+  }
+  .hero__grid {
+    position: relative;
+    display: grid;
+    gap: var(--s-7);
+    align-items: center;
+  }
+  .hero__copy {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    gap: var(--s-5);
+    justify-items: start;
+  }
+  .hero__kicker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 0.6em;
+    font-size: var(--fs-label);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .hero__kicker span:first-child {
+    color: var(--text);
+  }
+  .hero__kicker-more {
+    display: none;
+  }
+  .hero__title {
+    display: grid;
+    gap: var(--s-4);
+    font-size: inherit;
+    line-height: 1;
+    letter-spacing: 0;
+  }
+  .hero__big {
+    display: block;
+    font-size: var(--fs-hero);
+    line-height: 0.9;
+    letter-spacing: var(--track-display);
+  }
+  .hero__big .stop {
+    display: inline-block;
+  }
+  .hero__desc {
+    display: block;
+    max-width: 30ch;
+    font-family: var(--font-sans);
+    font-size: var(--fs-lead);
+    font-weight: var(--w-body);
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+    color: var(--text-2);
+  }
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-3) var(--s-5);
+  }
+  .hero__prices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2em 0.6em;
+    font-size: var(--fs-label);
+    color: var(--text-3);
+  }
+  .hero__prices a {
+    color: inherit;
+    text-decoration: none;
+    min-height: 1.5rem;
+  }
+  .hero__prices a:hover,
+  .hero__prices a:focus-visible {
+    color: var(--text);
+    text-decoration: underline;
+  }
+  .hero__prices .num {
+    color: var(--text);
+  }
+
+  /* ── The stage ── */
+  .stage {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: var(--s-4);
+    min-width: 0;
+  }
+  .stage__head {
+    display: grid;
+    gap: var(--s-3);
+  }
+  .stage__q {
+    font-size: var(--fs-label);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .stage__tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--s-2);
+  }
+  .stage__tab {
+    position: relative;
+    display: grid;
+    align-content: space-between;
+    gap: var(--s-2);
+    min-height: 4.25rem;
+    padding: var(--s-3);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--bg-2);
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+    font-weight: var(--w-ui);
+    line-height: 1.2;
+    text-align: left;
+    transition:
+      background-color var(--dur-1) var(--ease-out),
+      border-color var(--dur-1) var(--ease-out),
+      color var(--dur-1) var(--ease-out);
+  }
+  .stage__tab-n {
+    font-size: var(--fs-label);
+    color: var(--text-3);
+  }
+  .stage__tab:hover,
+  .stage__tab:focus-visible {
+    border-color: var(--control);
+    color: var(--text);
+  }
+  /* Selected: lime fill, ink text, immediately (under 100ms; MOTION.md). */
+  .stage__tab[aria-selected='true'] {
+    background: var(--signal);
+    border-color: var(--signal);
+    color: var(--on-signal);
+  }
+  .stage__tab[aria-selected='true'] .stage__tab-n {
+    color: var(--on-signal);
+  }
+  .stage__nojs {
+    display: none;
+  }
+  :global(html:not(.js)) .stage__tabs {
+    display: none;
+  }
+  :global(html:not(.js)) .stage__nojs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2) var(--s-4);
+  }
+  :global(html:not(.js)) .stage__nojs a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    color: var(--text);
+  }
+
+  .stage__screen {
+    position: relative;
+    aspect-ratio: 1 / 1.08;
+    container-type: inline-size;
+    overflow: clip;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--surface);
+    isolation: isolate;
+  }
+  .stage__grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--graph-mesh) 1px, transparent 1px),
+      linear-gradient(90deg, var(--graph-mesh) 1px, transparent 1px);
+    background-size: 10% 10%;
+    opacity: 0.35;
+    -webkit-mask-image: radial-gradient(120% 90% at 70% 40%, black 30%, transparent 85%);
+    mask-image: radial-gradient(120% 90% at 70% 40%, black 30%, transparent 85%);
+  }
+  .stage__label {
+    position: absolute;
+    top: 3.5%;
+    right: 3.5%;
+    z-index: 5;
+    margin: 0;
+    font-size: var(--fs-label);
+    color: var(--text-3);
+    text-align: right;
+  }
+  .stage__label [data-stage-count] {
+    color: var(--signal);
+  }
+  .stage__label [data-stage-note] {
+    display: block;
+  }
+  .stage__person {
+    position: absolute;
+    left: -3%;
+    bottom: 0;
+    z-index: 4;
+    width: 50%;
+    margin: 0;
+    translate: calc(var(--px, 0) * -8px) calc(var(--py, 0) * -4px);
+    transition: translate var(--dur-4) var(--ease-out);
+  }
+  .stage__portrait {
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 18px 30px rgb(0 0 0 / 0.45));
+  }
+  .stage__name {
+    position: absolute;
+    left: 8%;
+    bottom: 4%;
+    padding: 0.3rem 0.55rem;
+    border-radius: 3px;
+    background: var(--ink);
+    font-size: var(--fs-label);
+    color: var(--text-3);
+    white-space: nowrap;
+  }
+  .stage__name b {
+    color: var(--text);
+    font-weight: var(--w-ui);
+  }
+
+  /* Scenes: all absolutely placed in % of the screen, so the SVG line (viewBox 1000 × 800, stretched) meets them. */
+  .sc {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    visibility: hidden;
+    translate: calc(var(--px, 0) * 4px) calc(var(--py, 0) * 3px);
+    transition: translate var(--dur-4) var(--ease-out);
+    font-size: clamp(0.8125rem, 2.4cqi, 0.9375rem);
+  }
+  .stage[data-scene='website'] .sc-web,
+  .stage[data-scene='found'] .sc-found,
+  .stage[data-scene='admin'] .sc-admin {
+    visibility: visible;
+  }
+
+  /* 01 · website */
+  .sc-web__browser {
+    position: absolute;
+    left: 30%;
+    top: 14%;
+    width: 66%;
+    border-radius: 6px;
+    overflow: visible;
+    background: var(--frame-screen);
+    box-shadow: var(--shadow-media);
+  }
+  .sc-web__bar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 1.4rem;
+    padding-inline: 0.5rem;
+    border-radius: 6px 6px 0 0;
+    background: var(--frame-bar);
+  }
+  .sc-web__bar i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--frame-dot);
+  }
+  .sc-web__bar b {
+    margin-left: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    font-weight: var(--w-ui);
+    color: var(--frame-url);
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .sc-web__browser :global(.sc-web__shot) {
+    width: 100%;
+    height: auto;
+    border-radius: 0 0 6px 6px;
+  }
+  .sc-web__select {
+    position: absolute;
+    left: 55.5%;
+    top: 22%;
+    width: 34.5%;
+    height: 71%;
+    border: 2px solid var(--signal);
+    border-radius: 3px;
+    box-shadow: 0 0 0 9999px rgb(16 17 15 / 0.32);
+    clip-path: inset(-3rem -12rem -3rem -12rem);
+  }
+  .sc-web__select i {
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    background: var(--signal);
+  }
+  .sc-web__select i:nth-child(1) {
+    left: -4px;
+    top: -4px;
+  }
+  .sc-web__select i:nth-child(2) {
+    right: -4px;
+    top: -4px;
+  }
+  .sc-web__select i:nth-child(3) {
+    left: -4px;
+    bottom: -4px;
+  }
+  .sc-web__select i:nth-child(4) {
+    right: -4px;
+    bottom: -4px;
+  }
+  .sc-web__select b {
+    position: absolute;
+    right: -2px;
+    top: -2rem;
+    padding: 0.2rem 0.45rem;
+    border-radius: 3px;
+    background: var(--signal);
+    color: var(--on-signal);
+    font-size: var(--fs-label);
+    font-weight: var(--w-ui);
+    white-space: nowrap;
+  }
+  .sc-web__chip {
+    position: absolute;
+    padding: 0.3rem 0.55rem;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background: var(--ink);
+    font-size: var(--fs-label);
+    color: var(--text-2);
+    white-space: nowrap;
+  }
+  .sc-web__chip--a {
+    left: 52%;
+    top: 74%;
+  }
+  .sc-web__chip--b {
+    left: 60%;
+    top: 84%;
+  }
+  .sc-cursor {
+    position: absolute;
+    left: 92%;
+    top: 78%;
+    width: 1.6rem;
+    height: 1.6rem;
+    fill: var(--text);
+    stroke: var(--ink);
+    stroke-width: 1.2;
+    filter: drop-shadow(0 2px 4px rgb(0 0 0 / 0.5));
+  }
+
+  /* 02 · found */
+  .sc-found__search {
+    position: absolute;
+    left: 33%;
+    top: 11%;
+    width: 58%;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.85rem;
+    border-radius: var(--r-pill);
+    background: var(--paper);
+    color: var(--ink);
+    box-shadow: var(--shadow-media);
+  }
+  .sc-found__search :global(.icon) {
+    width: 1rem;
+    height: 1rem;
+    color: var(--paper-text-3);
+  }
+  .sc-found__typed {
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .sc-found__map {
+    position: absolute;
+    left: 66%;
+    top: 26%;
+    width: 30%;
+    height: 34%;
+    border-radius: 6px;
+    background: var(--surface-2);
+    overflow: hidden;
+  }
+  .sc-found__map svg {
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: var(--graph-spoke);
+    stroke-width: 6;
+  }
+  .sc-found__pin {
+    position: absolute;
+    left: 46%;
+    top: 34%;
+    width: 1.1rem;
+    height: 1.1rem;
+    border-radius: 50% 50% 50% 0;
+    background: var(--signal);
+    rotate: -45deg;
+    box-shadow: 0 0 0 6px var(--signal-wash);
+  }
+  .sc-found__result,
+  .sc-found__page,
+  .sc-admin__in,
+  .sc-admin__reply,
+  .sc-admin__list {
+    position: absolute;
+    display: grid;
+    gap: 0.25rem;
+    padding: 0.75rem 0.85rem;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--ink);
+    color: var(--text-2);
+    line-height: 1.35;
+    box-shadow: 0 16px 30px rgb(0 0 0 / 0.35);
+  }
+  .sc-found__result b,
+  .sc-found__page b,
+  .sc-admin__in b {
+    color: var(--text);
+    font-weight: var(--w-head);
+  }
+  .sc-found__result {
+    left: 33%;
+    top: 30%;
+    width: 38%;
+  }
+  .sc-found__open {
+    color: var(--signal);
+  }
+  .sc-found__btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-top: 0.3rem;
+  }
+  .sc-found__btns i {
+    font-style: normal;
+    padding: 0.15rem 0.45rem;
+    border: 1px solid var(--line);
+    border-radius: var(--r-pill);
+    font-size: var(--fs-label);
+  }
+  .sc-found__btns i.is-hit {
+    border-color: var(--signal);
+    color: var(--text);
+  }
+  .sc-found__page {
+    left: 56%;
+    top: 68%;
+    width: 40%;
+    background: var(--paper);
+    border-color: var(--paper-line);
+    color: var(--paper-text-3);
+  }
+  .sc-found__page b {
+    color: var(--ink);
+  }
+  .sc-found__page i {
+    justify-self: start;
+    font-style: normal;
+    padding: 0.2rem 0.55rem;
+    border-radius: 3px;
+    background: var(--ink);
+    color: var(--paper);
+    font-size: var(--fs-label);
+  }
+  .sc-found__page .mono {
+    font-size: var(--fs-label);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* 03 · admin */
+  .sc-admin__in {
+    left: 33%;
+    top: 11%;
+    width: 48%;
+  }
+  .sc-admin__in .mono,
+  .sc-admin__reply .mono {
+    font-size: var(--fs-label);
+    color: var(--text-3);
+  }
+  .sc-admin__reply {
+    left: 52%;
+    top: 33%;
+    width: 44%;
+    background: var(--signal);
+    border-color: var(--signal);
+    color: var(--on-signal);
+  }
+  .sc-admin__reply .mono {
+    color: var(--on-signal);
+    opacity: 0.75;
+  }
+  .sc-admin__list {
+    left: 33%;
+    top: 55%;
+    width: 63%;
+    padding: 0.35rem 0.85rem;
+    gap: 0;
+    list-style: none;
+  }
+  .sc-admin__list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    padding-block: 0.4rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .sc-admin__list li:last-child {
+    border-bottom: 0;
+  }
+  .sc-admin__list i {
+    font-style: normal;
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    padding: 0.05rem 0.4rem;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    color: var(--text-3);
+  }
+  .sc-admin__list i.is-new {
+    border-color: var(--signal);
+    color: var(--signal);
+  }
+  .sc-admin__remind {
+    position: absolute;
+    left: 54%;
+    top: 86%;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.6rem;
+    border: 1px dashed var(--signal);
+    border-radius: 3px;
+    background: var(--ink);
+    font-size: var(--fs-label);
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .sc-admin__remind :global(.icon) {
+    width: 0.95rem;
+    height: 0.95rem;
+    color: var(--signal);
+  }
+
+  /* The line in the stage: one path per scene, drawn when its scene is on. */
+  .stage__line {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    pointer-events: none;
+  }
+  .ln {
+    stroke: var(--signal);
+    stroke-width: var(--line-w);
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
+  .stage.has-line .ln {
+    stroke-dashoffset: 0;
+  }
+
+  /* ── Scene choreography (MOTION.md → Stage). Plays once per selection; [data-play] restarts it. ── */
+  :global(:root[data-motion='on']) .stage[data-play] .sc > *,
+  :global(:root[data-motion='on']) .stage[data-play] .ln {
+    animation-duration: var(--dur-4);
+    animation-timing-function: var(--ease-out);
+    animation-fill-mode: both;
+  }
+  :global(:root[data-motion='on']) .stage[data-play] .sc > * {
+    animation-name: sc-in;
+    animation-delay: calc(var(--k, 0) * var(--stagger) * 6);
+  }
+  :global(:root[data-motion='on']) .stage[data-play] .ln {
+    animation-name: ln-draw;
+    animation-duration: var(--dur-6);
+    animation-delay: calc(var(--stagger) * 10);
+  }
+  .sc > :nth-child(1) {
+    --k: 0;
+  }
+  .sc > :nth-child(2) {
+    --k: 2;
+  }
+  .sc > :nth-child(3) {
+    --k: 4;
+  }
+  .sc > :nth-child(4) {
+    --k: 6;
+  }
+  .sc > :nth-child(5) {
+    --k: 8;
+  }
+  :global(:root[data-motion='on']) .stage[data-play] .sc-web__select {
+    animation: select-in var(--dur-4) var(--ease-out) both;
+    animation-delay: calc(var(--stagger) * 22);
+  }
+  :global(:root[data-motion='on']) .stage[data-play] .sc-cursor {
+    animation-name: cursor-in;
+    animation-duration: var(--dur-6);
+    animation-delay: calc(var(--stagger) * 14);
+  }
+  :global(:root[data-motion='on']) .stage[data-play] .sc-found__typed {
+    animation: type-in calc(var(--dur-6) * 1.2) steps(22, end) both;
+    animation-delay: calc(var(--stagger) * 6);
+  }
+  @keyframes sc-in {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+  }
+  @keyframes ln-draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes select-in {
+    from {
+      opacity: 0;
+      transform: scale(1.12);
+    }
+  }
+  @keyframes cursor-in {
+    from {
+      opacity: 0;
+      transform: translate(-260%, 120%);
+    }
+    60% {
+      opacity: 1;
+    }
+  }
+  @keyframes type-in {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
+  /* Captions under the screen */
+  .stage__panel {
+    display: grid;
+    gap: var(--s-3);
+  }
+  .stage__title {
+    font-size: var(--fs-h3);
+    line-height: 1.1;
+    letter-spacing: var(--track-head);
+  }
+  .stage__text {
+    max-width: 52ch;
+    font-size: var(--fs-sm);
+    color: var(--text-2);
+  }
+  .stage__links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 var(--s-5);
+  }
+  .stage__links .link-arrow {
+    font-size: var(--fs-sm);
+  }
+  .stage__replay {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    min-height: var(--tap);
+    margin-left: auto;
+    padding: 0 var(--s-2);
+    border: 0;
+    background: none;
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: color var(--dur-1);
+  }
+  .stage__replay:hover,
+  .stage__replay:focus-visible {
+    color: var(--signal);
+  }
+  .stage__replay :global(.icon) {
+    width: 1rem;
+    height: 1rem;
+  }
+  :global(:root[data-motion='off']) .stage__replay,
+  :global(html:not(.js)) .stage__replay {
+    display: none;
+  }
+
+  /* The connector from the headline's full stop to the chosen need (wide screens; drawn by stage.ts). */
+  .hero__connector {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    fill: none;
+    pointer-events: none;
+    display: none;
+  }
+  .hero__connector path {
+    stroke: var(--signal);
+    stroke-width: var(--line-w);
+    stroke-linecap: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+  :global(:root[data-motion='on']) .hero__connector.is-drawing path {
+    animation: ln-draw var(--dur-6) var(--ease-out) both;
+  }
+
+  @media (min-width: 40em) {
+    .stage__screen {
+      aspect-ratio: 5 / 4;
+    }
+    .stage__person {
+      width: 42%;
+    }
+    .hero__kicker-more {
+      display: inline;
+    }
+  }
+  @media (min-width: 64em) {
+    .hero {
+      min-height: calc(100svh - var(--header-h));
+      display: grid;
+      align-items: center;
+    }
+    .hero__grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+      gap: clamp(var(--s-7), 5vw, var(--s-10));
+    }
+    .hero__big {
+      font-size: clamp(4.5rem, 1rem + 5.6vw, 8rem);
+    }
+    .hero__connector {
+      display: block;
+    }
+    .stage {
+      gap: var(--s-3);
+    }
+    .stage__tab {
+      min-height: 3.25rem;
+      grid-auto-flow: column;
+      justify-content: start;
+      align-items: center;
+      align-content: center;
+      gap: var(--s-3);
+      padding-block: var(--s-2);
+    }
+    .stage__screen {
+      aspect-ratio: 16 / 11.5;
+    }
+    .stage__person {
+      width: 36%;
+    }
+    .stage__panel {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      column-gap: var(--s-6);
+    }
+    .stage__links {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .stage__replay {
+      margin-left: 0;
+      padding-left: 0;
+    }
+  }
+  @media (max-width: 22.5em) {
+    .stage__tab {
+      font-size: var(--fs-label);
+      padding: var(--s-2);
+    }
+  }
+</style>

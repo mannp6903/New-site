@@ -15,7 +15,7 @@ const MAX_PULL = 6;
 
 export function initPointer() {
   if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return;
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (document.documentElement.getAttribute('data-motion') !== 'on') return;
   // Presenter mode: no magnetic pull or spotlight on a projector (src/scripts/present.ts).
   if (document.documentElement.hasAttribute('data-present')) return;
 
