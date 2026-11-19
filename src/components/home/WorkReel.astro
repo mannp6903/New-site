@@ -87,7 +87,7 @@ const hostOf = (url: string) => new URL(url).host.replace(/^www\./, '');
                   </p>
                 </header>
 
-                <a class="reel__film" href={href} tabindex="-1" aria-hidden="true">
+                <a class="reel__film ink" href={href} tabindex="-1" aria-hidden="true">
                   <span class="reel__browser">
                     <span class="reel__bar">
                       <i />
@@ -556,7 +556,7 @@ const hostOf = (url: string) => new URL(url).host.replace(/^www\./, '');
     }
     .reel__tab[aria-selected='true'] {
       color: var(--text);
-      box-shadow: inset 0 -2px 0 var(--ink);
+      background: linear-gradient(var(--ink), var(--ink)) bottom / 100% 2px no-repeat;
     }
     .reel.is-tabs .reel__panel {
       display: none;

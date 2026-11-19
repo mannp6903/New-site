@@ -1,0 +1,13 @@
+---
+/**
+ * The lime line under a page's opening (DESIGN.md → The line). It draws in from the left once on load (transform only;
+ * static with Motion off or without JavaScript) and ends in a dot: the same line that starts as the home page's full stop
+ * and redraws in the header on every page change. Decorative.
+ */
+interface Props {
+  class?: string;
+}
+const { class: cls } = Astro.props;
+---
+
+<span class:list={['pageline', cls]} aria-hidden="true"><i></i></span>

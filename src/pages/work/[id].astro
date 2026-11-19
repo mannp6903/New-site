@@ -1,4 +1,5 @@
 ---
+import PageLine from '../../components/ui/PageLine.astro';
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Heading from '../../components/ui/Heading.astro';
@@ -77,6 +78,7 @@ const industry = industryPageForWork(entry.id);
         </div>
         {d.statusConfirm && <Confirm note={d.statusConfirm} />}
         <Heading as="h1" lines={[d.title]} class="cs-title" load />
+        <PageLine />
         <p class="lead" data-reveal="load" style="--d:2">{d.summary}</p>
         {site.note && <p class="cs-paused small" data-reveal="load" style="--d:3">{site.note}</p>}
         {/* U4 (design upgrade Phase 3): the free check is the main button, beside the link to the live site. */}
@@ -130,7 +132,7 @@ const industry = industryPageForWork(entry.id);
       </dl>
     </section>
 
-    <section class="section cs-body-wrap" aria-label="Case study">
+    <section class="section cs-body-wrap paper" aria-label="Case study">
       <div class="container cs-body">
         <aside class="facts" aria-label="Project facts">
           <dl>

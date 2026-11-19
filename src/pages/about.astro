@@ -2,6 +2,7 @@
 import { Picture } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Heading from '../components/ui/Heading.astro';
+import PageLine from '../components/ui/PageLine.astro';
 import Button from '../components/ui/Button.astro';
 import Icon from '../components/ui/Icon.astro';
 import ContactActions from '../components/ContactActions.astro';
@@ -118,6 +119,7 @@ const crumbs = breadcrumbJsonLd([
           lines={['I’m Mann Patel.', 'I build websites and enquiry follow-up', '<span class="accent">for Toronto service businesses</span><span class="stop">.</span>']}
           load
         />
+        <PageLine />
         <p class="lead" data-reveal="load" style="--d:3">
           I’m a freelance web designer in Toronto, based in Scarborough: clear websites, Google and Maps listings, and
           enquiry follow-up for owner-run small businesses across Toronto and the GTA, with a focus on Scarborough and North York. I’m also starting {nest.name}, my own home-cleaning business in
@@ -335,9 +337,18 @@ const crumbs = breadcrumbJsonLd([
   .ab-head__text > .eyebrow {
     margin-bottom: calc(var(--head-gap-1) - var(--head-gap-2));
   }
+  /* An editorial deck: the name at full display size, the role a step down (the wide display face). */
   .ab-head__text :global(.ab-title) {
     font-size: var(--fs-h1);
-    max-width: 17ch;
+    max-width: 18ch;
+  }
+  .ab-head__text :global(.ab-title .line-mask + .line-mask) {
+    font-size: var(--fs-deck);
+    line-height: 1.02;
+    letter-spacing: var(--track-head);
+  }
+  .ab-head__text :global(.ab-title .line-mask:nth-child(2)) {
+    margin-top: var(--s-3);
   }
   .ab-reach {
     display: grid;

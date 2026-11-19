@@ -314,10 +314,12 @@ p {
 }
 
 /* ═══════════════ Ivory editorial surfaces ═══════════════ */
-/* Any element with .paper becomes an ivory page: the tokens are remapped locally, so every component inside (cards,
-   chips, forms, links, buttons) re-colours itself. Lime never appears as text or as a hairline here: marks turn ink,
-   and the primary button turns ink with an ivory label. */
-.paper {
+/* Any element with .paper (and every .section--alt band) becomes an ivory page: the tokens are remapped locally, so
+   every component inside (cards, chips, forms, links, buttons) re-colours itself. Lime never appears as text or as a
+   hairline on ivory (1.1:1): --signal itself becomes ink there, so lime marks, the line and selected states turn ink,
+   and the primary button turns ink with an ivory label. A lime fill that must stay lime uses --lime. */
+.paper,
+.section--alt {
   --bg: var(--paper);
   --bg-2: var(--paper-2);
   --surface: var(--paper-2);
@@ -327,13 +329,35 @@ p {
   --text: var(--paper-text);
   --text-2: var(--paper-text-2);
   --text-3: var(--paper-text-3);
+  --signal: var(--ink);
+  --signal-strong: color-mix(in oklab, var(--ink) 84%, var(--paper));
+  --on-signal: var(--paper);
+  --signal-wash: rgb(16 17 15 / 0.06);
+  --signal-glow: 0 0 0 1px rgb(16 17 15 / 0.3);
   --focus: var(--focus-on-light);
   --error: var(--error-on-light);
-  --signal-wash: rgb(16 17 15 / 0.06);
   --eyebrow-mark: var(--ink);
   background: var(--bg);
   color: var(--text);
   color-scheme: light;
+}
+/* .ink sets a dark stage back inside an ivory section (the work reel's film surface). */
+.ink {
+  --bg: var(--ink);
+  --bg-2: var(--ink-2);
+  --surface: var(--ink-surface);
+  --surface-2: var(--ink-surface-2);
+  --line: var(--ink-line);
+  --control: var(--ink-control);
+  --text: var(--ink-text);
+  --text-2: var(--ink-text-2);
+  --text-3: var(--ink-text-3);
+  --signal: var(--lime);
+  --signal-strong: var(--lime-strong);
+  --on-signal: var(--ink);
+  --focus: var(--lime);
+  --eyebrow-mark: var(--lime);
+  color-scheme: dark;
 }
 .paper .btn:not(.btn--ghost, .btn--ink) {
   --btn-bg: var(--ink);
@@ -348,6 +372,109 @@ p {
   background: var(--ink);
   color: var(--paper);
 }
+
+/* ═══════════════ The page line (ui/PageLine.astro) ═══════════════ */
+.pageline {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 10px;
+  margin-block: var(--s-2);
+}
+.pageline i {
+  position: absolute;
+  left: 0;
+  right: 10px;
+  top: 4px;
+  height: 2px;
+  background: var(--signal);
+  transform-origin: left;
+}
+.pageline::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--signal);
+}
+:root[data-motion='on'] .pageline i {
+  animation: pageline-draw var(--dur-6) var(--ease-out) both;
+  animation-delay: calc(var(--stagger) * 8);
+}
+:root[data-motion='on'] .pageline::after {
+  animation: pageline-dot var(--dur-3) var(--ease-out) both;
+  animation-delay: calc(var(--dur-6) + var(--stagger) * 6);
+}
+@keyframes pageline-draw {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes pageline-dot {
+  from {
+    transform: scale(0);
+  }
+}
+
+/* ═══════════════ Demo controls (home playground, service pages) ═══════════════ */
+.demo-note {
+  font-size: var(--fs-label);
+  color: var(--text-3);
+}
+.demo-note::before {
+  content: '';
+  display: inline-block;
+  width: 1em;
+  height: 2px;
+  margin-right: 0.6em;
+  vertical-align: middle;
+  background: var(--signal);
+}
+.demo-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  min-height: var(--tap);
+  padding: 0 var(--s-4);
+  border: 1px solid var(--control);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text);
+  font-size: var(--fs-sm);
+  font-weight: var(--w-ui);
+  transition: background-color var(--dur-1), border-color var(--dur-1), color var(--dur-1);
+}
+.demo-btn:hover,
+.demo-btn:focus-visible {
+  border-color: var(--text);
+  background: var(--surface);
+}
+.demo-btn[aria-pressed='true'] {
+  border-color: var(--signal);
+  color: var(--signal);
+}
+.demo-btn--primary {
+  border-color: var(--signal);
+  background: var(--signal);
+  color: var(--on-signal);
+}
+.demo-btn--primary:hover,
+.demo-btn--primary:focus-visible {
+  border-color: var(--signal-strong);
+  background: var(--signal-strong);
+}
+.demo-btn .icon {
+  width: 1rem;
+  height: 1rem;
+}
+.demo-btn--primary .icon {
+  fill: currentColor;
+}
+
 
 /* ═══════════════ Swipe rail (phones) ═══════════════ */
 @media (max-width: 47.99em) {

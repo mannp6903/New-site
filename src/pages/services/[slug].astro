@@ -13,6 +13,8 @@ import Button from '../../components/ui/Button.astro';
 import Icon from '../../components/ui/Icon.astro';
 import PackageCard from '../../components/packages/PackageCard.astro';
 import EnquiryDemo from '../../components/EnquiryDemo.astro';
+import BeforeAfter from '../../components/demos/BeforeAfter.astro';
+import Journey from '../../components/demos/Journey.astro';
 import DemoLine from '../../components/DemoLine.astro';
 import MissedCallCalculator from '../../components/MissedCallCalculator.astro';
 import ServiceDetails from '../../components/ServiceDetails.astro';
@@ -138,6 +140,45 @@ const fmtDate = (iso: string) =>
       </div>
     </div>
   </section>
+
+  {
+    (page.slug === 'web-design' || page.slug === 'website-redesign') && (
+      <section class="section section--rule sp-demo" aria-labelledby="sp-demo-title" data-playground>
+        <div class="container">
+          <div class="section-head section-head--split">
+            <div class="stack" style="--stack: var(--s-4)">
+              <p class="eyebrow">See the difference</p>
+              <h2 id="sp-demo-title" class="sp__h2">
+                One week, <span class="accent">one redesign</span>
+                <span class="stop">.</span>
+              </h2>
+            </div>
+            <p class="muted">My own cleaning website on 31 October and 8 November 2026: an answer-first page, a photo hero and an honest “Opening soon” mode. Drag the line or use the buttons.</p>
+          </div>
+          <BeforeAfter />
+        </div>
+      </section>
+    )
+  }
+  {
+    (page.slug === 'local-visibility' || page.slug === 'ai-search-optimization') && (
+      <section class="section section--rule sp-demo" aria-labelledby="sp-demo-title" data-playground>
+        <div class="container">
+          <div class="section-head section-head--split">
+            <div class="stack" style="--stack: var(--s-4)">
+              <p class="eyebrow">Follow a search</p>
+              <h2 id="sp-demo-title" class="sp__h2">
+                From a search <span class="accent">to a message</span>
+                <span class="stop">.</span>
+              </h2>
+            </div>
+            <p class="muted">Being found is four small wins in a row: the search, your listing, the page they land on and the enquiry. Step through it, or play it once.</p>
+          </div>
+          <Journey />
+        </div>
+      </section>
+    )
+  }
 
   <section class="section section--alt" aria-labelledby="work-steps-title">
     <div class="container">
@@ -470,6 +511,11 @@ const fmtDate = (iso: string) =>
 
   {!isMain && <FreeCheck id="check" />}
 </BaseLayout>
+
+<script>
+  import { initPlayground } from '../../scripts/playground';
+  document.querySelectorAll<HTMLElement>('[data-playground]').forEach(initPlayground);
+</script>
 
 <style>
   .crumbs {

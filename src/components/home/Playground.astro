@@ -8,17 +8,11 @@
  *   03 Less admin: a sample enquiry flows through reply, list, booking request and follow-up (one button, replayable).
  * Everything runs in the browser. Nothing is sent, booked, charged or measured, and every illustration says so.
  */
-import { Picture } from 'astro:assets';
 import Icon from '../ui/Icon.astro';
-import before from '../../assets/work/nest-and-rest/live-2026-10-31-desktop.png';
-import after from '../../assets/work/nest-and-rest/live-2026-11-08-desktop.png';
+import BeforeAfter from '../demos/BeforeAfter.astro';
+import Journey from '../demos/Journey.astro';
 
-const journey = [
-  { k: 'search', title: 'They search', note: '“house cleaning near me”' },
-  { k: 'listing', title: 'They see you', note: 'Correct hours, area and a website link' },
-  { k: 'page', title: 'They land on the answer', note: 'A page for the exact service and area' },
-  { k: 'enquiry', title: 'They ask', note: 'A short form, an instant reply' },
-];
+
 const flow = [
   { k: 'in', title: 'Enquiry received', note: 'From your website form, at 9:41 PM' },
   { k: 'reply', title: 'Instant, honest reply', note: 'Sent in seconds, signed by you, never pretending to be a person' },
@@ -54,26 +48,7 @@ const flow = [
           </div>
         </div>
         <div class="pg__demo">
-          <div class="ba" data-ba style="--pos: 50%">
-            <div class="ba__img ba__after">
-              <Picture src={after} alt="After, 8 November 2026: the Nest & Rest home page with a photo of the Toronto skyline at dawn, “We clean. You rest.” and a price box." formats={['avif']} fallbackFormat="webp" widths={[640, 960, 1280, 1440]} sizes="(min-width: 64em) 54vw, 92vw" quality={58} loading="lazy" decoding="async" />
-            </div>
-            <div class="ba__img ba__before" data-ba-before>
-              <Picture src={before} alt="Before, 31 October 2026: the earlier Nest & Rest home page, light, with an illustrated skyline and a price estimator." formats={['avif']} fallbackFormat="webp" widths={[640, 960, 1280, 1440]} sizes="(min-width: 64em) 54vw, 92vw" quality={58} loading="lazy" decoding="async" />
-            </div>
-            <span class="ba__handle" aria-hidden="true"><i></i></span>
-            <span class="ba__tag ba__tag--l mono" aria-hidden="true">Before · 31 Oct</span>
-            <span class="ba__tag ba__tag--r mono" aria-hidden="true">After · 8 Nov</span>
-          </div>
-          <div class="ba__controls">
-            <button class="pg__btn" type="button" data-ba-set="100">Before</button>
-            <label class="ba__range">
-              <span class="visually-hidden">Compare before and after: slide left for after, right for before</span>
-              <input type="range" min="0" max="100" step="1" value="50" data-ba-range aria-valuetext="Half before, half after" />
-            </label>
-            <button class="pg__btn" type="button" data-ba-set="0">After</button>
-          </div>
-          <p class="pg__note mono">Real captures of nestnrestcleaning.com, my own business</p>
+          <BeforeAfter />
         </div>
       </article>
 
@@ -89,51 +64,7 @@ const flow = [
           </div>
         </div>
         <div class="pg__demo">
-          <div class="jr" data-journey data-step="0">
-            <ol class="jr__steps" role="list">
-              {
-                journey.map((s, i) => (
-                  <li>
-                    <button class="jr__step" type="button" data-jr-go={i} aria-current={i === 0 ? 'step' : undefined}>
-                      <span class="num">0{i + 1}</span>
-                      <span class="jr__step-t">{s.title}</span>
-                      <span class="jr__step-n">{s.note}</span>
-                    </button>
-                  </li>
-                ))
-              }
-            </ol>
-            <div class="jr__phone" aria-hidden="true">
-              <div class="jr__track">
-                <div class="jr__screen jr__screen--search">
-                  <span class="jr__bar"><Icon name="search" /> house cleaning near me</span>
-                  <span class="jr__ghost"></span><span class="jr__ghost jr__ghost--s"></span>
-                  <span class="jr__ghost"></span><span class="jr__ghost jr__ghost--s"></span>
-                </div>
-                <div class="jr__screen jr__screen--listing">
-                  <span class="jr__map"><span class="jr__pin"></span></span>
-                  <span class="jr__card"><b>Your business</b><span>Cleaning · Scarborough</span><span class="jr__ok">Open · closes 6 PM</span><span class="jr__pills"><i class="is-hit">Website</i><i>Call</i></span></span>
-                </div>
-                <div class="jr__screen jr__screen--page">
-                  <span class="jr__url mono">yourbusiness.ca/deep-cleaning</span>
-                  <b class="jr__h">Deep cleaning in Scarborough</b>
-                  <span class="jr__ghost"></span><span class="jr__ghost jr__ghost--s"></span>
-                  <span class="jr__price">From your price list</span>
-                  <i class="jr__cta">Request a quote</i>
-                </div>
-                <div class="jr__screen jr__screen--enquiry">
-                  <span class="jr__field">Name</span><span class="jr__field">Email</span><span class="jr__field jr__field--tall">What do you need?</span>
-                  <i class="jr__cta">Send</i>
-                  <span class="jr__sent">Thanks! I’ll reply by 10 AM.</span>
-                </div>
-              </div>
-            </div>
-            <div class="jr__controls">
-              <button class="pg__btn pg__btn--primary" type="button" data-jr-play><Icon name="play" /><span data-jr-play-label>Play the journey</span></button>
-              <button class="pg__btn" type="button" data-jr-next>Next step <Icon name="arrow" /></button>
-            </div>
-          </div>
-          <p class="pg__note mono">Illustration, not a real search result or a real business</p>
+          <Journey />
         </div>
       </article>
 
@@ -151,7 +82,7 @@ const flow = [
         <div class="pg__demo">
           <div class="fl" data-flow data-at="0">
             <div class="fl__top">
-              <button class="pg__btn pg__btn--primary" type="button" data-flow-run><Icon name="play" /><span data-flow-label>Send a sample enquiry</span></button>
+              <button class="demo-btn demo-btn--primary" type="button" data-flow-run><Icon name="play" /><span data-flow-label>Send a sample enquiry</span></button>
               <span class="fl__sample mono">“Deep clean, 2-bed condo. Saturday?”</span>
             </div>
             <ol class="fl__list" role="list">
@@ -171,7 +102,7 @@ const flow = [
             </ol>
             <p class="visually-hidden" aria-live="polite" data-flow-live></p>
           </div>
-          <p class="pg__note mono">Runs in your browser. Nothing is sent, booked or charged</p>
+          <p class="demo-note mono">Runs in your browser. Nothing is sent, booked or charged</p>
         </div>
       </article>
     </div>
@@ -261,349 +192,6 @@ const flow = [
     gap: var(--s-3);
     min-width: 0;
   }
-  .pg__note {
-    font-size: var(--fs-label);
-    color: var(--text-3);
-  }
-  .pg__note::before {
-    content: '';
-    display: inline-block;
-    width: 1em;
-    height: 2px;
-    margin-right: 0.6em;
-    vertical-align: middle;
-    background: var(--signal);
-  }
-  .pg__btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--s-2);
-    min-height: var(--tap);
-    padding: 0 var(--s-4);
-    border: 1px solid var(--control);
-    border-radius: 4px;
-    background: transparent;
-    color: var(--text);
-    font-size: var(--fs-sm);
-    font-weight: var(--w-ui);
-    transition: background-color var(--dur-1), border-color var(--dur-1), color var(--dur-1);
-  }
-  .pg__btn:hover,
-  .pg__btn:focus-visible {
-    border-color: var(--text);
-    background: var(--surface);
-  }
-  .pg__btn[aria-pressed='true'] {
-    border-color: var(--signal);
-    color: var(--signal);
-  }
-  .pg__btn--primary {
-    border-color: var(--signal);
-    background: var(--signal);
-    color: var(--on-signal);
-  }
-  .pg__btn--primary:hover,
-  .pg__btn--primary:focus-visible {
-    border-color: var(--signal-strong);
-    background: var(--signal-strong);
-  }
-  .pg__btn :global(.icon) {
-    width: 1rem;
-    height: 1rem;
-  }
-  .pg__btn--primary :global(.icon) {
-    fill: currentColor;
-  }
-
-  /* ── 01 Before / after ── */
-  .ba {
-    position: relative;
-    aspect-ratio: 1440 / 900;
-    border-radius: 6px;
-    overflow: clip;
-    background: var(--surface);
-    box-shadow: var(--shadow-media);
-    touch-action: pan-y;
-  }
-  .ba__img {
-    position: absolute;
-    inset: 0;
-  }
-  .ba__img :global(img) {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .ba__before {
-    clip-path: inset(0 calc(100% - var(--pos)) 0 0);
-  }
-  .ba__handle {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: var(--pos);
-    width: 2px;
-    margin-left: -1px;
-    background: var(--signal);
-    pointer-events: none;
-  }
-  .ba__handle i {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 50%;
-    background: var(--signal);
-    transform: translate(-50%, -50%);
-  }
-  .ba__handle i::before,
-  .ba__handle i::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    width: 0;
-    height: 0;
-    border: 5px solid transparent;
-    transform: translateY(-50%);
-  }
-  .ba__handle i::before {
-    left: 0.45rem;
-    border-right-color: var(--ink);
-  }
-  .ba__handle i::after {
-    right: 0.45rem;
-    border-left-color: var(--ink);
-  }
-  .ba__tag {
-    position: absolute;
-    top: 0.75rem;
-    padding: 0.25rem 0.5rem;
-    border-radius: 3px;
-    background: var(--ink);
-    font-size: var(--fs-label);
-    color: var(--text);
-  }
-  .ba__tag--l {
-    left: 0.75rem;
-  }
-  .ba__tag--r {
-    right: 0.75rem;
-  }
-  .ba__controls {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: center;
-    gap: var(--s-3);
-  }
-  .ba__range {
-    display: flex;
-    align-items: center;
-    min-height: var(--tap);
-  }
-  .ba__range input {
-    width: 100%;
-    accent-color: var(--signal);
-    cursor: ew-resize;
-  }
-
-  /* ── 02 Journey ── */
-  .jr {
-    display: grid;
-    gap: var(--s-5);
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .jr__steps {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--s-2);
-  }
-  .jr__step {
-    display: grid;
-    gap: 0.15rem;
-    width: 100%;
-    min-height: 100%;
-    padding: var(--s-3);
-    border: 1px solid var(--line);
-    border-radius: 4px;
-    background: var(--bg-2);
-    color: var(--text-2);
-    text-align: left;
-    font-size: var(--fs-sm);
-    line-height: 1.3;
-    transition: border-color var(--dur-1), background-color var(--dur-1), color var(--dur-1);
-  }
-  .jr__step .num {
-    font-size: var(--fs-label);
-    color: var(--text-3);
-  }
-  .jr__step-t {
-    font-weight: var(--w-head);
-    color: var(--text);
-  }
-  .jr__step-n {
-    font-size: var(--fs-label);
-    color: var(--text-3);
-  }
-  .jr__step:hover,
-  .jr__step:focus-visible {
-    border-color: var(--control);
-  }
-  .jr__step[aria-current='step'] {
-    border-color: var(--signal);
-    background: var(--surface);
-  }
-  .jr__step[aria-current='step'] .num {
-    color: var(--signal);
-  }
-  .jr__phone {
-    justify-self: center;
-    width: min(100%, 17rem);
-    aspect-ratio: 9 / 16;
-    padding: 0.55rem;
-    border-radius: 28px;
-    background: var(--frame-bezel);
-    border: 1px solid var(--line);
-    box-shadow: var(--shadow-media);
-    overflow: hidden;
-  }
-  .jr__track {
-    display: flex;
-    height: 100%;
-    transform: translateX(calc(var(--s, 0) * -100%));
-    transition: transform var(--dur-4) var(--ease-in-out);
-  }
-  .jr__screen {
-    position: relative;
-    flex: 0 0 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-    height: 100%;
-    padding: 1rem 0.85rem;
-    border-radius: 20px;
-    background: var(--paper);
-    color: var(--paper-text);
-    font-size: var(--fs-label);
-    overflow: hidden;
-  }
-  .jr__bar {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.55rem 0.75rem;
-    border-radius: var(--r-pill);
-    border: 1px solid var(--paper-line);
-    background: white;
-  }
-  .jr__bar :global(.icon) {
-    width: 0.9rem;
-    height: 0.9rem;
-    color: var(--paper-text-3);
-  }
-  .jr__ghost {
-    display: block;
-    height: 0.6rem;
-    border-radius: 3px;
-    background: var(--paper-2);
-  }
-  .jr__ghost--s {
-    width: 60%;
-  }
-  .jr__map {
-    position: relative;
-    height: 42%;
-    border-radius: 10px;
-    background:
-      linear-gradient(90deg, transparent 47%, var(--paper-line) 47% 53%, transparent 53%),
-      linear-gradient(transparent 60%, var(--paper-line) 60% 66%, transparent 66%),
-      var(--paper-2);
-  }
-  .jr__pin {
-    position: absolute;
-    left: 50%;
-    top: 40%;
-    width: 1.1rem;
-    height: 1.1rem;
-    border-radius: 50% 50% 50% 0;
-    background: var(--ink);
-    transform: translate(-50%, -50%) rotate(-45deg);
-    box-shadow: 0 0 0 5px var(--signal);
-  }
-  .jr__card {
-    display: grid;
-    gap: 0.2rem;
-    padding: 0.7rem;
-    border: 1px solid var(--paper-line);
-    border-radius: 10px;
-    background: white;
-  }
-  .jr__card b,
-  .jr__h {
-    font-size: var(--fs-sm);
-  }
-  .jr__ok {
-    color: var(--accent-on-light);
-    font-weight: var(--w-ui);
-  }
-  .jr__pills {
-    display: flex;
-    gap: 0.3rem;
-    margin-top: 0.2rem;
-  }
-  .jr__pills i {
-    font-style: normal;
-    padding: 0.1rem 0.5rem;
-    border: 1px solid var(--paper-line);
-    border-radius: var(--r-pill);
-  }
-  .jr__pills i.is-hit {
-    border-color: var(--ink);
-    background: var(--signal);
-  }
-  .jr__url {
-    color: var(--paper-text-3);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .jr__price {
-    color: var(--paper-text-2);
-  }
-  .jr__cta {
-    align-self: start;
-    font-style: normal;
-    padding: 0.4rem 0.75rem;
-    border-radius: 4px;
-    background: var(--ink);
-    color: var(--paper);
-    font-weight: var(--w-ui);
-  }
-  .jr__field {
-    display: block;
-    padding: 0.5rem 0.6rem;
-    border: 1px solid var(--paper-line);
-    border-radius: 4px;
-    background: white;
-    color: var(--paper-text-3);
-  }
-  .jr__field--tall {
-    height: 4.5rem;
-  }
-  .jr__sent {
-    padding: 0.5rem 0.6rem;
-    border-radius: 8px;
-    background: var(--signal);
-    color: var(--ink);
-    font-weight: var(--w-ui);
-  }
-  .jr__controls {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--s-2);
-  }
-
   /* ── 03 Flow ── */
   .fl {
     display: grid;
@@ -720,27 +308,10 @@ const flow = [
     background: var(--signal);
   }
   :global(html:not(.js)) .fl__top,
-  :global(html:not(.js)) .fl__state,
-  :global(html:not(.js)) .ba__controls,
-  :global(html:not(.js)) .jr__controls {
+  :global(html:not(.js)) .fl__state {
     display: none;
   }
 
-  @media (min-width: 48em) {
-    .jr {
-      grid-template-columns: minmax(0, 1fr) auto;
-      align-items: center;
-    }
-    .jr__steps {
-      grid-template-columns: minmax(0, 1fr);
-    }
-    .jr__controls {
-      grid-column: 1 / -1;
-    }
-    .jr__phone {
-      width: 15rem;
-    }
-  }
   @media (min-width: 64em) {
     .pg__row {
       grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.4fr);

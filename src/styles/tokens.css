@@ -55,18 +55,30 @@
   color-scheme: dark;
 
   /* ── Colour: the dark stage (immersive scenes, header, footer) ── */
+  /* Raw dark values (never remapped; .ink resets a dark stage from them inside an ivory section). */
   --ink: #10110f; /* the stage and ink text on ivory */
+  --ink-2: #171815; /* a quieter dark band */
+  --ink-surface: #1d1e1a; /* panels on the stage */
+  --ink-surface-2: #262722; /* raised controls, chips */
+  --ink-line: #30322b; /* hairlines on dark */
+  --ink-control: #7a7c71; /* control borders on dark: 4.46:1 on ink, 3.95:1 on surface */
+  --ink-text: #f3f1e8; /* ivory text: 16.7:1 on ink */
+  --ink-text-2: #bdbbb0; /* secondary text: 9.8:1 */
+  --ink-text-3: #94928a; /* metadata: 6.1:1 on ink, 4.8:1 on surface-2 */
+  /* Roles (remapped locally by .paper / .section--alt) */
   --bg: var(--ink);
-  --bg-2: #171815; /* a quieter dark band */
-  --surface: #1d1e1a; /* panels on the stage */
-  --surface-2: #262722; /* raised controls, chips */
-  --line: #30322b; /* hairlines on dark */
-  --control: #7a7c71; /* control borders on dark: 4.46:1 on ink, 3.95:1 on surface */
-  --text: #f3f1e8; /* ivory text: 16.7:1 on ink */
-  --text-2: #bdbbb0; /* secondary text: 9.8:1 */
-  --text-3: #94928a; /* metadata: 6.1:1 on ink, 4.8:1 on surface-2 */
-  --signal: #c9f64a; /* acid lime: the line, the selected state, the primary action. 15.1:1 with ink */
-  --signal-strong: #daff6e; /* lime hover */
+  --bg-2: var(--ink-2);
+  --surface: var(--ink-surface);
+  --surface-2: var(--ink-surface-2);
+  --line: var(--ink-line);
+  --control: var(--ink-control);
+  --text: var(--ink-text);
+  --text-2: var(--ink-text-2);
+  --text-3: var(--ink-text-3);
+  --lime: #c9f64a; /* the raw acid lime, never remapped (for a lime fill that must stay lime on ivory) */
+  --signal: var(--lime); /* the line, the selected state, the primary action. 15.1:1 with ink. Ink on ivory (.paper). */
+  --lime-strong: #daff6e; /* lime hover */
+  --signal-strong: var(--lime-strong);
   --on-signal: var(--ink);
   --signal-wash: rgb(201 246 74 / 0.12);
   --error: #ff6b57; /* 6.8:1 on ink */
@@ -91,7 +103,9 @@
 
   /* ── Glow and depth ── */
   --signal-glow: 0 0 0 1px rgb(201 246 74 / 0.5), 0 14px 44px -14px rgb(201 246 74 / 0.6);
-  --shadow-media: 0 28px 48px rgb(0 0 0 / 0.5);
+  --shadow-media: 0 28px 48px rgb(0 0 0 / 0.5); /* real captures and the portrait */
+  --shadow-card: 0 16px 30px rgb(0 0 0 / 0.35); /* cards inside the stage's scenes */
+  --shadow-float: 0 8px 24px rgb(0 0 0 / 0.35); /* the one floating control */
   --shadow-pop: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 30px 60px -20px rgb(0 0 0 / 0.75), 0 0 0 1px rgb(255 255 255 / 0.06);
 
   /* ── Frames around real project captures (components/work/MediaFrame.astro) ── */
@@ -128,7 +142,7 @@
      The hierarchy holds at every width: display ≥ hero ≥ h1 > h2 > h3 > lead > base > ui > sm > label. */
   --fs-display: clamp(3rem, 0.9rem + 9.33vw, 9.5rem); /* 48 → 152px: the oversized scene words */
   --fs-hero: clamp(2.75rem, 1rem + 7.78vw, 8rem); /* 44 → 128px: the Home H1 */
-  --fs-h1: clamp(2.5rem, 1.33rem + 5.19vw, 6rem); /* 40 → 96px: page titles */
+  --fs-h1: clamp(2.5rem, 1.5rem + 4.44vw, 5.5rem); /* 40 → 88px: page titles */
   --fs-h2: clamp(2rem, 1.25rem + 3.33vw, 4.25rem); /* 32 → 68px: scene titles */
   --fs-h3: clamp(1.375rem, 1.19rem + 0.83vw, 1.875rem); /* 22 → 30px: item titles */
   --fs-lead: clamp(1.125rem, 1.04rem + 0.37vw, 1.375rem); /* 18 → 22px */
@@ -136,6 +150,12 @@
   --fs-ui: 1rem; /* 16px: buttons and labels */
   --fs-sm: 0.9375rem; /* 15px: hints, captions */
   --fs-label: 0.8125rem; /* 13px: mono labels; the floor for visible text */
+  /* Named display sizes for specific places (still fluid, still in the hierarchy). */
+  --fs-hero-wide: clamp(4.5rem, 1rem + 5.6vw, 8rem); /* the Home H1 beside the stage, ≥ 1024px */
+  --fs-title: clamp(2.25rem, 1.3rem + 4.2vw, 5rem); /* long, descriptive page titles (PageHead compact) */
+  --fs-menu: clamp(1.75rem, 1rem + 4vw, 3rem); /* the full-screen menu's links */
+  --fs-deck: clamp(1.5rem, 1rem + 2.2vw, 2.75rem); /* the second line of an editorial title deck (About) */
+  --fs-stage: clamp(0.8125rem, 2.4cqi, 0.9375rem); /* text inside the stage's scenes, sized to the stage, never under 13px */
 
   --lh-display: 0.9;
   --lh-tight: 0.98;

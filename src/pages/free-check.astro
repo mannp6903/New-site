@@ -10,6 +10,7 @@
  * search, and this page is only reached from campaign links (tag them with UTMs; GA4 records them).
  * scripts/prelaunch-check.mjs allows it as an unlisted, unlinked campaign page.
  */
+import PageLine from '../components/ui/PageLine.astro';
 import { Picture } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Heading from '../components/ui/Heading.astro';
@@ -62,6 +63,7 @@ const faq = [
       <div class="lp-hero__copy">
         <p class="eyebrow">Free website &amp; Google check · Toronto &amp; GTA</p>
         <Heading as="h1" lines={['Don’t miss', '<span class="accent">the next call.</span>']} class="lp-hero__title" load />
+        <PageLine />
         <p class="lead lp-hero__lead" data-reveal="load" style="--d:4">
           I look your business up the way a customer would, test what happens when someone calls or writes, and send you a
           short list of fixes, most important first.

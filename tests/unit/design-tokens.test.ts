@@ -69,7 +69,7 @@ function declarations(): Decl[] {
 const DECLS = declarations();
 const where = (d: Decl) => `${d.file}:${d.line}  ${d.prop}: ${d.value}`;
 
-describe('design tokens (DESIGN_UPGRADE_PLAN.md §5)', () => {
+describe('design tokens (DESIGN.md, MOTION.md)', () => {
   it('scans the component, page and layout CSS', () => {
     expect(DECLS.filter((d) => d.prop === 'font-size').length).toBeGreaterThan(100);
   });
@@ -85,9 +85,9 @@ describe('design tokens (DESIGN_UPGRADE_PLAN.md §5)', () => {
     expect(offenders).toEqual([]);
     // The `font` shorthand can set a size too: only `inherit` is used.
     expect(DECLS.filter((d) => d.prop === 'font' && d.value !== 'inherit').map(where)).toEqual([]);
-    // SVG <text font-size> is allowed only in the agent graph, which sizes its labels in its own viewBox units.
+    // No SVG <text font-size>: every label is HTML text (MANN / IN MOTION, 19 Nov 2026: the agent graph is gone).
     const svgSizes = [...SCANNED_DIRS.flatMap(walk)].filter((f) => / font-size=\{/.test(readFileSync(join(ROOT, f), 'utf8')));
-    expect(svgSizes).toEqual(['src/components/home/AgentGraph.astro']);
+    expect(svgSizes).toEqual([]);
   });
 
   it('T1: the type scale exists in tokens.css with the plan’s values', () => {
@@ -95,8 +95,9 @@ describe('design tokens (DESIGN_UPGRADE_PLAN.md §5)', () => {
     for (const name of ['--fs-hero', '--fs-h1', '--fs-h2', '--fs-h3', '--fs-lead', '--fs-base', '--fs-sm', '--fs-label'])
       expect(tokens, name).toMatch(new RegExp(`${name}:`));
     expect(tokens).toMatch(/--fs-label:\s*0\.8125rem;/);
-    expect(tokens).toMatch(/--track-hero:\s*-0\.035em;/);
-    expect(tokens).toMatch(/--track-head:\s*-0\.025em;/);
+    // MANN / IN MOTION (19 Nov 2026): the display face and its tracking, never tighter than -0.035em.
+    for (const name of ['--fs-display', '--font-display', '--track-display', '--w-display']) expect(tokens, name).toMatch(new RegExp(`${name}:`));
+    for (const m of tokens.matchAll(/--track-[a-z]+:\s*(-?[\d.]+)em;/g)) expect(Number(m[1])).toBeGreaterThanOrEqual(-0.035);
     expect(tokens).toMatch(/--w-body:\s*400;/);
     expect(tokens).toMatch(/--w-ui:\s*500;/);
     expect(tokens).toMatch(/--w-head:\s*600;/);
@@ -111,9 +112,9 @@ describe('design tokens (DESIGN_UPGRADE_PLAN.md §5)', () => {
     expect(offenders).toEqual([]);
   });
 
-  it('weights: only 400, 500 and 600 (plan task 1.3)', () => {
+  it('weights: Geist uses 400, 500 and 600; the display face uses one weight (--w-display)', () => {
     const offenders = DECLS.filter((d) => d.prop === 'font-weight')
-      .filter((d) => !/^(var\(--w-(body|ui|head)\)|inherit|normal|400|500|600|100 900)$/.test(d.value))
+      .filter((d) => !/^(var\(--w-(body|ui|head|display)\)|inherit|normal|400|500|600|100 900|500 800)$/.test(d.value))
       .map(where);
     expect(offenders).toEqual([]);
   });
@@ -125,23 +126,30 @@ describe('design tokens (DESIGN_UPGRADE_PLAN.md §5)', () => {
       '--ease-in-out': 'cubic-bezier(0.65, 0, 0.35, 1)',
       '--ease-in': 'cubic-bezier(0.7, 0, 0.84, 0)',
       '--ease-spring': 'cubic-bezier(0.34, 1.56, 0.64, 1)',
-      '--dur-1': '120ms',
+      // MOTION.md (19 Nov 2026): buttons 120–180ms, selector feedback < 100ms + 250–450ms change, type 450–700ms,
+      // hero 700–1000ms, stagger 20–35ms, page 220–350ms.
+      '--dur-1': '140ms',
       '--dur-2': '200ms',
-      '--dur-3': '320ms',
-      '--dur-4': '560ms',
-      '--dur-5': '800ms',
-      '--stagger': '60ms',
-      '--dur-loop': '4200ms',
+      '--dur-3': '280ms',
+      '--dur-4': '420ms',
+      '--dur-5': '640ms',
+      '--dur-6': '960ms',
+      '--stagger': '28ms',
+      '--dur-loop': '3600ms',
       '--dur-page-out': '220ms',
-      '--dur-page-in': '420ms',
+      '--dur-page-in': '340ms',
     };
     for (const [name, value] of Object.entries(want)) expect(tokens, name).toContain(`${name}: ${value};`);
     // Every duration token, and only those, is in the set above.
     const durations = [...new Set([...tokens.matchAll(/(--[a-z0-9-]+):\s*\d+m?s;/g)].map((m) => m[1]))].sort();
     expect(durations).toEqual(Object.keys(want).filter((k) => !k.startsWith('--ease')).sort());
-    // Reduced motion sets every one of them to 0.
-    const reduced = tokens.slice(tokens.indexOf('@media (prefers-reduced-motion: reduce)'));
-    for (const name of durations) expect(reduced, name).toMatch(new RegExp(`${name}:\\s*0ms;`));
+    // Reduced motion (the OS setting) and the site's Motion switch (html[data-motion='off']) each set every one to 0.
+    const reduced = tokens.slice(tokens.indexOf('@media (prefers-reduced-motion: reduce)'), tokens.indexOf(":root[data-motion='off']"));
+    const off = tokens.slice(tokens.indexOf(":root[data-motion='off']"));
+    for (const name of durations) {
+      expect(reduced, name).toMatch(new RegExp(`${name}:\\s*0ms;`));
+      expect(off, name).toMatch(new RegExp(`${name}:\\s*0ms;`));
+    }
     // The old sets are gone everywhere.
     const old = /--(?:t-(?:fast|base|slow|reveal)|dur-(?:instant|fast|base|slow|hero)|ease-standard)\b/;
     const files = [...SCANNED_DIRS.flatMap(walk), ...EXTRA_FILES, 'src/styles/tokens.css'];
@@ -178,8 +186,9 @@ describe('design tokens (DESIGN_UPGRADE_PLAN.md §5)', () => {
       for (const m of code.matchAll(/style\.(?:transition|animation)\w*\s*=\s*[`'"][^`'"]*?\d+m?s/g)) offenders.push(`${file}: ${m[0]}`);
     }
     expect(offenders).toEqual([]);
-    // Sanity: the agent graph's loop is in scope.
-    expect(scripts.some((s) => s.file.endsWith('AgentGraph.astro') && /\.animate\(/.test(s.code))).toBe(true);
+    // Sanity: the stage and the playground scripts are in scope.
+    expect(scripts.some((s) => s.file.endsWith('stage.ts'))).toBe(true);
+    expect(scripts.some((s) => s.file.endsWith('playground.ts'))).toBe(true);
   });
 
   it('M4: page transitions take at most 450ms and read only the page-transition tokens', () => {
@@ -204,7 +213,7 @@ describe('design tokens (DESIGN_UPGRADE_PLAN.md §5)', () => {
     // One plain shadow, no spread, so it works in box-shadow and in drop-shadow() alike.
     expect(tokens).toMatch(/--shadow-media:\s*0 \d+px \d+px rgb\([^)]*\);/);
     const ring = /^(inset )?0 0 0 [\d.]+px [^,]+$/;
-    const tokenShadow = /^var\(--(shadow-media|shadow-pop|signal-glow)\)$/;
+    const tokenShadow = /^var\(--(shadow-media|shadow-card|shadow-float|shadow-pop|signal-glow)\)$/;
     const parts = (v: string) => v.split(/,(?![^(]*\))/).map((x) => x.trim());
     const boxOffenders = DECLS.filter((d) => d.prop === 'box-shadow' && d.value !== 'none')
       .filter((d) => !parts(d.value).every((p) => tokenShadow.test(p) || ring.test(p)))
@@ -212,12 +221,20 @@ describe('design tokens (DESIGN_UPGRADE_PLAN.md §5)', () => {
     expect(boxOffenders).toEqual([]);
     // drop-shadow(): the media shadow, or a glow (no offset) in lime, which marks something live (the graph's signal).
     const dropOffenders = DECLS.filter((d) => d.prop === 'filter' && /drop-shadow/.test(d.value))
-      .filter((d) => !/^drop-shadow\(var\(--shadow-media\)\)$/.test(d.value) && !/^drop-shadow\(0 0 [\d.]+px rgb\(212 248 74 \/ [\d.]+\)\)$/.test(d.value))
+      .filter((d) => !/^drop-shadow\(var\(--shadow-(media|float)\)\)$/.test(d.value))
       .map(where);
     expect(dropOffenders).toEqual([]);
   });
 
-  it('G3: one frame system: captures are drawn only by MediaFrame.astro, on token backdrops', () => {
+  it('G3: one frame system: captures are drawn by MediaFrame.astro or the named film surfaces, on token backdrops', () => {
+    // MANN / IN MOTION (19 Nov 2026): the stage, the work reel and the before/after demo animate their own frames; their
+    // frame colours still come only from the --frame-* tokens.
+    const films = ['src/components/home/Stage.astro', 'src/components/home/WorkReel.astro', 'src/components/demos/BeforeAfter.astro'];
+    for (const f of films) {
+      const { css } = cssOf(f);
+      expect(css, f).not.toMatch(/#[0-9a-f]{3,8}\b/i);
+      if (/__bar\b/.test(css)) expect(css, f).toMatch(/var\(--frame-bar\)/);
+    }
     const frameFiles = ['src/components/work/MediaFrame.astro', 'src/components/work/ProjectMedia.astro'];
     for (const f of frameFiles) {
       const { css } = cssOf(f);
@@ -228,19 +245,17 @@ describe('design tokens (DESIGN_UPGRADE_PLAN.md §5)', () => {
     // Any page or component that reads the capture data hands the images to MediaFrame (no <Image>/<Picture> of its own).
     const readers = SCANNED_DIRS.flatMap(walk).filter((f) => /from ['"][./]*data\/captures['"]/.test(readFileSync(join(ROOT, f), 'utf8')));
     expect(readers.length).toBeGreaterThanOrEqual(2);
-    for (const f of readers) expect(readFileSync(join(ROOT, f), 'utf8'), f).not.toMatch(/<(Image|Picture)\b/);
+    for (const f of readers.filter((r) => !films.includes(r))) expect(readFileSync(join(ROOT, f), 'utf8'), f).not.toMatch(/<(Image|Picture)\b/);
   });
 
-  it('G4: the graph, the services scenes and the promise icons draw with the graph’s stroke tokens', () => {
+  it('G4: the lime line is one stroke weight everywhere (--line-w), with non-scaling strokes', () => {
     const tokens = readFileSync(join(ROOT, 'src/styles/tokens.css'), 'utf8');
-    for (const name of ['--graph-stroke-fine', '--graph-stroke', '--graph-stroke-bold', '--graph-stroke-signal']) expect(tokens, name).toMatch(new RegExp(`${name}:\\s*[\\d.]+;`));
-    const files = ['src/components/home/AgentGraph.astro', 'src/components/home/ServiceSummary.astro', 'src/components/home/HowIWork.astro'];
-    const widths = DECLS.filter((d) => files.includes(d.file) && d.prop === 'stroke-width');
-    expect(widths.length).toBeGreaterThan(10);
-    expect(widths.filter((d) => !/^var\(--graph-stroke(-fine|-bold|-signal)?\)$/.test(d.value)).map(where)).toEqual([]);
-    // Round ends, like the graph's lines.
-    for (const f of ['src/components/home/ServiceSummary.astro', 'src/components/home/HowIWork.astro'])
-      expect(DECLS.some((d) => d.file === f && d.prop === 'stroke-linecap' && d.value === 'round'), f).toBe(true);
+    expect(tokens).toMatch(/--line-w:\s*2;/);
+    const files = ['src/components/home/Stage.astro', 'src/components/home/ProcessBrief.astro', 'src/components/home/Person.astro', 'src/components/Footer.astro', 'src/pages/404.astro'];
+    const widths = DECLS.filter((d) => files.includes(d.file) && d.prop === 'stroke-width' && /--line-w|var\(--/.test(d.value));
+    expect(widths.length).toBeGreaterThanOrEqual(5);
+    expect(widths.filter((d) => d.value !== 'var(--line-w)').map(where)).toEqual([]);
+    for (const f of files) expect(DECLS.some((d) => d.file === f && d.prop === 'vector-effect' && d.value === 'non-scaling-stroke'), f).toBe(true);
   });
 
   it('M8: every hover state has a keyboard twin (:focus-visible, :focus-within or :focus)', () => {

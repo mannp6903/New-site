@@ -1,0 +1,137 @@
+---
+/**
+ * Demo: a real before/after of Mann's own website, one week apart (31 Oct and 8 Nov 2026). A native range input drives
+ * the split (keyboard and screen readers), Before/After buttons jump, and dragging on the image works on touch and mouse.
+ * Behaviour: src/scripts/playground.ts (initPlayground on any [data-playground] ancestor). Without JavaScript it shows a
+ * still half-and-half view with both labels.
+ */
+import { Picture } from 'astro:assets';
+import before from '../../assets/work/nest-and-rest/live-2026-10-31-desktop.png';
+import after from '../../assets/work/nest-and-rest/live-2026-11-08-desktop.png';
+---
+
+<div class="demo">
+<div class="ba" data-ba style="--pos: 50%">
+  <div class="ba__img ba__after">
+    <Picture src={after} alt="After, 8 November 2026: the Nest & Rest home page with a photo of the Toronto skyline at dawn, “We clean. You rest.” and a price box." formats={['avif']} fallbackFormat="webp" widths={[640, 960, 1280, 1440]} sizes="(min-width: 64em) 54vw, 92vw" quality={58} loading="lazy" decoding="async" />
+  </div>
+  <div class="ba__img ba__before" data-ba-before>
+    <Picture src={before} alt="Before, 31 October 2026: the earlier Nest & Rest home page, light, with an illustrated skyline and a price estimator." formats={['avif']} fallbackFormat="webp" widths={[640, 960, 1280, 1440]} sizes="(min-width: 64em) 54vw, 92vw" quality={58} loading="lazy" decoding="async" />
+  </div>
+  <span class="ba__handle" aria-hidden="true"><i></i></span>
+  <span class="ba__tag ba__tag--l mono" aria-hidden="true">Before · 31 Oct</span>
+  <span class="ba__tag ba__tag--r mono" aria-hidden="true">After · 8 Nov</span>
+</div>
+<div class="ba__controls">
+  <button class="demo-btn" type="button" data-ba-set="100">Before</button>
+  <label class="ba__range">
+    <span class="visually-hidden">Compare before and after: slide left for after, right for before</span>
+    <input type="range" min="0" max="100" step="1" value="50" data-ba-range aria-valuetext="Half before, half after" />
+  </label>
+  <button class="demo-btn" type="button" data-ba-set="0">After</button>
+</div>
+<p class="demo-note mono">Real captures of nestnrestcleaning.com, my own business</p>
+</div>
+
+<style>
+  .demo {
+    display: grid;
+    gap: var(--s-3);
+    min-width: 0;
+  }
+  /* ── 01 Before / after ── */
+  .ba {
+    position: relative;
+    aspect-ratio: 1440 / 900;
+    border-radius: 6px;
+    overflow: clip;
+    background: var(--surface);
+    box-shadow: var(--shadow-media);
+    touch-action: pan-y;
+  }
+  .ba__img {
+    position: absolute;
+    inset: 0;
+  }
+  .ba__img :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .ba__before {
+    clip-path: inset(0 calc(100% - var(--pos)) 0 0);
+  }
+  .ba__handle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: var(--pos);
+    width: 2px;
+    margin-left: -1px;
+    background: var(--signal);
+    pointer-events: none;
+  }
+  .ba__handle i {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: var(--signal);
+    transform: translate(-50%, -50%);
+  }
+  .ba__handle i::before,
+  .ba__handle i::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 0;
+    height: 0;
+    border: 5px solid transparent;
+    transform: translateY(-50%);
+  }
+  .ba__handle i::before {
+    left: 0.45rem;
+    border-right-color: var(--ink);
+  }
+  .ba__handle i::after {
+    right: 0.45rem;
+    border-left-color: var(--ink);
+  }
+  .ba__tag {
+    position: absolute;
+    top: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 3px;
+    background: var(--ink);
+    font-size: var(--fs-label);
+    color: var(--text);
+  }
+  .ba__tag--l {
+    left: 0.75rem;
+  }
+  .ba__tag--r {
+    right: 0.75rem;
+  }
+  .ba__controls {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: var(--s-3);
+  }
+  .ba__range {
+    display: flex;
+    align-items: center;
+    min-height: var(--tap);
+  }
+  .ba__range input {
+    width: 100%;
+    accent-color: var(--signal);
+    cursor: ew-resize;
+  }
+
+  :global(html:not(.js)) .ba__controls {
+    display: none;
+  }
+</style>

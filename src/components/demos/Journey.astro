@@ -1,0 +1,307 @@
+---
+/**
+ * Demo: an illustrated local-search journey (search → listing → page → enquiry). Step buttons, Next, and Play (runs the
+ * remaining steps once, then stops; Pause stops it). Behaviour: src/scripts/playground.ts. Labelled as an illustration:
+ * no real search engine, business or result is shown.
+ */
+import Icon from '../ui/Icon.astro';
+
+const journey = [
+  { k: 'search', title: 'They search', note: '“house cleaning near me”' },
+  { k: 'listing', title: 'They see you', note: 'Correct hours, area and a website link' },
+  { k: 'page', title: 'They land on the answer', note: 'A page for the exact service and area' },
+  { k: 'enquiry', title: 'They ask', note: 'A short form, an instant reply' },
+];
+---
+
+<div class="demo">
+<div class="jr" data-journey data-step="0">
+  <ol class="jr__steps" role="list">
+    {
+      journey.map((s, i) => (
+        <li>
+          <button class="jr__step" type="button" data-jr-go={i} aria-current={i === 0 ? 'step' : undefined}>
+            <span class="num">0{i + 1}</span>
+            <span class="jr__step-t">{s.title}</span>
+            <span class="jr__step-n">{s.note}</span>
+          </button>
+        </li>
+      ))
+    }
+  </ol>
+  <div class="jr__phone" aria-hidden="true">
+    <div class="jr__track">
+      <div class="jr__screen jr__screen--search">
+        <span class="jr__bar"><Icon name="search" /> house cleaning near me</span>
+        <span class="jr__res"><b>Local results</b><i></i><i class="s"></i></span>
+        <span class="jr__res"><b>Cleaning near you</b><i></i><i class="s"></i></span>
+        <span class="jr__res"><i></i><i class="s"></i></span>
+      </div>
+      <div class="jr__screen jr__screen--listing">
+        <span class="jr__map"><span class="jr__pin"></span></span>
+        <span class="jr__card"><b>Your business</b><span>Cleaning · Scarborough</span><span class="jr__ok">Open · closes 6 PM</span><span class="jr__pills"><i class="is-hit">Website</i><i>Call</i></span></span>
+      </div>
+      <div class="jr__screen jr__screen--page">
+        <span class="jr__url mono">yourbusiness.ca/deep-cleaning</span>
+        <b class="jr__h">Deep cleaning in Scarborough</b>
+        <span class="jr__ghost"></span><span class="jr__ghost jr__ghost--s"></span>
+        <span class="jr__price">From your price list</span>
+        <i class="jr__cta">Request a quote</i>
+      </div>
+      <div class="jr__screen jr__screen--enquiry">
+        <span class="jr__field">Name</span><span class="jr__field">Email</span><span class="jr__field jr__field--tall">What do you need?</span>
+        <i class="jr__cta">Send</i>
+        <span class="jr__sent">Thanks! I’ll reply by 10 AM.</span>
+      </div>
+    </div>
+  </div>
+  <div class="jr__controls">
+    <button class="demo-btn demo-btn--primary" type="button" data-jr-play><Icon name="play" /><span data-jr-play-label>Play the journey</span></button>
+    <button class="demo-btn" type="button" data-jr-next>Next step <Icon name="arrow" /></button>
+  </div>
+</div>
+<p class="demo-note mono">Illustration, not a real search result or a real business</p>
+</div>
+
+<style>
+  .demo {
+    display: grid;
+    gap: var(--s-3);
+    min-width: 0;
+  }
+  /* ── 02 Journey ── */
+  .jr {
+    display: grid;
+    gap: var(--s-5);
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .jr__steps {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s-2);
+  }
+  .jr__step {
+    display: grid;
+    gap: 0.15rem;
+    width: 100%;
+    min-height: 100%;
+    padding: var(--s-3);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--bg-2);
+    color: var(--text-2);
+    text-align: left;
+    font-size: var(--fs-sm);
+    line-height: 1.3;
+    transition: border-color var(--dur-1), background-color var(--dur-1), color var(--dur-1);
+  }
+  .jr__step .num {
+    font-size: var(--fs-label);
+    color: var(--text-3);
+  }
+  .jr__step-t {
+    font-weight: var(--w-head);
+    color: var(--text);
+  }
+  .jr__step-n {
+    font-size: var(--fs-label);
+    color: var(--text-3);
+  }
+  .jr__step:hover,
+  .jr__step:focus-visible {
+    border-color: var(--control);
+  }
+  .jr__step[aria-current='step'] {
+    border-color: var(--signal);
+    background: var(--surface);
+  }
+  .jr__step[aria-current='step'] .num {
+    color: var(--signal);
+  }
+  .jr__phone {
+    justify-self: center;
+    width: min(100%, 17rem);
+    aspect-ratio: 9 / 15;
+    padding: 0.55rem;
+    border-radius: 28px;
+    background: var(--frame-bezel);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-media);
+    overflow: hidden;
+  }
+  .jr__track {
+    display: flex;
+    height: 100%;
+    transform: translateX(calc(var(--s, 0) * -100%));
+    transition: transform var(--dur-4) var(--ease-in-out);
+  }
+  .jr__screen {
+    position: relative;
+    flex: 0 0 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    height: 100%;
+    padding: 1rem 0.85rem;
+    border-radius: 20px;
+    background: var(--paper);
+    color: var(--paper-text);
+    font-size: var(--fs-label);
+    overflow: hidden;
+  }
+  .jr__bar {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: var(--r-pill);
+    border: 1px solid var(--paper-line);
+    background: var(--frame-screen);
+  }
+  .jr__bar :global(.icon) {
+    width: 0.9rem;
+    height: 0.9rem;
+    color: var(--paper-text-3);
+  }
+  .jr__res {
+    display: grid;
+    gap: 0.35rem;
+    padding: 0.6rem;
+    border-radius: 8px;
+    background: var(--frame-screen);
+    border: 1px solid var(--paper-line);
+  }
+  .jr__res b {
+    font-size: var(--fs-label);
+    color: var(--paper-text-2);
+  }
+  .jr__res i {
+    display: block;
+    height: 0.5rem;
+    border-radius: 3px;
+    background: var(--paper-2);
+  }
+  .jr__res i.s {
+    width: 55%;
+  }
+  .jr__ghost {
+    display: block;
+    height: 0.6rem;
+    border-radius: 3px;
+    background: var(--paper-2);
+  }
+  .jr__ghost--s {
+    width: 60%;
+  }
+  .jr__map {
+    position: relative;
+    height: 42%;
+    border-radius: 10px;
+    background:
+      linear-gradient(90deg, transparent 47%, var(--paper-line) 47% 53%, transparent 53%),
+      linear-gradient(transparent 60%, var(--paper-line) 60% 66%, transparent 66%),
+      var(--paper-2);
+  }
+  .jr__pin {
+    position: absolute;
+    left: 50%;
+    top: 40%;
+    width: 1.1rem;
+    height: 1.1rem;
+    border-radius: 50% 50% 50% 0;
+    background: var(--ink);
+    transform: translate(-50%, -50%) rotate(-45deg);
+    box-shadow: 0 0 0 5px var(--signal);
+  }
+  .jr__card {
+    display: grid;
+    gap: 0.2rem;
+    padding: 0.7rem;
+    border: 1px solid var(--paper-line);
+    border-radius: 10px;
+    background: var(--frame-screen);
+  }
+  .jr__card b,
+  .jr__h {
+    font-size: var(--fs-sm);
+  }
+  .jr__ok {
+    color: var(--accent-on-light);
+    font-weight: var(--w-ui);
+  }
+  .jr__pills {
+    display: flex;
+    gap: 0.3rem;
+    margin-top: 0.2rem;
+  }
+  .jr__pills i {
+    font-style: normal;
+    padding: 0.1rem 0.5rem;
+    border: 1px solid var(--paper-line);
+    border-radius: var(--r-pill);
+  }
+  .jr__pills i.is-hit {
+    border-color: var(--ink);
+    background: var(--signal);
+  }
+  .jr__url {
+    color: var(--paper-text-3);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .jr__price {
+    color: var(--paper-text-2);
+  }
+  .jr__cta {
+    align-self: start;
+    font-style: normal;
+    padding: 0.4rem 0.75rem;
+    border-radius: 4px;
+    background: var(--ink);
+    color: var(--paper);
+    font-weight: var(--w-ui);
+  }
+  .jr__field {
+    display: block;
+    padding: 0.5rem 0.6rem;
+    border: 1px solid var(--paper-line);
+    border-radius: 4px;
+    background: var(--frame-screen);
+    color: var(--paper-text-3);
+  }
+  .jr__field--tall {
+    height: 4.5rem;
+  }
+  .jr__sent {
+    padding: 0.5rem 0.6rem;
+    border-radius: 8px;
+    background: var(--signal);
+    color: var(--ink);
+    font-weight: var(--w-ui);
+  }
+  .jr__controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2);
+  }
+
+  @media (min-width: 48em) {
+    .jr {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+    }
+    .jr__steps {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .jr__controls {
+      grid-column: 1 / -1;
+    }
+    .jr__phone {
+      width: 15rem;
+    }
+  }
+  :global(html:not(.js)) .jr__controls {
+    display: none;
+  }
+</style>

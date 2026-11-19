@@ -1,6 +1,7 @@
 ---
 /** Opening block of inner pages: label, a large line-by-line title, intro, optional extras. */
 import Heading from './ui/Heading.astro';
+import PageLine from './ui/PageLine.astro';
 
 interface Props {
   eyebrow: string;
@@ -17,6 +18,7 @@ const { eyebrow, lines, lead, class: cls, compact = false } = Astro.props;
   <div class="container ph__inner">
     <p class="eyebrow">{eyebrow}</p>
     <Heading as="h1" lines={lines} class="ph__title" load />
+    <PageLine class="ph__line" />
     {lead && <p class="lead ph__lead" data-reveal="load" style="--d:4">{lead}</p>}
     <slot />
   </div>
@@ -39,12 +41,16 @@ const { eyebrow, lines, lead, class: cls, compact = false } = Astro.props;
   }
   .ph__inner :global(.ph__title) {
     font-size: var(--fs-h1);
-    max-width: 16ch;
+    max-width: 15ch;
   }
+  /* Longer, descriptive titles (a service and a place) step down a size in the wide display face. */
   .ph--compact .ph__inner :global(.ph__title) {
-    font-size: var(--fs-h1);
-    max-width: 24ch;
-    line-height: 1;
+    font-size: var(--fs-title);
+    max-width: 18ch;
+    line-height: 0.95;
+  }
+  .ph__inner :global(.ph__line) {
+    max-width: min(100%, 64rem);
   }
   .ph__lead {
     max-width: 52ch;
