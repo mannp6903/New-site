@@ -183,7 +183,8 @@ const hostOf = (url: string) => new URL(url).host.replace(/^www\./, '');
     const tabs = [...reel.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
     const panels = [...reel.querySelectorAll<HTMLElement>('[data-reel-panel]')];
     const wide = matchMedia('(min-width: 64em)');
-    reel.classList.add('is-tabs');
+    // The tabbed layout (wide screens) keys off html.js, set in the head before the first paint, so the page is laid
+    // out once in its final form (no relayout from this script: gate M7).
 
     const play = (panel: HTMLElement) => {
       panel.removeAttribute('data-play');
@@ -521,15 +522,15 @@ const hostOf = (url: string) => new URL(url).host.replace(/^www\./, '');
     }
   }
 
-  /* Wide screens with JavaScript: list + one preview surface. */
+  /* Wide screens with JavaScript (html.js, set before the first paint): list + one preview surface. */
   @media (min-width: 64em) {
-    .reel.is-tabs .reel__body {
+    :global(html.js) .reel .reel__body {
       display: grid;
       grid-template-columns: minmax(0, 0.9fr) minmax(0, 2fr);
       gap: var(--s-7);
       align-items: start;
     }
-    .reel.is-tabs .reel__list {
+    :global(html.js) .reel .reel__list {
       position: sticky;
       top: calc(var(--header-h) + var(--s-5));
       display: grid;
@@ -576,13 +577,13 @@ const hostOf = (url: string) => new URL(url).host.replace(/^www\./, '');
       color: var(--text);
       background: linear-gradient(var(--ink), var(--ink)) bottom / 100% 2px no-repeat;
     }
-    .reel.is-tabs .reel__panel {
+    :global(html.js) .reel .reel__panel {
       display: none;
     }
-    .reel.is-tabs .reel__panel[data-on] {
+    :global(html.js) .reel .reel__panel[data-on] {
       display: grid;
     }
-    .reel.is-tabs .reel__card-head {
+    :global(html.js) .reel .reel__card-head {
       display: none;
     }
     .reel__info {

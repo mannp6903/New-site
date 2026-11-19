@@ -3,12 +3,13 @@
  * The one floating control (DESIGN.md → Controls): Back to top, with a lime ring that fills as you read. It appears after
  * one and a half screens of scrolling, sits inside the phone's safe area, and is the only thing that floats (no chat
  * bubble, no sticky CTA on top of it). With Motion off the jump is instant. Without JavaScript it is a plain "#top"
- * link at the end of the page instead (the footer has one), so this stays hidden.
+ * link at the end of the page instead (the footer has one), so CSS keeps this out (html:not(.js)); no attribute is
+ * changed at start-up (gate M7).
  */
 import Icon from './ui/Icon.astro';
 ---
 
-<div class="dock" data-dock hidden>
+<div class="dock" data-dock>
   <button class="dock__top" type="button" data-to-top aria-label="Back to top">
     <svg class="dock__ring" viewBox="0 0 48 48" aria-hidden="true">
       <circle cx="24" cy="24" r="22" pathLength="1" />
@@ -23,7 +24,6 @@ import Icon from './ui/Icon.astro';
   const btn = dock?.querySelector<HTMLButtonElement>('[data-to-top]');
   const ring = dock?.querySelector<SVGCircleElement>('[data-ring]');
   if (dock && btn) {
-    dock.hidden = false;
     let ticking = false;
     const update = () => {
       ticking = false;
@@ -49,11 +49,17 @@ import Icon from './ui/Icon.astro';
       const first = document.querySelector<HTMLElement>('[data-header] a') ?? document.getElementById('main');
       first?.focus({ preventScroll: true });
     });
-    update();
+    // First check at an idle moment (a page restored mid-scroll shows the button): reading the scroll position during
+    // load would force layout inside this script (gate M7). At the top of a fresh page it stays hidden anyway.
+    if ('requestIdleCallback' in window) requestIdleCallback(update);
+    else setTimeout(update, 200);
   }
 </script>
 
 <style>
+  :global(html:not(.js)) .dock {
+    display: none;
+  }
   .dock {
     position: fixed;
     right: max(var(--s-4), env(safe-area-inset-right));

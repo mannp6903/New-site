@@ -234,18 +234,13 @@ export function initStage(hero: HTMLElement) {
     });
   }
 
-  // Geometry: after the first frames (an idle moment: reading layout at start-up would force it inside this script,
-  // gate M7), after fonts, and whenever the hero changes size.
-  const idle = (fn: () => void) => ('requestIdleCallback' in window ? requestIdleCallback(fn, { timeout: 500 }) : setTimeout(fn, 60));
-  idle(redraw);
-  document.fonts?.ready.then(() => idle(redraw));
-  let resizeRaf = 0;
-  const ro = new ResizeObserver(() => {
-    cancelAnimationFrame(resizeRaf);
-    resizeRaf = requestAnimationFrame(redraw);
-  });
+  // Geometry is drawn from the ResizeObserver callback: it runs right after layout (its first call comes with the first
+  // frame), so reading offsets there forces nothing (gate M7). Redrawing only rewrites SVG paths, which never resize the
+  // observed boxes. Fonts can move the full stop without resizing the hero, so they get one redraw at an idle moment.
+  const ro = new ResizeObserver(redraw);
   ro.observe(hero);
   ro.observe(screen);
+  document.fonts?.ready.then(() => ('requestIdleCallback' in window ? requestIdleCallback(redraw) : setTimeout(redraw, 200)));
   wide.addEventListener('change', redraw);
   addEventListener('motionchange', () => (motionOn() ? play() : stage.removeAttribute('data-play')));
 

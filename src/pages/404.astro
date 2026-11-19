@@ -91,6 +91,9 @@ const links = [
     vector-effect: non-scaling-stroke;
     opacity: 0.55;
   }
+  :root[data-motion='on'] .nf__line {
+    will-change: transform; /* the draw repaints only its own layer */
+  }
   :root[data-motion='on'] .nf__line path {
     stroke-dasharray: 1;
     animation: nf-draw var(--dur-6) var(--ease-out) both;

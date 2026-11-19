@@ -1389,7 +1389,11 @@ fieldset > legend + * {
     animation-timeline: --reveal-clip;
     animation-range: entry 0% cover 40%;
   }
-  /* The line draws itself as it scrolls in (any SVG path with pathLength="1" and .draw-on-scroll). */
+  /* The line draws itself as it scrolls in (any SVG path with pathLength="1" and .draw-on-scroll). Its SVG (.draw-svg)
+     gets its own layer, so each step repaints the line alone, not the section around it. */
+  :root[data-motion='on'] .draw-svg {
+    will-change: transform;
+  }
   :root[data-motion='on'] .draw-on-scroll {
     stroke-dasharray: 1;
     animation-name: draw-line;

@@ -110,8 +110,11 @@ const flow = [
 </section>
 
 <script>
-  import { initPlayground } from '../../scripts/playground';
-  document.querySelectorAll<HTMLElement>('[data-playground]').forEach(initPlayground);
+  import { initPlayground, markPicks, whenNear } from '../../scripts/playground';
+  document.querySelectorAll<HTMLElement>('[data-playground]').forEach((el) => {
+    markPicks(el);
+    whenNear(el, () => initPlayground(el));
+  });
 </script>
 
 <style>

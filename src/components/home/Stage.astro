@@ -86,7 +86,7 @@ const needs = [
       </p>
     </div>
 
-    <div class="stage" data-stage data-scene="website" data-play data-reveal="load-media" style="--d:4">
+    <div class="stage has-line" data-stage data-scene="website" data-play data-reveal="load-media" style="--d:4">
       <div class="stage__head">
         <p class="stage__q mono" id="stage-q">What do you need?</p>
         <div class="stage__tabs" role="tablist" aria-labelledby="stage-q" data-stage-tabs>
@@ -833,6 +833,12 @@ const needs = [
     fill: none;
     pointer-events: none;
   }
+  /* The lines draw with stroke-dashoffset, which repaints whatever layer they sit in on every frame. Their own layer keeps
+     that repaint to the path alone (not the portrait and the scene under it): gate M7, MOTION.md → Performance. */
+  :global(:root[data-motion='on']) .stage__line,
+  :global(:root[data-motion='on']) .hero__connector {
+    will-change: transform;
+  }
   .ln {
     stroke: var(--signal);
     stroke-width: var(--line-w);
@@ -846,13 +852,18 @@ const needs = [
   }
 
   /* ── Scene choreography (MOTION.md → Stage). Plays once per selection; [data-play] restarts it. ── */
-  :global(:root[data-motion='on']) .stage[data-play] .sc > *,
+  /* Only the scene on show plays: the other two are hidden and stay still (no work in frames nobody sees). */
+  :global(:root[data-motion='on']) .stage[data-play][data-scene='website'] .sc-web > *,
+  :global(:root[data-motion='on']) .stage[data-play][data-scene='found'] .sc-found > *,
+  :global(:root[data-motion='on']) .stage[data-play][data-scene='admin'] .sc-admin > *,
   :global(:root[data-motion='on']) .stage[data-play] .ln {
     animation-duration: var(--dur-4);
     animation-timing-function: var(--ease-out);
     animation-fill-mode: both;
   }
-  :global(:root[data-motion='on']) .stage[data-play] .sc > * {
+  :global(:root[data-motion='on']) .stage[data-play][data-scene='website'] .sc-web > *,
+  :global(:root[data-motion='on']) .stage[data-play][data-scene='found'] .sc-found > *,
+  :global(:root[data-motion='on']) .stage[data-play][data-scene='admin'] .sc-admin > * {
     animation-name: sc-in;
     animation-delay: calc(var(--k, 0) * var(--stagger) * 6);
   }
@@ -876,16 +887,16 @@ const needs = [
   .sc > :nth-child(5) {
     --k: 8;
   }
-  :global(:root[data-motion='on']) .stage[data-play] .sc-web__select {
+  :global(:root[data-motion='on']) .stage[data-play][data-scene='website'] .sc-web__select {
     animation: select-in var(--dur-4) var(--ease-out) both;
     animation-delay: calc(var(--stagger) * 22);
   }
-  :global(:root[data-motion='on']) .stage[data-play] .sc-cursor {
+  :global(:root[data-motion='on']) .stage[data-play][data-scene='website'] .sc-cursor {
     animation-name: cursor-in;
     animation-duration: var(--dur-6);
     animation-delay: calc(var(--stagger) * 14);
   }
-  :global(:root[data-motion='on']) .stage[data-play] .sc-found__typed {
+  :global(:root[data-motion='on']) .stage[data-play][data-scene='found'] .sc-found__typed {
     animation: type-in calc(var(--dur-6) * 1.2) steps(22, end) both;
     animation-delay: calc(var(--stagger) * 6);
   }

@@ -85,6 +85,22 @@ Gates: `tests/unit/design-tokens.test.ts` (M1: no literal durations in CSS or sc
 - The flow demo clears its timers on every restart; films observe each surface once (`WeakSet`) and stop observing.
 - No canvas, WebGL or video is used, so there is no rendering context to lose and nothing renders off-screen.
 
+## Performance (load, gate M7)
+
+At 4× CPU slowdown no frame in which the site's own scripts run may exceed 50 ms between first paint and 3 s.
+
+- Nothing reads layout while the page loads: the stage geometry is drawn from its `ResizeObserver` callback (which runs
+  after layout), the Back to top check waits for an idle moment, and the playground starts only when it comes within a
+  screen of the viewport (or on the first pointer or focus inside it). "Your pick" marking is cheap and runs at once.
+- Nothing restyles the page from a script at start-up: the work reel's tabbed layout keys off `html.js` (set in the
+  head before the first paint), the stage ships with `has-line` in its markup, and the Back to top control is kept out
+  by CSS without JavaScript (no `hidden` attribute to clear). Measured with a trace: after first paint only the
+  browser's own parsing and painting remain.
+- The entrance animates transform and opacity only (compositor), and only in the scene on show; the hidden scenes stay
+  still.
+- Lines that draw with `stroke-dashoffset` (the stage line, the connector, the on-scroll lines, the 404 line) sit in
+  their own layer (`will-change: transform`), so each step repaints the line alone, not the portrait or section under it.
+
 ## Testing
 
 `tests/e2e/redesign.spec.ts` covers: the stage tabs by keyboard and pointer, the line being drawn, the playground demos,

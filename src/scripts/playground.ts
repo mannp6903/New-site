@@ -7,10 +7,48 @@
  *   Autoplay pauses when the demo leaves the screen or the tab is hidden.
  * - Flow: one button runs a sample enquiry through five steps (700 ms apart; at once with Motion off), announces each
  *   step politely, and becomes Replay. A second click mid-run restarts cleanly.
- * - "Your pick": the need chosen on the stage (needchange event / sessionStorage) marks its demo.
+ * - "Your pick" (markPicks): the need chosen on the stage (needchange event / sessionStorage) marks its demo.
  */
 import { motionOn } from './prefs';
 import { track } from './analytics';
+
+/**
+ * Starts the playground once it is within a screen of the viewport, or on the first pointer or focus inside it,
+ * whichever comes first. It sits far below the fold, so nothing of it runs while the page loads (gate M7). A need
+ * chosen before then is read from sessionStorage when it starts.
+ */
+export function whenNear(el: HTMLElement, fn: () => void) {
+  let done = false;
+  let io: IntersectionObserver | null = null;
+  const run = () => {
+    if (done) return;
+    done = true;
+    io?.disconnect();
+    el.removeEventListener('pointerdown', run, true);
+    el.removeEventListener('focusin', run, true);
+    fn();
+  };
+  // Capture phase: the demo's own listeners are in place before the same event reaches them.
+  el.addEventListener('pointerdown', run, true);
+  el.addEventListener('focusin', run, true);
+  if (!('IntersectionObserver' in window)) return run();
+  io = new IntersectionObserver((entries) => entries.some((e) => e.isIntersecting) && run(), { rootMargin: '100% 0px' });
+  io.observe(el);
+}
+
+/** "Your pick": the need chosen on the stage marks its demo. Cheap, so it runs at once (not deferred with the demos). */
+export function markPicks(root: HTMLElement) {
+  const mark = (need: string | null) => {
+    root.querySelectorAll<HTMLElement>('[data-demo]').forEach((d) => d.toggleAttribute('data-picked', d.dataset.demo === need));
+  };
+  try {
+    const need = sessionStorage.getItem('mp-need');
+    if (need) mark(need);
+  } catch {
+    /* storage blocked */
+  }
+  addEventListener('needchange', (e) => mark((e as CustomEvent).detail?.need ?? null));
+}
 
 export function initPlayground(root: HTMLElement) {
   const started = new Set<string>();
@@ -151,17 +189,6 @@ export function initPlayground(root: HTMLElement) {
     };
     btn?.addEventListener('click', run);
   }
-
-  /* ── Your pick ── */
-  const mark = (need: string | null) => {
-    root.querySelectorAll<HTMLElement>('[data-demo]').forEach((d) => d.toggleAttribute('data-picked', d.dataset.demo === need));
-  };
-  try {
-    mark(sessionStorage.getItem('mp-need'));
-  } catch {
-    /* storage blocked */
-  }
-  addEventListener('needchange', (e) => mark((e as CustomEvent).detail?.need ?? null));
 
   /* ── Brief starts from the playground ── */
   root.addEventListener('click', (e) => {
