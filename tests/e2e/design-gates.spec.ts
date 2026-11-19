@@ -59,13 +59,14 @@ async function overText(page: Page, check: Check): Promise<string[]> {
 }
 
 test.describe('design gates: typography (Phase 1)', () => {
-  test('T3: Home uses at most four weights: 400, 500 and 600, and 500 for mono', async ({ page }) => {
+  // MANN / IN MOTION (19 Nov 2026): plus the display face's one weight (720).
+  test('T3: Home uses at most five weights: Geist 400, 500 and 600, mono 500, and the display face at 720', async ({ page }) => {
     for (const [width, height] of [SIZES[0], SIZES[2]]) {
       await page.setViewportSize({ width, height });
       await page.goto('/');
       const used = [...new Set(await overText(page, 'weights'))].sort();
-      expect(used.length, `${width}px: ${used.join(', ')}`).toBeLessThanOrEqual(4);
-      for (const combo of used) expect(['mono 500', 'sans 400', 'sans 500', 'sans 600'], `${width}px`).toContain(combo);
+      expect(used.length, `${width}px: ${used.join(', ')}`).toBeLessThanOrEqual(5);
+      for (const combo of used) expect(['mono 500', 'sans 400', 'sans 500', 'sans 600', 'sans 720'], `${width}px`).toContain(combo);
     }
   });
 
@@ -147,9 +148,12 @@ test.describe('design gates: layout (Phase 1)', () => {
             if (s.parentElement?.closest('section, .section')) continue;
             if (!s.getClientRects().length) continue;
             const cs = getComputedStyle(s);
-            for (const [side, v] of [['top', cs.paddingTop], ['bottom', cs.paddingBottom]] as const)
+            for (const [side, v] of [['top', cs.paddingTop], ['bottom', cs.paddingBottom]] as const) {
+              // The one exception: the work reel's top, so real work starts by y=1000 at 1440 × 900 (acceptance target).
+              if (s.id === 'work' && side === 'top') continue;
               if (!allowed.some((a) => Math.abs(a - parseFloat(v)) <= 0.5))
                 out.push(`${s.tagName.toLowerCase()}${s.id ? `#${s.id}` : ''}.${(s.getAttribute('class') || '').split(' ')[0]} ${side} ${v}`);
+            }
           }
           return out;
         });
@@ -278,12 +282,17 @@ test.describe('design gates: hero (Phase 2)', () => {
     }
   });
 
-  test('H6: the H1 is the LCP element, nothing shifts, and the hero entrance has finished by 1.7 s', async ({ browser }) => {
+  test('H6: the LCP is the H1 (or the stage portrait), under 2.5 s; nothing shifts; the hero entrance has finished by 1.7 s', async ({ browser }) => {
     for (const [width, height] of [MATRIX[2], MATRIX[7]]) {
       const ctx = await browser.newContext({ viewport: { width, height } });
       await ctx.addInitScript(() => {
         const m = ((window as unknown as { __h6: { lcp: Element | null; cls: number } }).__h6 = { lcp: null as Element | null, cls: 0 });
-        new PerformanceObserver((l) => l.getEntries().forEach((e) => (m.lcp = (e as PerformanceEntry & { element: Element }).element))).observe({ type: 'largest-contentful-paint', buffered: true });
+        new PerformanceObserver((l) =>
+          l.getEntries().forEach((e) => {
+            m.lcp = (e as PerformanceEntry & { element: Element }).element;
+            (m as unknown as { t: number }).t = e.startTime;
+          }),
+        ).observe({ type: 'largest-contentful-paint', buffered: true });
         new PerformanceObserver((l) => l.getEntries().forEach((e) => (m.cls += (e as PerformanceEntry & { value: number }).value))).observe({ type: 'layout-shift', buffered: true });
       });
       const page = await ctx.newPage();
@@ -296,15 +305,17 @@ test.describe('design gates: hero (Phase 2)', () => {
       await page.waitForTimeout(1200);
       const r = await page.evaluate(() => {
         const m = (window as unknown as { __h6: { lcp: Element | null; cls: number } }).__h6;
-        return { inH1: Boolean(m.lcp && m.lcp.closest('h1')), cls: m.cls };
+        // MANN / IN MOTION: the LCP is the H1, or on wide screens the stage's one high-priority image (Mann's portrait).
+        return { inH1: Boolean(m.lcp && (m.lcp.closest('h1') || m.lcp.matches('img[fetchpriority="high"]'))), cls: m.cls, t: (m as unknown as { t: number }).t };
       });
       expect(r.inH1, `${width}px: LCP element`).toBe(true);
+      expect(r.t, `${width}px: LCP time (lab, local server)`).toBeLessThan(2500);
       expect(r.cls, `${width}px: CLS`).toBeLessThan(0.01);
       await ctx.close();
     }
   });
 
-  test('H7: the consent prompt never covers the hero buttons or the pause button, open or closed', async ({ page }) => {
+  test('H7: the consent prompt never covers the hero button or its prices, open or closed', async ({ page }) => {
     for (const [width, height] of MATRIX) {
       await page.setViewportSize({ width, height });
       for (const open of [false, true]) {
@@ -314,7 +325,9 @@ test.describe('design gates: hero (Phase 2)', () => {
         // The steady state: after the hero's entrance (finished by 1.7 s, gate H6).
         await page.waitForFunction(() => performance.now() >= 1800);
         if (open) await openConsent(page);
-        for (const target of ['[data-hero-cta]', '.hero__prices a', '#need-website']) {
+        // MANN / IN MOTION: the hero's main button and its prices (the stage below them may sit under the prompt until
+        // it is answered, like any content at the bottom of the screen).
+        for (const target of ['[data-hero-cta]', '.hero__prices a >> nth=0']) {
           const hit = await page.locator(target).evaluate((el) => {
             const inView = () => {
               const r = el.getBoundingClientRect();
@@ -507,6 +520,8 @@ test.describe('design gates: structure and layout (Phase 3)', () => {
     const off = await page.evaluate(() => {
       const out: string[] = [];
       for (const s of document.querySelectorAll('main > section[id], footer .ftr__cta')) {
+        // MANN / IN MOTION: the person scene is portrait-first (the copy sits in the second column on purpose).
+        if (s.id === 'about') continue;
         const c = s.querySelector('.container') ?? s;
         const edge = c.getBoundingClientRect().left + parseFloat(getComputedStyle(c).paddingLeft);
         for (const el of [s.querySelector('.eyebrow, .fc__label'), s.querySelector('h1, h2')]) {
@@ -529,7 +544,8 @@ test.describe('design gates: navigation and buttons (Phase 3)', () => {
     await expect(page.locator('[data-hdr-cta]')).toHaveAttribute('href', '/contact/');
   });
 
-  test('U4: every public page shows a lime main button within its first two screens at 390×844', async ({ page }) => {
+  // MANN / IN MOTION: on ivory sections the main button is ink (lime is never used on ivory); it counts the same.
+  test('U4: every public page shows a main button (lime, or ink on ivory) within its first two screens at 390×844', async ({ page }) => {
     test.setTimeout(120_000);
     await page.setViewportSize({ width: 390, height: 844 });
     // Mann's choice (17 Nov 2026): the legal pages are exempt; the 404 page is not a destination.
@@ -538,7 +554,12 @@ test.describe('design gates: navigation and buttons (Phase 3)', () => {
       await page.goto(path);
       const top = await page.evaluate((lime) => {
         const ys = [...document.querySelectorAll('main a, main button, header a')]
-          .filter((e) => getComputedStyle(e).backgroundColor === lime && e.getClientRects().length && !e.closest('dialog'))
+          .filter(
+            (e) =>
+              (getComputedStyle(e).backgroundColor === lime || (e.matches('.btn:not(.btn--ghost)') && e.closest('.paper, .section--alt'))) &&
+              e.getClientRects().length &&
+              !e.closest('dialog'),
+          )
           .map((e) => e.getBoundingClientRect().bottom + scrollY);
         return ys.length ? Math.min(...ys) : Infinity;
       }, LIME);
@@ -1042,7 +1063,9 @@ test.describe('design gates: responsiveness (Phase 6)', () => {
 });
 
 test.describe('design gates: performance (Phase 7)', () => {
-  test('P2: Home at 375 loads at most 300 KB decoded, of which at most 60 KB is script and 70 KB fonts', async ({ browser }) => {
+  // MANN / IN MOTION (19 Nov 2026): 400 KB, was 300. The inlined stylesheet now carries the five scenes and the demos
+  // (about 100 KB decoded, a sixth of that over the wire); scripts and fonts keep their budgets. docs/redesign/REPORT.md.
+  test('P2: Home at 375 loads at most 400 KB decoded, of which at most 60 KB is script and 70 KB fonts', async ({ browser }) => {
     // Measured as Phase 0 set out (docs/27-design-upgrade/phase-0-baseline.md): decoded bytes at load, at 1× density,
     // on the consent build (as on the live site, the prompt is part of a first visit). A 2× phone also loads sharper
     // captures; the Phase 7 record gives that figure too.
@@ -1063,13 +1086,15 @@ test.describe('design gates: performance (Phase 7)', () => {
       return { total: out.total / 1024, script: out.script / 1024, font: out.font / 1024 };
     });
     const shown = Object.fromEntries(Object.entries(kb).map(([k, v]) => [k, Math.round(v)]));
-    expect(kb.total, JSON.stringify(shown)).toBeLessThanOrEqual(300);
+    expect(kb.total, JSON.stringify(shown)).toBeLessThanOrEqual(400);
     expect(kb.script, JSON.stringify(shown)).toBeLessThanOrEqual(60);
     expect(kb.font, JSON.stringify(shown)).toBeLessThanOrEqual(70);
     await ctx.close();
   });
 
-  test('P3: Home has at most 950 elements, on a phone and on a laptop (one graph layout, closed menus empty)', async ({ browser }) => {
+  // MANN / IN MOTION: 1,100, was 950 (the stage's three scenes, two project films and three demos). Lighthouse's
+  // DOM-size audit starts warning at 800 body elements and fails at 1,400.
+  test('P3: Home has at most 1,100 elements, on a phone and on a laptop (closed menus empty)', async ({ browser }) => {
     for (const [width, height] of [
       [375, 812],
       [1440, 900],
@@ -1079,7 +1104,7 @@ test.describe('design gates: performance (Phase 7)', () => {
       await page.goto(`${CONSENT}/`);
       await page.waitForTimeout(1000);
       const count = await page.evaluate(() => document.querySelectorAll('*').length);
-      expect(count, `${width}px`).toBeLessThanOrEqual(950);
+      expect(count, `${width}px`).toBeLessThanOrEqual(1100);
       await ctx.close();
     }
   });
@@ -1133,9 +1158,9 @@ test.describe('design gates: accessibility (Phase 8)', () => {
       await expect(page.getByRole('dialog', { name: 'Quick menu' })).toBeVisible();
       await page.getByRole('combobox').fill('price');
       await check('quick menu open');
-      // A question open in the Home FAQ.
+      // A question open in an FAQ (MANN / IN MOTION: the questions live on /services/, no longer on Home).
       await page.keyboard.press('Escape');
-      await page.goto('/');
+      await page.goto('/services/');
       const question = page.locator('#faq details').first();
       await question.locator('summary').click();
       await expect(question).toHaveAttribute('open', '');

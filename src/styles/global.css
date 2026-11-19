@@ -183,6 +183,7 @@ p {
 }
 .mono {
   font-family: var(--font-mono);
+    font-weight: var(--w-ui);
 }
 /* Mono labels: the spec-sheet voice. A short lime tick (the line, in miniature) marks each eyebrow. */
 .eyebrow {
@@ -212,6 +213,7 @@ p {
 }
 .num {
   font-family: var(--font-mono);
+    font-weight: var(--w-ui);
   font-variant-numeric: tabular-nums;
 }
 /* Spec labels: lettered metadata (A Role · B Status …). */
@@ -219,6 +221,7 @@ p {
   display: grid;
   gap: var(--s-1);
   font-family: var(--font-mono);
+    font-weight: var(--w-ui);
   font-size: var(--fs-label);
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -336,6 +339,8 @@ p {
   --signal-glow: 0 0 0 1px rgb(16 17 15 / 0.3);
   --focus: var(--focus-on-light);
   --error: var(--error-on-light);
+  --warn: var(--warn-on-light);
+  --warn-wash: rgb(122 83 0 / 0.08);
   --eyebrow-mark: var(--ink);
   background: var(--bg);
   color: var(--text);
@@ -1289,6 +1294,7 @@ fieldset > legend + * {
 }
 .prose ol li::marker {
   font-family: var(--font-mono);
+    font-weight: var(--w-ui);
   font-size: var(--fs-sm);
 }
 

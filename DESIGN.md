@@ -102,6 +102,7 @@ borders ≥ 3:1 on their surfaces · lime on ivory 1.1:1 (never used).
 | `--focus-on-light` | `var(--ink)` |  |
 | `--accent-on-light` | `#4e6200` |  |
 | `--error-on-light` | `#b42318` | 5.8:1 on ivory |
+| `--warn-on-light` | `#7a5300` | preview flags on ivory: 6.1:1 |
 | `--media-bg-1` | `color-mix(in oklab, var(--paper) 78%, var(--surface))` |  |
 | `--media-bg-2` | `color-mix(in oklab, var(--paper) 64%, var(--surface))` |  |
 | `--graph-mesh` | `#3a3c33` |  |

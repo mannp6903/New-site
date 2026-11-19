@@ -292,7 +292,7 @@ const footerMore = moreServicePages.filter((sp) => sp.slug === 'website-care' ||
     place-items: center;
     width: var(--tap);
     height: var(--tap);
-    border: 0;
+    border: 1px solid transparent; /* becomes a visible edge in forced colours */
     background: transparent;
     color: var(--text-3);
     transition: color var(--dur-1);

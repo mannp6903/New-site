@@ -67,7 +67,7 @@ import Icon from './ui/Icon.astro';
     place-items: center;
     width: 3.25rem;
     height: 3.25rem;
-    border: 0;
+    border: 1px solid transparent; /* becomes a visible edge in forced colours */
     border-radius: 50%;
     background: var(--ink);
     color: var(--text);
@@ -116,7 +116,11 @@ import Icon from './ui/Icon.astro';
     stroke-dasharray: 1;
     stroke-dashoffset: 1;
   }
-  /* Not shown while the menu dialog or quick menu is open (they are modal and cover it anyway). */
+  /* While the visit-counting prompt is open at the bottom of the screen, the dock steps aside (never two floating
+     things on top of each other); it comes back once the prompt is answered. */
+  :global(:root:has([data-consent]:not([hidden]))) .dock {
+    display: none;
+  }
   @media print {
     .dock {
       display: none;

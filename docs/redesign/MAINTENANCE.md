@@ -61,8 +61,8 @@ npm run build:cloudflare            # production build + pre-launch check
 
 ## Rollback
 
-- The redesign is three commits on branch `ccr-50f74c22-883lji` of `mannp6903/New-site`, on top of an untouched
-  import of the live site (commit `bb8dc78`, from Mann-Patel-Personal-Profile-Website @ `9c7c1f4`).
+- The redesign is the commits after `bb8dc78` on branch `ccr-50f74c22-883lji` of `mannp6903/New-site`, on top of an
+  untouched import of the live site (commit `bb8dc78`, from Mann-Patel-Personal-Profile-Website @ `9c7c1f4`).
 - The live repository (Mann-Patel-Personal-Profile-Website) was not changed. Production keeps serving the previous site
   until a deploy is made from this branch. To roll back after a deploy, redeploy `9c7c1f4` of the live repository
   (Cloudflare: Deployments → the previous deployment → Rollback, or `npx wrangler rollback`).

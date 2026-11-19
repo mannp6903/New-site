@@ -102,8 +102,9 @@ const hostOf = (url: string) => new URL(url).host.replace(/^www\./, '');
                         alt=""
                         formats={['avif']}
                         fallbackFormat="webp"
-                        widths={[640, 960, 1280, 1440]}
-                        sizes="(min-width: 64em) 52vw, 92vw"
+                        widths={[480, 640, 960, 1280, 1440]}
+                        sizes="(min-width: 64em) 48vw, 72vw"
+                        data-src-w={shots.desktop.src.width}
                         quality={58}
                         loading="lazy"
                         decoding="async"
@@ -111,11 +112,11 @@ const hostOf = (url: string) => new URL(url).host.replace(/^www\./, '');
                     </span>
                   </span>
                   <span class="reel__phone">
-                    <Picture src={shots.mobile.src} alt="" formats={['avif']} fallbackFormat="webp" widths={[180, 360]} sizes="(min-width: 64em) 11vw, 24vw" quality={58} loading="lazy" decoding="async" />
+                    <Picture src={shots.mobile.src} alt="" formats={['avif']} fallbackFormat="webp" widths={[120, 180, 240, 360]} sizes="(min-width: 64em) 12vw, 15vw" quality={58} loading="lazy" decoding="async" data-src-w={shots.mobile.src.width} />
                   </span>
                   {shots.details.slice(0, 2).map((d, k) => (
                     <span class={`reel__detail reel__detail--${k + 1}`}>
-                      <Picture src={d.src} alt="" formats={['avif']} fallbackFormat="webp" widths={[240, 480]} sizes="(min-width: 64em) 16vw, 36vw" quality={62} loading="lazy" decoding="async" />
+                      <Picture src={d.src} alt="" formats={['avif']} fallbackFormat="webp" widths={[...new Set([160, 240, 320, 480, 640, 920].map((w) => Math.min(w, d.src.width)))]} sizes={k === 0 ? '(min-width: 64em) 21vw, 30vw' : '(min-width: 64em) 16vw, 25vw'} quality={62} loading="lazy" decoding="async" data-src-w={d.src.width} />
                       <b class="mono">{d.title}</b>
                     </span>
                   ))}
@@ -296,6 +297,7 @@ const hostOf = (url: string) => new URL(url).host.replace(/^www\./, '');
     align-items: center;
     gap: var(--s-2) var(--s-3);
     font-family: var(--font-mono);
+    font-weight: var(--w-ui);
     font-size: var(--fs-label);
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -432,6 +434,7 @@ const hostOf = (url: string) => new URL(url).host.replace(/^www\./, '');
   }
   .reel__spec dt {
     font-family: var(--font-mono);
+    font-weight: var(--w-ui);
     font-size: var(--fs-label);
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -560,6 +563,7 @@ const hostOf = (url: string) => new URL(url).host.replace(/^www\./, '');
     .reel__tab-kind {
       grid-area: kind;
       font-family: var(--font-mono);
+    font-weight: var(--w-ui);
       font-size: var(--fs-label);
       letter-spacing: 0.04em;
       text-transform: uppercase;

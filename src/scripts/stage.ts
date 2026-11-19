@@ -234,9 +234,11 @@ export function initStage(hero: HTMLElement) {
     });
   }
 
-  // Geometry: now, after fonts, and whenever the hero changes size.
-  redraw();
-  document.fonts?.ready.then(redraw);
+  // Geometry: after the first frames (an idle moment: reading layout at start-up would force it inside this script,
+  // gate M7), after fonts, and whenever the hero changes size.
+  const idle = (fn: () => void) => ('requestIdleCallback' in window ? requestIdleCallback(fn, { timeout: 500 }) : setTimeout(fn, 60));
+  idle(redraw);
+  document.fonts?.ready.then(() => idle(redraw));
   let resizeRaf = 0;
   const ro = new ResizeObserver(() => {
     cancelAnimationFrame(resizeRaf);
@@ -247,8 +249,8 @@ export function initStage(hero: HTMLElement) {
   wide.addEventListener('change', redraw);
   addEventListener('motionchange', () => (motionOn() ? play() : stage.removeAttribute('data-play')));
 
-  // The entrance plays once on load (the static first frame is already complete without it).
-  play();
+  // The entrance plays once on load from the markup's own data-play (no script, no reflow); the static first frame is
+  // already complete without it.
 
   // Stop observing when the page is hidden for good (bfcache keeps it; a real unload releases it).
   addEventListener('pagehide', (e) => {

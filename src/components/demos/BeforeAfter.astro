@@ -13,10 +13,10 @@ import after from '../../assets/work/nest-and-rest/live-2026-11-08-desktop.png';
 <div class="demo">
 <div class="ba" data-ba style="--pos: 50%">
   <div class="ba__img ba__after">
-    <Picture src={after} alt="After, 8 November 2026: the Nest & Rest home page with a photo of the Toronto skyline at dawn, “We clean. You rest.” and a price box." formats={['avif']} fallbackFormat="webp" widths={[640, 960, 1280, 1440]} sizes="(min-width: 64em) 54vw, 92vw" quality={58} loading="lazy" decoding="async" />
+    <Picture src={after} alt="After, 8 November 2026: the Nest & Rest home page with a photo of the Toronto skyline at dawn, “We clean. You rest.” and a price box." formats={['avif']} fallbackFormat="webp" widths={[480, 640, 960, 1280, 1440]} sizes="(min-width: 64em) 54vw, 92vw" quality={58} loading="lazy" decoding="async" data-src-w={1440} />
   </div>
   <div class="ba__img ba__before" data-ba-before>
-    <Picture src={before} alt="Before, 31 October 2026: the earlier Nest & Rest home page, light, with an illustrated skyline and a price estimator." formats={['avif']} fallbackFormat="webp" widths={[640, 960, 1280, 1440]} sizes="(min-width: 64em) 54vw, 92vw" quality={58} loading="lazy" decoding="async" />
+    <Picture src={before} alt="Before, 31 October 2026: the earlier Nest & Rest home page, light, with an illustrated skyline and a price estimator." formats={['avif']} fallbackFormat="webp" widths={[480, 640, 960, 1280, 1440]} sizes="(min-width: 64em) 54vw, 92vw" quality={58} loading="lazy" decoding="async" data-src-w={1440} />
   </div>
   <span class="ba__handle" aria-hidden="true"><i></i></span>
   <span class="ba__tag ba__tag--l mono" aria-hidden="true">Before · 31 Oct</span>
@@ -130,6 +130,7 @@ import after from '../../assets/work/nest-and-rest/live-2026-11-08-desktop.png';
   }
   .ba__range input {
     width: 100%;
+    height: var(--tap);
     accent-color: var(--signal);
     cursor: ew-resize;
   }

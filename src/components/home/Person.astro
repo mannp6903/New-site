@@ -23,8 +23,9 @@ import cutout from '../../assets/mann-patel-cutout.png';
             alt={profile.portrait?.alt ?? 'Mann Patel'}
             formats={['avif']}
             fallbackFormat="webp"
-            widths={[420, 640, 860, 1060]}
-            sizes="(min-width: 64em) 34vw, 86vw"
+            widths={[360, 420, 640, 860, 1060]}
+            sizes="(min-width: 64em) 36vw, 86vw"
+            data-src-w={portrait.width}
             quality={64}
             loading="lazy"
             decoding="async"
@@ -36,9 +37,9 @@ import cutout from '../../assets/mann-patel-cutout.png';
         <figcaption class="person__cap mono">Mann Patel · {profile.location}, Toronto</figcaption>
       </figure>
       <ul class="person__sheet" role="list" aria-hidden="true">
-        <li><Picture src={hero} alt="" formats={['avif']} fallbackFormat="webp" widths={[160, 320]} sizes="10rem" quality={60} loading="lazy" decoding="async" /></li>
-        <li class="person__sheet-lime"><Picture src={cutout} alt="" formats={['avif']} fallbackFormat="webp" widths={[160, 320]} sizes="10rem" quality={64} loading="lazy" decoding="async" /></li>
-        <li><Picture src={portrait} alt="" formats={['avif']} fallbackFormat="webp" widths={[160, 320]} sizes="10rem" quality={60} loading="lazy" decoding="async" /></li>
+        <li><Picture src={hero} alt="" formats={['avif']} fallbackFormat="webp" widths={[120, 240]} sizes="7rem" quality={60} loading="lazy" decoding="async" data-src-w={hero.width} /></li>
+        <li class="person__sheet-lime"><Picture src={cutout} alt="" formats={['avif']} fallbackFormat="webp" widths={[120, 240]} sizes="7rem" quality={64} loading="lazy" decoding="async" data-src-w={cutout.width} /></li>
+        <li><Picture src={portrait} alt="" formats={['avif']} fallbackFormat="webp" widths={[120, 240]} sizes="7rem" quality={60} loading="lazy" decoding="async" data-src-w={portrait.width} /></li>
       </ul>
     </div>
 
@@ -181,6 +182,10 @@ import cutout from '../../assets/mann-patel-cutout.png';
     max-width: 38ch;
     color: var(--text-2);
   }
+  /* Heading → intro is --head-gap-2, as in every section head. */
+  .person__copy > h2 + .person__lead {
+    margin-top: calc(var(--head-gap-2) - var(--s-5));
+  }
   .person__facts {
     display: grid;
     width: 100%;
@@ -197,6 +202,7 @@ import cutout from '../../assets/mann-patel-cutout.png';
   }
   .person__facts dt {
     font-family: var(--font-mono);
+    font-weight: var(--w-ui);
     font-size: var(--fs-label);
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -213,9 +219,14 @@ import cutout from '../../assets/mann-patel-cutout.png';
     }
   }
   @media (min-width: 64em) {
+    /* The copy sits level with the bottom of the portrait (no tall empty column beside the heading). */
     .person__grid {
-      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr);
+      grid-template-columns: minmax(0, 0.75fr) minmax(0, 1fr);
       gap: var(--s-10);
+      align-items: end;
+    }
+    .person__crop {
+      aspect-ratio: 1 / 1.08;
     }
   }
 </style>

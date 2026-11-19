@@ -126,7 +126,7 @@ export function initPlayground(root: HTMLElement) {
     let timers: number[] = [];
     // The connector under each dot reaches the next dot: measure the row height once laid out.
     const measure = () => items.forEach((it) => it.style.setProperty('--row', `${it.offsetHeight}px`));
-    measure();
+    // Measured by the observer (after layout), never at start-up (gate M7).
     new ResizeObserver(measure).observe(fl);
     const reset = () => {
       timers.forEach(clearTimeout);

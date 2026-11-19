@@ -261,3 +261,38 @@ test.describe('pages', () => {
     for (const href of ['/', '/work/', '/services/', '/about/', '/contact/']) await expect(nav.locator(`a[href="${href}"]`)).toHaveCount(1);
   });
 });
+
+test.describe('analytics event plan (logged with ?ga_debug=1; sent to GA4 only after consent)', () => {
+  test('service_demo_start, project_open and brief_start fire once each at the right moment, with no personal data', async ({ page }) => {
+    const events: string[] = [];
+    page.on('console', (m) => {
+      const t = m.text();
+      if (t.startsWith('[analytics]')) events.push(t);
+    });
+    await page.goto('/?ga_debug=1');
+    await page.getByRole('tab', { name: 'Help me get found' }).click();
+    expect(events.filter((e) => e.includes('service_demo_start') && e.includes('found'))).toHaveLength(1);
+    // Playground: the first interaction with a demo counts once, however many times it is used.
+    const fl = page.locator('[data-flow]');
+    await fl.scrollIntoViewIfNeeded();
+    await fl.getByRole('button', { name: 'Send a sample enquiry' }).click();
+    await fl.getByRole('button', { name: 'Send a sample enquiry' }).click();
+    expect(events.filter((e) => e.includes('service_demo_start') && e.includes('admin') && e.includes('playground'))).toHaveLength(1);
+    // The brief: what was chosen, never what was typed.
+    const brief = page.locator('[data-mini-brief]');
+    await brief.getByText('A better website').click();
+    await brief.getByLabel(/Your website/).fill('private-example.ca');
+    await Promise.all([page.waitForURL(/\/contact\//), brief.getByRole('button', { name: 'Continue to the brief' }).click()]);
+    const start = events.filter((e) => e.includes('brief_start'));
+    expect(start).toHaveLength(1);
+    expect(start[0]).not.toContain('private-example');
+    // Opening a project from the home reel.
+    await page.goto('/?ga_debug=1');
+    events.length = 0;
+    await page.setViewportSize({ width: 1440, height: 900 });
+    const cta = page.locator('[data-project-open="nest-and-rest-cleaning"]');
+    await cta.scrollIntoViewIfNeeded();
+    await Promise.all([page.waitForURL(/\/work\/nest-and-rest-cleaning\//), cta.click()]);
+    expect(events.filter((e) => e.includes('project_open'))).toHaveLength(1);
+  });
+});

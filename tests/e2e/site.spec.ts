@@ -534,8 +534,8 @@ test.describe('home interactions', () => {
       await expect(photo).toBeVisible();
       await expect(photo).toHaveAttribute('alt', /Mann Patel/);
       await expect(photo).toHaveAttribute('loading', 'eager');
-      // The stage's largest image (the real capture) is the one high-priority image on the page.
-      await expect(page.locator('.hero .sc-web__shot')).toHaveAttribute('fetchpriority', 'high');
+      // The portrait is the LCP image on wide screens, so it is the page's one high-priority image.
+      await expect(photo).toHaveAttribute('fetchpriority', 'high');
       await page.waitForFunction(() => (document.querySelector('.stage__portrait') as HTMLImageElement).naturalWidth > 0);
       expect((await photo.boundingBox())!.width).toBeGreaterThanOrEqual(min);
     }
@@ -1650,7 +1650,7 @@ test.describe('motion (restrained in round 7)', () => {
     await page.mouse.move(900, 400);
     await page.waitForTimeout(600);
     await expect(page.locator('.stage__portrait')).toBeVisible();
-    await expect(page.locator('[data-stage]')).not.toHaveAttribute('data-play', /.*/);
+    // The markup carries data-play (the entrance needs no script), but with Motion off nothing runs.
     await expect(page.locator('[data-stage-replay]').first()).toBeHidden();
     expect(await page.evaluate(() => document.getAnimations().filter((a) => a.playState === 'running').length)).toBe(0);
     await ctx.close();
@@ -1899,12 +1899,9 @@ test.describe('audit of 11 Nov 2026', () => {
 
   test('the headline keeps its service and place words', async ({ page }) => {
     await page.goto('/');
-    const lines = page.locator('#hero-title .hero__line');
-    await expect(lines.nth(0)).toHaveText('Websites and local SEO');
-    await expect(lines.nth(1)).toHaveText('for Toronto small businesses.');
-    // 14 Nov 2026 (founder profile): the outcome line sits under the H1 instead of inside it.
-    await expect(page.locator('#hero-title .hero__place')).toHaveCount(0);
-    await expect(page.locator('.hero .hero__place')).toHaveText('Get found on Google and in AI answers, then turn searches into bookings.');
+    // MANN / IN MOTION (19 Nov 2026): the line is the large part; the service and the place stay inside the same H1.
+    await expect(page.locator('#hero-title .hero__big')).toHaveText('Make your next move.');
+    await expect(page.locator('#hero-title .hero__desc')).toHaveText('Websites, local SEO and AI automation for Toronto businesses.');
   });
 
   test('phones: the stage portrait is sized for the screen, and the needs are reachable on touch', async ({ browser }) => {
@@ -1958,11 +1955,12 @@ test.describe('desktop layout (14 Nov 2026)', () => {
   test('the home price list lines up: names, scopes and prices in the same columns on every row', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
-    const cols = await page.$$eval('#prices .pt__row', (rows) =>
+    // MANN / IN MOTION: the price rail in "How it works · what it costs" (name, terms and price per row).
+    const cols = await page.$$eval('#start .pb__rail li', (rows) =>
       rows.map((r) => ({
-        name: Math.round(r.querySelector('.pt__name')!.getBoundingClientRect().left),
-        scope: Math.round(r.querySelector('.pt__boundary')!.getBoundingClientRect().left),
-        price: Math.round(r.querySelector('.pt__price')!.getBoundingClientRect().right),
+        name: Math.round(r.querySelector('.pb__pname')!.getBoundingClientRect().left),
+        scope: Math.round(r.querySelector('.pb__terms')!.getBoundingClientRect().left),
+        price: Math.round(r.querySelector('.pb__price')!.getBoundingClientRect().right),
       })),
     );
     expect(cols).toHaveLength(5);
@@ -2350,7 +2348,7 @@ test.describe('Website Playbook, accessibility and brand (16 Nov 2026)', () => {
     };
     // MANN / IN MOTION (19 Nov 2026): 2px rings, 3px off; lime on dark, ink on ivory.
     expect(await ring('footer .ftr__col--pages a')).toEqual(['solid', '2px', 'rgb(201, 246, 74)', '3px']);
-    expect(await ring('#work .reel__name a')).toEqual(['solid', '2px', 'rgb(16, 17, 15)', '3px']);
+    expect(await ring('#work .reel__actions .link-arrow')).toEqual(['solid', '2px', 'rgb(16, 17, 15)', '3px']);
     const tokens = await page.evaluate(() => {
       const s = getComputedStyle(document.documentElement);
       return [s.getPropertyValue('--accent-on-light').trim(), s.getPropertyValue('--ink').trim()];

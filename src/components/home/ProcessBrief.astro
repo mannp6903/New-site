@@ -7,8 +7,10 @@
  * sits beside it.
  */
 import Icon from '../ui/Icon.astro';
-import ContactActions from '../ContactActions.astro';
 import { packages, priceLabel, priceTerms } from '../../data/packages';
+import { emailHref } from '../../lib/contact';
+
+const mail = emailHref();
 
 const steps = [
   { t: 'Send a short brief', d: 'Two minutes. I reply with questions, or say honestly if I’m not the right fit.' },
@@ -104,7 +106,7 @@ const paid = packages.filter((p) => p.price.amount);
           </button>
           <p class="small subtle">Two more questions on the next page. Nothing is sent until you press Send there.</p>
         </div>
-        <ContactActions label="Or skip the form" class="pb__reach" />
+        {mail && <p class="small subtle text-links">Or skip the form: <a href={mail} data-contact="email">email me</a>, or call or message me from the footer below.</p>}
       </form>
     </div>
   </div>
@@ -251,7 +253,7 @@ const paid = packages.filter((p) => p.price.amount);
   .pb__price {
     grid-area: price;
     font-size: var(--fs-lead);
-    color: var(--signal);
+    color: var(--text);
   }
   .pb__terms {
     grid-area: terms;

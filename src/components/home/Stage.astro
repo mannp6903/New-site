@@ -11,7 +11,7 @@
  * First frame: the website scene, complete and static, without waiting for any script. Each scene plays once (under 4 s)
  * and can be replayed; nothing loops. Scene visuals are illustrations (aria-hidden) described by each panel's caption.
  */
-import { Image, Picture } from 'astro:assets';
+import { Picture } from 'astro:assets';
 import Button from '../ui/Button.astro';
 import Icon from '../ui/Icon.astro';
 import { packageById, priceLabel } from '../../data/packages';
@@ -63,7 +63,7 @@ const needs = [
   <div class="container hero__grid">
     <div class="hero__copy">
       <p class="hero__kicker mono" data-reveal="load">
-        <Image src={face} alt="" width={64} height={64} widths={[64, 128]} sizes="2rem" class="hero__avatar" loading="eager" />
+        <Picture src={face} alt="" width={64} height={64} widths={[64, 128]} sizes="2rem" formats={['avif']} fallbackFormat="webp" class="hero__avatar" loading="eager" data-src-w={face.width} />
         <span>Mann Patel</span><span aria-hidden="true">·</span><span>Toronto</span><span class="hero__kicker-more" aria-hidden="true">· Web designer and automation builder</span>
       </p>
       <h1 class="hero__title" id="hero-title" data-split="load">
@@ -86,7 +86,7 @@ const needs = [
       </p>
     </div>
 
-    <div class="stage" data-stage data-scene="website" data-reveal="load-media" style="--d:4">
+    <div class="stage" data-stage data-scene="website" data-play data-reveal="load-media" style="--d:4">
       <div class="stage__head">
         <p class="stage__q mono" id="stage-q">What do you need?</p>
         <div class="stage__tabs" role="tablist" aria-labelledby="stage-q" data-stage-tabs>
@@ -131,9 +131,9 @@ const needs = [
               fallbackFormat="webp"
               widths={[480, 720, 960]}
               sizes="(min-width: 64em) 30vw, 66vw"
+              data-src-w={nrDesktop.width}
               quality={60}
               loading="eager"
-              fetchpriority="high"
               class="sc-web__shot"
             />
             <span class="sc-web__select"><i></i><i></i><i></i><i></i><b class="mono">Price on the first screen</b></span>
@@ -194,9 +194,11 @@ const needs = [
             formats={['avif']}
             fallbackFormat="webp"
             widths={[240, 360, 480, 640]}
-            sizes="(min-width: 64em) 20vw, 44vw"
+            sizes="(min-width: 64em) 16vw, 46vw"
+            data-src-w={cutout.width}
             quality={70}
             loading="eager"
+            fetchpriority="high"
             class="stage__portrait"
           />
           <figcaption class="stage__name mono"><b>Mann Patel</b> designs, builds and runs it</figcaption>
@@ -240,7 +242,7 @@ const needs = [
 <style>
   .hero {
     position: relative;
-    padding-block: clamp(var(--s-5), 3vw, var(--s-7)) clamp(var(--s-7), 6vw, var(--s-9));
+    padding-block: var(--section-tight);
     overflow: clip;
   }
   .hero__grid {
@@ -316,14 +318,20 @@ const needs = [
   .hero__prices {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.2em 0.6em;
+    align-items: center;
+    gap: 0 0.6em;
+    margin-block: calc(var(--s-3) * -1);
     font-size: var(--fs-label);
     color: var(--text-3);
   }
+  /* Each price is a 44px-tall target (touch), with its amount and label kept apart by a real gap. */
   .hero__prices a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    min-height: var(--tap);
     color: inherit;
     text-decoration: none;
-    min-height: 1.5rem;
   }
   .hero__prices a:hover,
   .hero__prices a:focus-visible {
@@ -783,6 +791,7 @@ const needs = [
   .sc-admin__list i {
     font-style: normal;
     font-family: var(--font-mono);
+    font-weight: var(--w-ui);
     font-size: var(--fs-label);
     padding: 0.05rem 0.4rem;
     border: 1px solid var(--line);
@@ -953,6 +962,7 @@ const needs = [
     background: none;
     color: var(--text-3);
     font-family: var(--font-mono);
+    font-weight: var(--w-ui);
     font-size: var(--fs-label);
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -1005,10 +1015,12 @@ const needs = [
     }
   }
   @media (min-width: 64em) {
+    /* Full first screen, content centred in it; no extra padding, so real work starts right after the fold. */
     .hero {
       min-height: calc(100svh - var(--header-h));
       display: grid;
       align-items: center;
+      padding-block: 0;
     }
     .hero__grid {
       grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
@@ -1050,6 +1062,25 @@ const needs = [
     .stage__replay {
       margin-left: 0;
       padding-left: 0;
+    }
+  }
+  /* Short screens (a phone held sideways): the H1 and the button still fit on the first screen. */
+  @media (max-height: 32em) and (max-width: 63.99em) {
+    .hero {
+      padding-block: var(--s-4) var(--s-7);
+    }
+    .hero__copy {
+      gap: var(--s-3);
+    }
+    .hero__kicker {
+      display: none;
+    }
+    .hero__title {
+      font-size: var(--fs-hero-short);
+      gap: var(--s-2);
+    }
+    .hero__desc {
+      font-size: var(--fs-base);
     }
   }
   @media (max-width: 22.5em) {

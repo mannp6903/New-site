@@ -100,6 +100,7 @@
   /* Lime fails on ivory (1.1:1). Lime marks there become ink, and lime text becomes this olive (6.0:1). */
   --accent-on-light: #4e6200;
   --error-on-light: #b42318; /* 5.8:1 on ivory */
+  --warn-on-light: #7a5300; /* preview flags on ivory: 6.1:1 */
 
   /* ── Glow and depth ── */
   --signal-glow: 0 0 0 1px rgb(201 246 74 / 0.5), 0 14px 44px -14px rgb(201 246 74 / 0.6);
@@ -141,7 +142,7 @@
   /* Fluid from 360 to 1440px. A component picks one of these, never a raw size (tests/unit/design-tokens.test.ts).
      The hierarchy holds at every width: display ≥ hero ≥ h1 > h2 > h3 > lead > base > ui > sm > label. */
   --fs-display: clamp(3rem, 0.9rem + 9.33vw, 9.5rem); /* 48 → 152px: the oversized scene words */
-  --fs-hero: clamp(2.75rem, 0.6rem + 6.4vw, 7rem); /* 44 → 102px at 1440 → 112px: the Home H1, one fluid size at every width */
+  --fs-hero: clamp(2.75rem, 0.8rem + 6.4vw, 7rem); /* 44 → 105px at 1440 → 112px: the Home H1, one fluid size at every width */
   --fs-h1: clamp(2.5rem, 1.5rem + 4.44vw, 5.5rem); /* 40 → 88px: page titles */
   --fs-h2: clamp(2rem, 1.25rem + 3.33vw, 4.25rem); /* 32 → 68px: scene titles */
   --fs-h3: clamp(1.375rem, 1.19rem + 0.83vw, 1.875rem); /* 22 → 30px: item titles */
@@ -154,6 +155,7 @@
   --fs-title: clamp(2.25rem, 1.3rem + 4.2vw, 5rem); /* long, descriptive page titles (PageHead compact) */
   --fs-menu: clamp(1.75rem, 1rem + 4vw, 3rem); /* the full-screen menu's links */
   --fs-deck: clamp(1.5rem, 1rem + 2.2vw, 2.75rem); /* the second line of an editorial title deck (About) */
+  --fs-hero-short: clamp(2rem, 9vh, 3rem); /* the Home H1 on short screens (a phone held sideways) */
   --fs-stage: clamp(0.8125rem, 2.4cqi, 0.9375rem); /* text inside the stage's scenes, sized to the stage, never under 13px */
 
   --lh-display: 0.9;
@@ -212,6 +214,16 @@
   --dur-loop: 3600ms; /* one demo cycle; demos play once, never loop */
   --dur-page-out: 220ms;
   --dur-page-in: 340ms;
+}
+
+/* Short screens (a phone held sideways): headings step down with the Home H1 so the hierarchy holds and the first
+   screen still shows the H1 and its button. */
+@media (max-height: 32em) and (max-width: 63.99em) {
+  :root {
+    --fs-h2: clamp(1.5rem, 5vh, 1.75rem);
+    --fs-title: clamp(1.75rem, 7vh, 2.25rem);
+    --fs-display: clamp(2rem, 9vh, 3rem);
+  }
 }
 
 /* Reduced motion: from the OS setting, or the site's own "Motion: off" switch (html[data-motion='off']). */

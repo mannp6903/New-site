@@ -23,7 +23,7 @@ const mail = emailHref();
 <header class="hdr" data-header>
   <div class="hdr__bar container">
     <a class="hdr__brand wordmark" href="/" aria-label={`${profile.name}, home`}>
-      <Wordmark class="hdr__logo" cut="small" />
+      <Wordmark class="hdr__logo wordmark__logo" cut="small" />
     </a>
 
     <p class="hdr__live mono" aria-hidden="true">
@@ -205,7 +205,7 @@ const mail = emailHref();
     const quiet = header.querySelector<HTMLElement>('[data-hdr-cta].is-quiet');
     const heroCta = document.querySelector('[data-hero-cta]');
     if (quiet && heroCta) {
-      new IntersectionObserver(([en]) => quiet.classList.toggle('is-quiet', en.isIntersecting), { rootMargin: `-${header.offsetHeight}px 0px 0px 0px` }).observe(heroCta);
+      new IntersectionObserver(([en]) => quiet.classList.toggle('is-quiet', en.isIntersecting), { rootMargin: '-72px 0px 0px 0px' }).observe(heroCta);
     }
   }
 </script>
@@ -325,6 +325,7 @@ const mail = emailHref();
   }
   .qm-trigger kbd {
     font-family: var(--font-mono);
+    font-weight: var(--w-ui);
     font-size: var(--fs-label);
     color: var(--text-3);
   }
@@ -370,6 +371,12 @@ const mail = emailHref();
     width: 65%;
     justify-self: end;
     background: var(--signal);
+  }
+  @media (forced-colors: active) {
+    .menu-btn__lines i {
+      forced-color-adjust: none;
+      background: ButtonText;
+    }
   }
   .hdr__line {
     position: relative;
@@ -528,7 +535,9 @@ const mail = emailHref();
   .sheet__legal a {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     min-height: var(--tap);
+    min-width: var(--tap);
     color: inherit;
   }
   /* Short screens (down to 320 × 568): the whole menu, down to Privacy and Terms, fits on one screen. */
@@ -615,6 +624,7 @@ const mail = emailHref();
     background: transparent;
     color: var(--text-2);
     font-family: var(--font-mono);
+    font-weight: var(--w-ui);
     font-size: var(--fs-label);
     letter-spacing: 0.06em;
     text-transform: uppercase;
