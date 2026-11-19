@@ -1,0 +1,318 @@
+---
+/**
+ * Services overview (SEO audit Phase 2, 14 Nov 2026): a short page that routes to the three service pages
+ * and /pricing/. It used to be ~6,600 words that repeated /pricing/ and the service pages; where each part
+ * went is listed in docs/seo/PLAN.md ("/services/ inventory"). Old #anchors still work: the add-ons, prices,
+ * free check, finder and questions are here; each service's details forward to its service page.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHead from '../components/PageHead.astro';
+import Button from '../components/ui/Button.astro';
+import Icon from '../components/ui/Icon.astro';
+import FreeCheck from '../components/home/FreeCheck.astro';
+import Finder from '../components/Finder.astro';
+import { groups, servicesInGroup, addOns, sprint } from '../data/services';
+import { packages, packageById, priceLabel } from '../data/packages';
+import { servicePages, moreServicePages, servicePageForGroup, serviceHref } from '../data/service-pages';
+import { overviewFaqs } from '../data/faqs';
+import { breadcrumbJsonLd, servicesJsonLd } from '../lib/seo';
+import { industryPages } from '../data/industry-pages';
+
+const faqLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: overviewFaqs.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+};
+const crumbs = breadcrumbJsonLd([
+  { name: 'Home', path: '/' },
+  { name: 'Services', path: '/services/' },
+]);
+const addOnItems = servicesInGroup('extras');
+const addOnsNote = 'They work best alongside your Google profile or website, so every piece points to one booking link. No promised followers or views.';
+
+// Old anchors from the long page → where that content lives now (the add-ons, prices, free check, finder
+// and questions are still on this page). Group anchors go to the service page's "Service by service" list.
+const forward: Record<string, string> = { process: '/about/#process' };
+for (const g of groups) {
+  const page = servicePageForGroup(g.id);
+  if (!page) continue;
+  forward[g.id] = `/services/${page.slug}/#details`;
+  for (const svc of servicesInGroup(g.id)) forward[svc.id] = serviceHref(svc.id);
+}
+---
+
+<BaseLayout
+  title="Website, Local SEO & Booking Services"
+  description="Compare web design, local SEO, Google Business Profile setup and enquiry automation for Toronto service businesses. See packages and request a quote."
+  jsonLd={[faqLd, servicesJsonLd(), ...(crumbs ? [crumbs] : [])]}
+>
+  <PageHead
+    eyebrow="Services"
+    compact
+    lines={['Website, local SEO', '<span class="accent">and enquiry services</span>']}
+    lead="Three services follow your customer’s path in Toronto and the GTA: they find you, they contact you, they book. Each page says who it’s for, what happens and what it costs. Based in Scarborough."
+
+  >
+    {/* U4 (design upgrade Phase 3): a main button within the first two phone screens. */}
+    <div class="btn-row" data-reveal="load" style="--d:5"><Button href="/contact/?package=check-up#check">Get a free website and Google check</Button></div>
+  </PageHead>
+
+  <section class="paths section section--tight" id="paths" aria-labelledby="paths-title">
+    <div class="container">
+      <h2 id="paths-title" class="visually-hidden">Three services</h2>
+      <ol class="paths__list" role="list">
+        {
+          servicePages.map((sp) => (
+            <li class="paths__item">
+              <h3 class="paths__name">
+                <a href={`/services/${sp.slug}/`}>{sp.name}</a>
+              </h3>
+              <p class="muted">{sp.card}</p>
+              <p class="paths__pkg">
+                <span class="subtle">{sp.packages.length > 1 ? 'Packages:' : 'Package:'}</span>{' '}
+                {sp.packages.map((id) => packageById(id)!.name).join(' · ')}
+              </p>
+              <a class="link-arrow" href={`/services/${sp.slug}/`}>
+                {sp.short}: who it’s for and what’s included <Icon name="arrow" />
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+      <!-- SEO audit Phase 3 (14 Nov 2026): the same services, for two trades, each led by a real case study. -->
+      <p class="paths__trades small">
+        <span class="subtle">By trade:</span>{' '}
+        {industryPages.map((ip, i) => (
+          <>
+            {i > 0 && ' · '}
+            <a class="link" href={`/${ip.slug}/`}>{ip.linkLabel}</a>
+          </>
+        ))}
+      </p>
+      <!-- SEO audit Phase 4 (14 Nov 2026): two more services with pages of their own. -->
+      <p class="paths__more small">
+        <span class="subtle">Also:</span>{' '}
+        {moreServicePages.map((sp, i) => (
+          <>
+            {i > 0 && ' · '}
+            <a class="link" href={`/services/${sp.slug}/`}>{sp.name}</a>
+          </>
+        ))}
+      </p>
+    </div>
+  </section>
+
+  <section class="ov section section--alt" id="packages" aria-labelledby="packages-title">
+    <div class="container ov__split">
+      <div class="stack" style="--stack: var(--s-4)">
+        <p class="eyebrow">Packages</p>
+        <h2 id="packages-title" class="ov__h2">Published prices, <span class="accent">written scope.</span></h2>
+      </div>
+      <div class="stack" style="--stack: var(--s-4)">
+        <p class="muted">
+          {packages.map((p, i) => (
+            <>
+              {i > 0 && (i === packages.length - 1 ? ' and ' : ', ')}
+              {p.name} <b class="num">{priceLabel(p).text}</b>
+            </>
+          ))}
+          . In Canadian dollars, plus tax. The free check is separate, with no obligation.
+        </p>
+        <a class="link-arrow" href="/pricing/">
+          What each package covers, side by side <Icon name="arrow" />
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="ov section section--rule" id="extras" aria-labelledby="extras-title">
+    <div class="container ov__split">
+      <div class="stack" style="--stack: var(--s-4)">
+        <p class="eyebrow">{addOns.verb}</p>
+        <h2 id="extras-title" class="ov__h2">{addOns.title}</h2>
+        <p class="muted">{addOns.intro} {addOnsNote}</p>
+      </div>
+      <ul class="ov__addons" role="list">
+        {
+          addOnItems.map((a) => (
+            <li id={a.id}>
+              <h3 class="ov__name">{a.name}</h3>
+              <p class="muted small">{a.summary}</p>
+              <p class="small subtle"><b>Not included:</b> {a.exclusions.join('; ')}.</p>
+              <a class="link-arrow small" href={`/contact/?service=${a.id}#brief`}>
+                Ask about this<span class="visually-hidden">: {a.name}</span> <Icon name="arrow" />
+              </a>
+            </li>
+          ))
+        }
+        <li id={sprint.id}>
+          <span class="sprint__tag">One bounded campaign</span>
+          <h3 class="ov__name">{sprint.name}</h3>
+          <p class="muted small">{sprint.summary}</p>
+          <p class="small"><b>Includes:</b> {sprint.includes.join('; ')}.</p>
+          <p class="small subtle"><b>Quoted separately:</b> {sprint.separate.join('; ')}.</p>
+          <Button href={sprint.cta.href} size="sm" variant="ghost">{sprint.cta.label}</Button>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <FreeCheck id="check" />
+  <Finder />
+
+  <section class="ov section section--rule" id="faq" aria-labelledby="faq-title">
+    <div class="container ov__split">
+      <div class="stack" style="--stack: var(--s-4)">
+        <p class="eyebrow">Questions</p>
+        <h2 id="faq-title" class="ov__h2">Before <span class="accent">you start.</span></h2>
+        <a class="link-arrow" href="/pricing/#pr-faq">Prices, payments and ownership <Icon name="arrow" /></a>
+      </div>
+      <div>
+        {
+          overviewFaqs.map((f) => (
+            <details class="acc" name="ov-faq">
+              <summary>
+                <h3 class="acc__q">{f.q}</h3>
+                <span class="acc__plus" aria-hidden="true" />
+              </summary>
+              <div class="acc__body">
+                <p>{f.a}</p>
+              </div>
+            </details>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+  <script is:inline define:vars={{ forward }}>
+    // Old links to a section that moved (e.g. /services/#booking) go to its new home, on arrival or when only
+    // the #part of the address changes. Own keys only, and a malformed #part is ignored.
+    (function () {
+      var go = function () {
+        var id;
+        try {
+          id = decodeURIComponent(location.hash.slice(1));
+        } catch (e) {
+          return;
+        }
+        if (id && Object.prototype.hasOwnProperty.call(forward, id)) location.replace(forward[id]);
+      };
+      go();
+      addEventListener('hashchange', go);
+    })();
+  </script>
+</BaseLayout>
+
+
+
+<style>
+  /* ── Three services, first ── */
+  .paths__list {
+    display: grid;
+    border-top: 1px solid var(--line);
+  }
+  .paths__item {
+    display: grid;
+    align-content: start;
+    gap: var(--s-3);
+    padding-block: var(--s-5);
+    border-bottom: 1px solid var(--line);
+  }
+  .paths__name {
+    font-size: var(--fs-h3);
+  }
+  .paths__name a {
+    text-decoration: none;
+  }
+  .paths__name a:hover,
+  .paths__name a:focus-visible {
+    color: var(--signal);
+  }
+  .paths__trades {
+    margin-top: var(--s-5);
+  }
+  .paths__more {
+    margin-top: var(--s-2);
+  }
+  .paths__pkg {
+    padding-top: var(--s-3);
+    border-top: 1px dashed var(--line);
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    letter-spacing: 0.02em;
+  }
+  @media (min-width: 56em) {
+    .paths__list {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .paths__item {
+      padding: var(--s-6) var(--s-6) var(--s-6) 0;
+    }
+    .paths__item + .paths__item {
+      padding-left: var(--s-6);
+      border-left: 1px solid var(--line);
+    }
+  }
+
+  /* ── Brand & Content Sprint: the first add-on, opened from /services/#brand-content ── */
+  .sprint__tag {
+    display: block;
+    margin-bottom: var(--s-1);
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--signal);
+  }
+
+  /* ── Packages, add-ons and questions ── */
+  .ov__split {
+    display: grid;
+    gap: var(--s-6);
+  }
+  @media (min-width: 64em) {
+    .ov__split {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+      gap: var(--s-9);
+    }
+    /* The head stays beside its list instead of leaving an empty column (gate L1, re-audit 18 Nov 2026; as on Home,
+       task 3.4). */
+    .ov__split > :first-child {
+      position: sticky;
+      top: calc(var(--header-h) + var(--s-6));
+      align-self: start;
+    }
+  }
+  .ov__h2 {
+    font-size: var(--fs-h2);
+    max-width: 20ch;
+  }
+  .ov__addons {
+    display: grid;
+    gap: var(--s-5);
+  }
+  .ov__addons > li {
+    display: grid;
+    gap: var(--s-2);
+    justify-items: start;
+    padding-top: var(--s-4);
+    border-top: 1px solid var(--line);
+  }
+  /* The body measure (gate T6, re-audit 18 Nov 2026). */
+  .ov__addons > li > p {
+    max-width: var(--measure);
+  }
+  .ov__name {
+    font-size: var(--fs-lead);
+    font-weight: var(--w-head);
+    letter-spacing: -0.02em;
+  }
+  .sprint__tag {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--signal);
+  }
+</style>

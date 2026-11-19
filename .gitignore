@@ -1,0 +1,38 @@
+# dependencies & build output
+node_modules/
+dist/
+dist-consent/
+.astro/
+.wrangler/
+.dev.vars
+
+# local enquiry store, secrets and private notes (repo is public)
+.data/
+.env
+.env.*
+!.env.example
+private/
+
+# test output
+test-results/
+playwright-report/
+qa-output/
+coverage/
+.lighthouseci/
+
+# OS / editor
+.DS_Store
+*.log
+
+# static preview export
+preview-static/
+.og-template.tmp.html
+preview-artifact/
+
+# logo generator virtualenv
+.venv-logo/
+
+# deep-research working notes and reports (kept out of the public repo)
+research_notes/
+reports/
+__pycache__/

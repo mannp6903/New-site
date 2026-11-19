@@ -1,0 +1,1065 @@
+---
+/**
+ * The project brief. Three short steps with JavaScript (you → what you need → your message);
+ * one ordinary form without it (it posts to /api/enquiry/ and lands on /contact/received/).
+ * The same validation runs in the browser and on the server (src/lib/enquiry/validate.ts).
+ */
+import { SERVICE_OPTIONS, PACKAGE_OPTIONS, BUDGET_OPTIONS, TIMEFRAME_OPTIONS } from '../lib/enquiry/options';
+import { LIMITS } from '../lib/enquiry/validate';
+import { HONEYPOT_FIELD } from '../lib/enquiry/spam';
+import { PUBLIC_TURNSTILE_SITE_KEY } from 'astro:env/client';
+import { bookingUrl, profile } from '../data/site';
+import Button from './ui/Button.astro';
+import Icon from './ui/Icon.astro';
+
+const email = profile.contact.email;
+const groups = [
+  { id: 'A', title: 'Get found and chosen' },
+  { id: 'B', title: 'Enquiry follow-up and booking' },
+  { id: 'C', title: 'A website that books work' },
+  { id: 'D', title: 'Add-ons: print and social' },
+  { id: 'other', title: 'Other' },
+];
+const areaHints: Record<string, string> = {
+  'area-found': 'Correct details on Google and Maps, and more recent, real reviews.',
+  'area-follow-up': 'Missed-call text-back, enquiries in one list, booking reminders.',
+  'area-website': 'Clear service information and a book-or-quote button on every page.',
+  'area-content': 'Add-on: flyers, business cards, gift-card artwork, posts, Reels and stories.',
+  'not-sure': 'Describe the problem and I’ll suggest where to start.',
+};
+const areas = SERVICE_OPTIONS.filter((o) => o.group === 'area' || o.id === 'not-sure');
+const steps = ['About you', 'What you need', 'Your message'];
+const tick = '<svg viewBox="0 0 16 16"><path d="m3.5 8.5 3 3 6-7" /></svg>';
+---
+
+<div class="brief" data-brief data-email={email ?? undefined}>
+  <form class="form" id="brief" action="/api/enquiry/" method="post" data-brief-form>
+    <div class="steps-nav" data-steps-nav hidden>
+      <p class="steps-nav__label">
+        <span class="num" data-step-count>Step 1 of 3</span>
+        <span data-step-name>{steps[0]}</span>
+      </p>
+      <ol class="steps-nav__bar" role="list" aria-hidden="true">
+        {steps.map((_, i) => <li data-bar={i} class:list={{ 'is-on': i === 0 }} />)}
+      </ol>
+    </div>
+
+    <!-- Form states are not headings and are not in the page until they are needed (SEO audit, 14 Nov 2026):
+         the summary title and the success message are copied from <template>s into live regions after submit. -->
+    <div class="error-summary" role="alert" tabindex="-1" data-error-summary hidden>
+      <ul data-error-list></ul>
+    </div>
+    <template data-es-title-tpl><p class="es-title">Please check these fields</p></template>
+    <div class="notice notice--warn" data-not-connected hidden role="status">
+      <p>
+        <strong>This form can’t send to my inbox directly yet.</strong>
+        {
+          email ? (
+            <>
+              You can still use it: at the last step, <b>Email this brief</b> opens your email app with your answers filled in. Or
+              write to <a href={`mailto:${email}`} data-contact="email">{email}</a>.
+            </>
+          ) : (
+            'Please try again later.'
+          )
+        }
+      </p>
+    </div>
+
+    <!-- ── Step 1 ── -->
+    <fieldset class="step" data-step="0">
+      <legend class="step__legend"><span class="step__n num" aria-hidden="true">01</span>About you</legend>
+      <p class="hint req-note">Fields marked <span class="req" aria-hidden="true">*</span><span class="visually-hidden">with an asterisk</span> are required.</p>
+      <div class="grid two">
+        <div class="field">
+          <label for="f-name">Your name <span class="req" aria-hidden="true">*</span></label>
+          <input class="input" id="f-name" name="name" type="text" autocomplete="name" required maxlength={LIMITS.name} aria-describedby="e-name" />
+          <p class="error-text" id="e-name" data-error-for="name"></p>
+        </div>
+        <div class="field">
+          <label for="f-email">Email <span class="req" aria-hidden="true">*</span></label>
+          <input class="input" id="f-email" name="email" type="email" autocomplete="email" required maxlength={LIMITS.email} aria-describedby="h-email e-email" />
+          <p class="hint" id="h-email">I’ll reply here.</p>
+          <p class="error-text" id="e-email" data-error-for="email"></p>
+        </div>
+        <div class="field">
+          <label for="f-business">Business name</label>
+          <input class="input" id="f-business" name="business" type="text" autocomplete="organization" maxlength={LIMITS.business} aria-describedby="e-business" />
+          <p class="error-text" id="e-business" data-error-for="business"></p>
+        </div>
+        <div class="field">
+          <label for="f-website">Website, if you have one</label>
+          <input class="input" id="f-website" name="website" type="text" inputmode="url" autocomplete="url" placeholder="yourbusiness.ca" maxlength={LIMITS.website} aria-describedby="e-website" />
+          <p class="error-text" id="e-website" data-error-for="website"></p>
+        </div>
+        <div class="field span-2">
+          <label for="f-phone">Phone <span class="opt">optional</span></label>
+          <input class="input" id="f-phone" name="phone" type="tel" autocomplete="tel" maxlength={LIMITS.phone} aria-describedby="h-phone e-phone" />
+          <p class="hint" id="h-phone">Only if you’d rather talk.</p>
+          <p class="error-text" id="e-phone" data-error-for="phone"></p>
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- ── Step 2 ── -->
+    <fieldset class="step" data-step="1">
+      <legend class="step__legend"><span class="step__n num" aria-hidden="true">02</span>What you need</legend>
+      <fieldset class="field services" aria-describedby="h-services e-services">
+        <legend class="legend">What would you like help with?</legend>
+        <p class="hint" id="h-services">Pick what sounds closest. You don’t need to know the technical names.</p>
+        <div class="areas">
+          {
+            areas.map((o) => (
+              <label class="area">
+                <input type="checkbox" name="services" value={o.id} data-area={'area' in o ? o.area : undefined} />
+                <span class="chip__box" aria-hidden="true" set:html={tick} />
+                <span class="area__text">
+                  <strong>{o.id === 'not-sure' ? 'Not sure yet' : o.label.split(':')[0]}</strong>
+                  <span class="area__hint">{areaHints[o.id]}</span>
+                </span>
+              </label>
+            ))
+          }
+        </div>
+        <details class="more" data-svc-detail>
+          <summary><Icon name="plus" /> Know exactly what you need? Choose specific services (optional)</summary>
+          <div class="svc-groups">
+            {
+              groups.map((g) => (
+                <div class="svc-group">
+                  <p class="svc-title">{g.title}</p>
+                  <div class="chips">
+                    {SERVICE_OPTIONS.filter((o) => o.group === g.id && o.id !== 'not-sure').map((o) => (
+                      <label class="chip">
+                        <input type="checkbox" name="services" value={o.id} data-group={g.id} />
+                        <span class="chip__box" aria-hidden="true" set:html={tick} />
+                        {o.label}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))
+            }
+          </div>
+        </details>
+        <p class="error-text" id="e-services" data-error-for="services"></p>
+      </fieldset>
+
+      <div class="field package" data-package-field hidden>
+        <label for="f-package">Suggested starting point</label>
+        <select class="select" id="f-package" name="packageId" aria-describedby="h-package">
+          <option value="">None</option>
+          {PACKAGE_OPTIONS.map((p) => <option value={p.id}>{p.label}</option>)}
+        </select>
+        <p class="hint" id="h-package">Pre-filled from the link you followed. Change it or choose “None”.</p>
+      </div>
+
+      <fieldset class="field">
+        <legend class="legend">Budget range (CAD) <span class="opt">optional</span></legend>
+        <div class="chips">
+          {
+            BUDGET_OPTIONS.map((b) => (
+              <label class="chip chip--radio">
+                <input type="radio" name="budget" value={b.id} />
+                <span class="chip__box" aria-hidden="true" set:html={tick} />
+                {b.label}
+              </label>
+            ))
+          }
+        </div>
+      </fieldset>
+      <fieldset class="field">
+        <legend class="legend">Timeframe <span class="opt">optional</span></legend>
+        <div class="chips">
+          {
+            TIMEFRAME_OPTIONS.map((t) => (
+              <label class="chip chip--radio">
+                <input type="radio" name="timeframe" value={t.id} />
+                <span class="chip__box" aria-hidden="true" set:html={tick} />
+                {t.label}
+              </label>
+            ))
+          }
+        </div>
+      </fieldset>
+    </fieldset>
+
+    <!-- ── Step 3 ── -->
+    <fieldset class="step" data-step="2">
+      <legend class="step__legend"><span class="step__n num" aria-hidden="true">03</span>Your message</legend>
+      <div class="field">
+        <label for="f-message">Tell me about your business and what you’d like to change <span class="req" aria-hidden="true">*</span></label>
+        <textarea class="textarea" id="f-message" name="message" required minlength={LIMITS.messageMin} maxlength={LIMITS.message} rows="7" aria-describedby="h-message e-message count-message"></textarea>
+        <div class="msg-meta">
+          <p class="hint" id="h-message">For example: what you do, where, what isn’t working, and what you already have (website, Google profile, booking tool).</p>
+          <p class="hint counter num" id="count-message" data-counter aria-live="polite"></p>
+        </div>
+        <p class="error-text" id="e-message" data-error-for="message"></p>
+      </div>
+
+      <div class="hp" aria-hidden="true">
+        <label for="f-hp">Leave this field empty</label>
+        <input id="f-hp" type="text" name={HONEYPOT_FIELD} tabindex="-1" autocomplete="off" />
+      </div>
+      <input type="hidden" name="formToken" data-token />
+      <input type="hidden" name="submissionId" data-submission-id />
+
+      {PUBLIC_TURNSTILE_SITE_KEY && <div class="cf-turnstile" data-sitekey={PUBLIC_TURNSTILE_SITE_KEY} />}
+
+      <p class="small subtle privacy text-links">
+        I use these details only to reply to this enquiry. Nothing you type here is sent to analytics. Read the <a href="/privacy/">Privacy Policy</a> and <a href="/terms/">Terms of Use</a>.
+      </p>
+    </fieldset>
+
+    <div class="form-actions">
+      <button class="back" type="button" data-back hidden>
+        <Icon name="arrow-left" /> Back
+      </button>
+      <span class="form-actions__main">
+        <Button type="button" data-next hidden>Continue</Button>
+        <button class="btn" type="submit" data-submit>
+          <span class="btn__label"><span data-text="Send my brief" data-submit-label>Send my brief</span></span>
+          <span class="btn__icon" aria-hidden="true">
+            <span class="spinner" data-spinner hidden></span>
+            <Icon name="arrow" />
+          </span>
+        </button>
+      </span>
+      <p class="small subtle form-actions__note">This asks for a conversation; it doesn’t book an appointment.</p>
+    </div>
+    <div class="notice notice--error" role="alert" tabindex="-1" data-form-error hidden></div>
+    <div class="notice notice--info" role="status" tabindex="-1" data-mail-note hidden></div>
+    <p class="copy-brief" data-copy-wrap hidden>
+      <button class="link-arrow copy-brief__btn" type="button" data-copy-brief><Icon name="copy" /> Copy my brief</button>
+      <span class="small subtle">to paste into any email or message.</span>
+    </p>
+  </form>
+
+  <div class="success-live" aria-live="polite" data-success-live></div>
+  <template data-success-tpl>
+    <section class="success" data-success tabindex="-1" aria-labelledby="success-title">
+      <svg class="success__mark" viewBox="0 0 80 80" aria-hidden="true">
+        <circle cx="40" cy="40" r="36"></circle>
+        <path d="m25 41 10 10 21-23"></path>
+      </svg>
+      <p class="eyebrow">Accepted</p>
+      <p id="success-title" class="success__title">Thanks, <span data-success-name></span>. Your brief is on its way.</p>
+      <p class="muted" data-success-ack></p>
+      <ol class="next" role="list">
+        <li><span class="num">01</span> I read every brief myself.</li>
+        <li><span class="num">02</span> I reply by email with questions or a suggested next step.</li>
+        <li><span class="num">03</span> If we go ahead, you get a written scope before any work starts.</li>
+      </ol>
+      <p class="small subtle">Reference: <span class="num" data-success-id></span></p>
+      {
+        // Website Playbook (16 Nov 2026): the booking link, only once Mann adds it (src/data/site.ts → bookingUrl).
+        bookingUrl && (
+          <p>
+            <a class="link-arrow" href={bookingUrl} target="_blank" rel="noopener" aria-label="Book a free 15-minute call (opens in a new tab)" data-booking>
+              Book a free 15-minute call <Icon name="arrow-ne" />
+            </a>
+          </p>
+        )
+      }
+      <p><a class="link-arrow" href="/work/">While you wait, see my work <Icon name="arrow" /></a></p>
+    </section>
+  </template>
+</div>
+
+{PUBLIC_TURNSTILE_SITE_KEY && <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>}
+
+<script>
+  import { validateEnquiry, LIMITS, type FieldErrors } from '../lib/enquiry/validate';
+  import { briefMailto, briefText, sendEnquiry, failureText } from '../lib/enquiry/client';
+  import { parseAnswers, recommend } from '../lib/guide';
+  import { normalizePackageId } from '../data/packages';
+  import { track, trackOnce } from '../scripts/analytics';
+  import { toast } from '../scripts/motion';
+
+  const root = document.querySelector<HTMLElement>('[data-brief]');
+  if (root) {
+    const form = root.querySelector<HTMLFormElement>('[data-brief-form]')!;
+    form.noValidate = true; // JS shows its own accessible errors; native validation remains without JS
+    const summary = root.querySelector<HTMLElement>('[data-error-summary]')!;
+    const summaryList = root.querySelector<HTMLUListElement>('[data-error-list]')!;
+    const formError = root.querySelector<HTMLElement>('[data-form-error]')!;
+    const submit = root.querySelector<HTMLButtonElement>('[data-submit]')!;
+    const spinner = root.querySelector<HTMLElement>('[data-spinner]')!;
+    const submitLabel = root.querySelector<HTMLElement>('[data-submit-label]')!;
+    const tokenInput = root.querySelector<HTMLInputElement>('[data-token]')!;
+    const idInput = root.querySelector<HTMLInputElement>('[data-submission-id]')!;
+    const counter = root.querySelector<HTMLElement>('[data-counter]')!;
+    const message = form.elements.namedItem('message') as HTMLTextAreaElement;
+    const successLive = root.querySelector<HTMLElement>('[data-success-live]')!;
+    const successTpl = root.querySelector<HTMLTemplateElement>('[data-success-tpl]')!;
+    const esTitleTpl = root.querySelector<HTMLTemplateElement>('[data-es-title-tpl]')!;
+    const notConnected = root.querySelector<HTMLElement>('[data-not-connected]')!;
+    const altEmail = root.dataset.email || document.querySelector<HTMLElement>('[data-alt-email]')?.textContent?.trim() || '';
+    const mailNote = root.querySelector<HTMLElement>('[data-mail-note]')!;
+    const withEmail = (text: string) => (altEmail ? `${text} You can also email me at ${altEmail}.` : text);
+
+    const newId = () => (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`);
+    idInput.value = newId();
+
+    const labels: Record<string, string> = {
+      name: 'Your name', email: 'Email', business: 'Business name', website: 'Website', phone: 'Phone',
+      services: 'Services', packageId: 'Starting point', budget: 'Budget', timeframe: 'Timeframe', message: 'About your business',
+    };
+    const fieldTarget: Record<string, string> = { services: 'input[name="services"]', budget: 'input[name="budget"]', timeframe: 'input[name="timeframe"]' };
+    const stepOf: Record<string, number> = { name: 0, email: 0, business: 0, website: 0, phone: 0, services: 1, packageId: 1, budget: 1, timeframe: 1, message: 2 };
+
+    // ── Steps (enhancement; without JS all three show as one form) ──
+    const stepEls = [...form.querySelectorAll<HTMLElement>('[data-step]')];
+    const nav = form.querySelector<HTMLElement>('[data-steps-nav]')!;
+    const stepCount = form.querySelector<HTMLElement>('[data-step-count]')!;
+    const stepName = form.querySelector<HTMLElement>('[data-step-name]')!;
+    const bars = [...form.querySelectorAll<HTMLElement>('[data-bar]')];
+    const back = form.querySelector<HTMLButtonElement>('[data-back]')!;
+    const next = form.querySelector<HTMLElement>('[data-next]')!;
+    const names = ['About you', 'What you need', 'Your message'];
+    let current = 0;
+    root.classList.add('is-stepped');
+    nav.hidden = false;
+
+    const goTo = (i: number, focus = true) => {
+      current = Math.max(0, Math.min(stepEls.length - 1, i));
+      stepEls.forEach((el, k) => {
+        el.hidden = k !== current;
+        el.classList.toggle('is-entering', k === current);
+      });
+      bars.forEach((b, k) => b.classList.toggle('is-on', k <= current));
+      stepCount.textContent = `Step ${current + 1} of ${stepEls.length}`;
+      stepName.textContent = names[current];
+      back.hidden = current === 0;
+      next.hidden = current === stepEls.length - 1;
+      submit.hidden = current !== stepEls.length - 1;
+      if (focus) {
+        const legend = stepEls[current].querySelector<HTMLElement>('.step__legend');
+        legend?.setAttribute('tabindex', '-1');
+        legend?.focus({ preventScroll: true });
+        nav.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      }
+    };
+
+    // ── Email fallback while the inbox isn't connected ──
+    // The last button opens the visitor's email app with every answer filled in, so nothing typed is lost.
+    let mailMode = false;
+    const setLabel = (text: string) => {
+      submitLabel.textContent = text;
+      submitLabel.dataset.text = text;
+    };
+    const enableMailMode = () => {
+      if (!altEmail) return;
+      mailMode = true;
+      notConnected.hidden = false;
+      copyWrap.hidden = false;
+      setLabel('Email this brief');
+    };
+    // ── Copy my brief: a way out that never depends on an email app or the network ──
+    const copyWrap = root.querySelector<HTMLElement>('[data-copy-wrap]')!;
+    root.querySelector('[data-copy-brief]')?.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(briefText(read()));
+        toast('Brief copied. Paste it into any email or message.');
+      } catch {
+        toast(withEmail('Copy didn’t work here. Select your message and copy it.'));
+      }
+    });
+
+    // ── Status + time-check token ──
+    // Only a definite answer from the server ("not_configured") shows the not-connected notice.
+    let tokenFetched = false;
+    async function refreshToken() {
+      try {
+        const res = await fetch('/api/enquiry/', { headers: { Accept: 'application/json' }, cache: 'no-store' });
+        if (!res.ok) throw new Error(`status ${res.status}`);
+        const data = (await res.json()) as { connected: boolean; token: string | null; reason?: string };
+        tokenInput.value = data.token ?? '';
+        notConnected.hidden = data.connected;
+        if (!data.connected && data.reason === 'not_configured') enableMailMode();
+        tokenFetched = true;
+      } catch {
+        notConnected.hidden = true;
+      }
+    }
+    refreshToken();
+
+    // ── Pre-fill (?package=…&services=…, ?service=…, or ?stage=…&problem=…&site=…) ──
+    const params = new URLSearchParams(location.search);
+    // Old package ids (links shared before round 10) map to the current offer.
+    let pkg: string = normalizePackageId(params.get('package'));
+    let svcs = (params.get('services') ?? '').split(',').filter(Boolean);
+    const answers = parseAnswers(Object.fromEntries(params.entries()));
+    if (answers && !pkg) {
+      const rec = recommend(answers);
+      pkg = rec.packageId;
+      svcs = rec.serviceIds;
+    }
+    const pkgSelect = form.elements.namedItem('packageId') as HTMLSelectElement;
+    if (pkg && [...pkgSelect.options].some((o) => o.value === pkg)) {
+      pkgSelect.value = pkg;
+      root.querySelector<HTMLElement>('[data-package-field]')!.hidden = false;
+    }
+    const single = params.get('service');
+    if (single) svcs.push(single);
+    const details = root.querySelector<HTMLDetailsElement>('[data-svc-detail]');
+    form.querySelectorAll<HTMLInputElement>('input[name="services"]').forEach((cb) => {
+      if (!svcs.includes(cb.value)) return;
+      cb.checked = true;
+      // A specific service also ticks its plain-language area, and stays visible for editing.
+      if (cb.dataset.group) {
+        if (details) details.open = true;
+        const area = form.querySelector<HTMLInputElement>(`input[data-area="${cb.dataset.group}"]`);
+        if (area) area.checked = true;
+      }
+    });
+
+    // ── Character counter ──
+    const updateCounter = () => {
+      const n = message.value.trim().length;
+      counter.textContent = n < LIMITS.messageMin ? `${LIMITS.messageMin - n} more characters needed` : `${n} / ${LIMITS.message}`;
+      counter.classList.toggle('is-ok', n >= LIMITS.messageMin);
+    };
+    let counterTimer: number | undefined;
+    message.addEventListener('input', () => {
+      window.clearTimeout(counterTimer);
+      counterTimer = window.setTimeout(updateCounter, 300);
+    });
+    updateCounter();
+
+    // ── Errors ──
+    const read = () => {
+      const fd = new FormData(form);
+      const data: Record<string, unknown> = {};
+      for (const [k, v] of fd.entries()) {
+        if (k === 'services') data.services = [...((data.services as string[]) ?? []), String(v)];
+        else data[k] = String(v);
+      }
+      return data;
+    };
+    const clearErrors = () => {
+      form.querySelectorAll('[aria-invalid="true"]').forEach((el) => el.removeAttribute('aria-invalid'));
+      form.querySelectorAll<HTMLElement>('[data-error-for]').forEach((el) => (el.textContent = ''));
+      summary.hidden = true;
+      summaryList.replaceChildren();
+      summary.querySelector('.es-title')?.remove();
+    };
+    const targetFor = (field: string) => form.querySelector<HTMLElement>(fieldTarget[field] ?? `[name="${field}"]`);
+    const showErrors = (errors: FieldErrors) => {
+      clearErrors();
+      const entries = Object.entries(errors) as [string, string][];
+      if (!entries.length) return;
+      // Go to the first step that has a problem.
+      const firstStep = Math.min(...entries.map(([f]) => stepOf[f] ?? 2));
+      if (firstStep !== current) goTo(firstStep, false);
+      for (const [field, msg] of entries) {
+        const out = form.querySelector<HTMLElement>(`[data-error-for="${field}"]`);
+        if (out) out.textContent = msg;
+        const input = targetFor(field);
+        input?.setAttribute('aria-invalid', 'true');
+        if (input?.closest('details')) (input.closest('details') as HTMLDetailsElement).open = true;
+        if ((stepOf[field] ?? 2) !== firstStep) continue;
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = `#${input?.id || 'brief'}`;
+        a.textContent = `${labels[field] ?? field}: ${msg}`;
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          input?.focus();
+        });
+        li.append(a);
+        summaryList.append(li);
+      }
+      const inStep = entries.filter(([f]) => (stepOf[f] ?? 2) === firstStep);
+      if (inStep.length > 1) {
+        summary.prepend(esTitleTpl.content.cloneNode(true));
+        summary.hidden = false;
+        summary.focus();
+      } else {
+        targetFor(inStep[0][0])?.focus();
+      }
+    };
+    // Clear a field's error as soon as it is fixed (while typing), so nothing moves under the
+    // pointer when the visitor then clicks Continue or Send.
+    form.addEventListener('input', (e) => {
+      const t = e.target as HTMLInputElement;
+      if (t.getAttribute('aria-invalid') !== 'true') return;
+      const res = validateEnquiry(read());
+      const name = t.name as keyof FieldErrors;
+      if (res.ok || !res.errors[name]) {
+        t.removeAttribute('aria-invalid');
+        const out = form.querySelector<HTMLElement>(`[data-error-for="${name}"]`);
+        if (out) out.textContent = '';
+      }
+    });
+
+    // ── Step buttons ──
+    const stepErrors = (i: number): FieldErrors => {
+      const res = validateEnquiry(read());
+      if (res.ok) return {};
+      return Object.fromEntries(Object.entries(res.errors).filter(([f]) => (stepOf[f] ?? 2) === i)) as FieldErrors;
+    };
+    next.addEventListener('click', () => {
+      const errs = stepErrors(current);
+      if (Object.keys(errs).length) {
+        showErrors(errs);
+        return;
+      }
+      clearErrors();
+      goTo(current + 1);
+    });
+    back.addEventListener('click', () => {
+      clearErrors();
+      goTo(current - 1);
+    });
+    // Enter in a text field moves forward instead of submitting early.
+    form.addEventListener('keydown', (e) => {
+      const t = e.target as HTMLElement;
+      if (e.key === 'Enter' && t instanceof HTMLInputElement && current < stepEls.length - 1) {
+        e.preventDefault();
+        next.click();
+      }
+    });
+    goTo(0, false);
+
+    const setSending = (on: boolean) => {
+      submit.disabled = on;
+      spinner.hidden = !on;
+      submitLabel.textContent = on ? 'Sending…' : mailMode ? 'Email this brief' : 'Send my brief';
+      submitLabel.dataset.text = submitLabel.textContent;
+      form.setAttribute('aria-busy', String(on));
+    };
+    const showFormError = (text: string) => {
+      formError.textContent = text;
+      formError.hidden = false;
+      formError.focus();
+    };
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      formError.hidden = true;
+      const data = read();
+      const local = validateEnquiry(data);
+      if (!local.ok) {
+        showErrors(local.errors);
+        return;
+      }
+      clearErrors();
+      if (mailMode) {
+        const href = briefMailto(altEmail, data);
+        form.dataset.mailto = href;
+        mailNote.textContent = `Your email app should open with your brief ready to send to ${altEmail}. Nothing is sent until you press send there. If nothing opened, use “Copy my brief” and email it to ${altEmail}; your answers are still here.`;
+        mailNote.hidden = false;
+        copyWrap.hidden = false;
+        mailNote.focus();
+        // Opening an email app is not an enquiry: it is counted separately from accepted briefs.
+        track('email_app_launch', { form_id: 'project_brief' });
+        location.href = href;
+        return;
+      }
+      if (!tokenFetched) await refreshToken();
+      data.formToken = tokenInput.value || undefined;
+      const turnstile = form.querySelector<HTMLInputElement>('[name="cf-turnstile-response"]');
+      if (turnstile) data['cf-turnstile-response'] = turnstile.value;
+
+      setSending(true);
+      const outcome = await sendEnquiry(data);
+      setSending(false);
+      if (outcome.kind === 'timeout' || outcome.kind === 'network') {
+        copyWrap.hidden = false;
+        showFormError(withEmail(failureText(outcome)));
+        return;
+      }
+      const body: any = outcome.body;
+
+      if (outcome.kind === 'accepted') {
+        const firstName = String(data.name).split(' ')[0];
+        successLive.replaceChildren(successTpl.content.cloneNode(true));
+        const success = successLive.querySelector<HTMLElement>('[data-success]')!;
+        root.querySelector('[data-success-name]')!.textContent = firstName;
+        root.querySelector('[data-success-id]')!.textContent = body.id;
+        root.querySelector('[data-success-ack]')!.textContent =
+          body.acknowledgement === 'sent'
+            ? `A confirmation email is on its way to ${data.email}. If it isn’t there in a few minutes, check your spam folder.`
+            : body.acknowledgement === 'failed'
+              ? `Your brief was received, but the confirmation email couldn’t be sent. I’ll still reply to ${data.email}.`
+              : `The website accepted it and the email service took it for delivery to my inbox. I’ll reply to ${data.email}.`;
+        form.hidden = true;
+        success.focus();
+        success.scrollIntoView({ block: 'start' });
+        trackOnce(body.id, 'generate_lead', {
+          form_id: 'project_brief',
+          lead_source: 'website',
+          service_count: (data.services as string[] | undefined)?.length ?? 0,
+          starting_point: String(data.packageId || 'none'),
+        });
+        idInput.value = newId();
+        return;
+      }
+
+      switch (body?.code) {
+        case 'validation':
+          if (body.errors) showErrors(body.errors);
+          else showFormError(body.message);
+          break;
+        case 'expired':
+          await refreshToken();
+          showFormError(body.message);
+          break;
+        case 'rate_limited':
+          showFormError(`${body.message}${body.retryAfter ? ` (about ${Math.ceil(body.retryAfter / 60)} min)` : ''}`);
+          break;
+        case 'not_connected':
+          enableMailMode();
+          notConnected.hidden = false;
+          showFormError(
+            mailMode
+              ? 'The form isn’t connected yet, so your brief wasn’t sent. Press “Email this brief” to send the same answers from your email app.'
+              : withEmail(body.message),
+          );
+          break;
+        default:
+          copyWrap.hidden = false;
+          showFormError(withEmail(failureText(outcome)));
+      }
+    });
+  }
+</script>
+
+<style>
+  .brief {
+    display: grid;
+  }
+  .form {
+    display: grid;
+    gap: var(--s-6);
+  }
+  .grid {
+    display: grid;
+    gap: var(--s-5);
+  }
+  @media (min-width: 40em) {
+    .grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .span-2 {
+      grid-column: 1 / -1;
+    }
+  }
+  .opt {
+    margin-left: 0.35em;
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    font-weight: var(--w-ui);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+
+  /* Steps */
+  .steps-nav {
+    display: grid;
+    gap: var(--s-3);
+  }
+  .steps-nav[hidden] {
+    display: none;
+  }
+  .steps-nav__label {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--s-3);
+    font-size: var(--fs-sm);
+    font-weight: var(--w-ui);
+  }
+  .steps-nav__label .num {
+    color: var(--signal);
+    font-size: var(--fs-label);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .steps-nav__bar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  .steps-nav__bar li {
+    height: 4px;
+    border-radius: 4px;
+    background: var(--surface-2);
+    position: relative;
+    overflow: hidden;
+  }
+  .steps-nav__bar li::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--signal);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--dur-4) var(--ease-out);
+  }
+  .steps-nav__bar li.is-on::after {
+    transform: none;
+  }
+  .step {
+    display: grid;
+    gap: var(--s-6);
+    padding-bottom: var(--s-6);
+    border-bottom: 1px solid var(--line);
+  }
+  .is-stepped .step {
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+  .step[hidden] {
+    display: none;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .step:global(.is-entering) {
+      animation: step-in var(--dur-4) var(--ease-out);
+    }
+  }
+  @keyframes step-in {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+  }
+  .step__legend {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s-3);
+    margin-bottom: var(--s-2);
+    font-size: var(--fs-h3);
+    font-weight: var(--w-head);
+    letter-spacing: var(--track-head);
+    line-height: 1.05;
+  }
+  .step__legend:focus {
+    outline: none;
+  }
+  .step__n {
+    font-size: var(--fs-label);
+    font-weight: var(--w-ui);
+    letter-spacing: 0.04em;
+    color: var(--signal);
+  }
+
+  /* Plain-language areas: large tap targets with a one-line explanation. */
+  .services {
+    display: grid;
+    gap: var(--s-2);
+  }
+  .areas {
+    display: grid;
+    gap: var(--s-2);
+    margin-top: var(--s-2);
+  }
+  @media (min-width: 40em) {
+    .areas {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .area {
+    position: relative;
+    display: flex;
+    gap: var(--s-3);
+    align-items: flex-start;
+    padding: var(--s-4);
+    border: 1px solid var(--control);
+    border-radius: var(--r-md);
+    cursor: pointer;
+    transition: border-color var(--dur-1), background-color var(--dur-1);
+  }
+  .area input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+  }
+  .area .chip__box {
+    margin-top: 0.15em;
+  }
+  .area__text {
+    display: grid;
+    gap: var(--s-1);
+  }
+  .area__text strong {
+    font-weight: var(--w-head);
+  }
+  .area__hint {
+    font-size: var(--fs-sm);
+    color: var(--text-2);
+    line-height: 1.45;
+  }
+  .area:hover,
+  .area:focus-within {
+    border-color: var(--text-3);
+    background: var(--surface);
+  }
+  .area:has(input:checked) {
+    border-color: var(--signal);
+    background: var(--signal-wash);
+  }
+  .area:has(input:checked) .chip__box {
+    background: var(--signal);
+    border-color: var(--signal);
+  }
+  .area:has(input:checked) .chip__box :global(svg) {
+    stroke-dashoffset: 0;
+  }
+  .area:has(input:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  .area:has(input[aria-invalid='true']) {
+    border-color: var(--error);
+  }
+  .chip__box :global(svg) {
+    width: 0.8rem;
+    height: 0.8rem;
+    stroke: var(--on-signal);
+    stroke-width: 3;
+    fill: none;
+    stroke-dasharray: 20;
+    stroke-dashoffset: 20;
+    transition: stroke-dashoffset var(--dur-3) var(--ease-out);
+  }
+  .more {
+    margin-top: var(--s-3);
+  }
+  .more > summary {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    min-height: var(--tap);
+    cursor: pointer;
+    list-style: none;
+    font-weight: var(--w-head);
+    font-size: var(--fs-sm);
+  }
+  .more > summary::-webkit-details-marker {
+    display: none;
+  }
+  .more > summary :global(.icon) {
+    color: var(--signal);
+    transition: transform var(--dur-3) var(--ease-out);
+  }
+  .more[open] > summary :global(.icon) {
+    transform: rotate(45deg);
+  }
+  .svc-groups {
+    display: grid;
+    gap: var(--s-5);
+    margin-top: var(--s-4);
+  }
+  .svc-group {
+    display: grid;
+    gap: var(--s-3);
+  }
+  .svc-title {
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+
+  .msg-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--s-4);
+    align-items: flex-start;
+  }
+  .counter {
+    flex: none;
+    font-size: var(--fs-label);
+    text-align: right;
+  }
+  .counter:global(.is-ok) {
+    color: var(--signal);
+  }
+  .hp {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-4);
+  }
+  .form-actions__main {
+    display: inline-flex;
+  }
+  .form-actions__main [hidden] {
+    display: none;
+  }
+  .form-actions__note {
+    flex-basis: 100%;
+  }
+  .back {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    min-height: 3.5rem;
+    padding: 0 1.25rem;
+    border: 1px solid var(--control);
+    border-radius: var(--r-pill);
+    background: transparent;
+    font-weight: var(--w-head);
+  }
+  .back[hidden] {
+    display: none;
+  }
+  .back:hover,
+  .back:focus-visible {
+    background: var(--surface);
+  }
+  .spinner {
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    animation: spin var(--dur-5) linear infinite;
+  }
+  .spinner:not([hidden]) + :global(.icon) {
+    display: none;
+  }
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .notice--info {
+    color: var(--text);
+    border-color: var(--signal);
+    background: var(--signal-wash);
+  }
+  .copy-brief {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-1) var(--s-3);
+  }
+  .copy-brief__btn {
+    border: 0;
+    padding: 0;
+    background: none;
+    color: var(--signal);
+    font: inherit;
+    font-weight: var(--w-head);
+    cursor: pointer;
+  }
+  .error-summary {
+    padding: var(--s-5);
+    border: 1px solid var(--error);
+    border-radius: var(--r-md);
+    background: var(--error-wash);
+  }
+  .error-summary:focus {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  .es-title {
+    font-size: var(--fs-base);
+    font-weight: var(--w-head);
+    letter-spacing: var(--track-head);
+    line-height: 1;
+    color: var(--error);
+    margin-bottom: var(--s-2);
+  }
+  .error-summary ul {
+    padding-left: 1.2em;
+  }
+  .error-summary :global(a) {
+    color: var(--error);
+    font-weight: var(--w-head);
+  }
+
+  .success {
+    display: grid;
+    gap: var(--s-5);
+    padding: clamp(1.5rem, 4vw, 3rem);
+    border-radius: var(--r-lg);
+    background: var(--surface);
+    border: 1px solid var(--signal);
+  }
+  .success:focus {
+    outline: none;
+  }
+  .success__title {
+    font-size: var(--fs-h2);
+    font-weight: var(--w-head);
+    letter-spacing: var(--track-head);
+    line-height: 1;
+    text-wrap: balance;
+    max-width: 20ch;
+  }
+  .success__mark {
+    width: 4.5rem;
+    height: 4.5rem;
+    fill: none;
+    stroke: var(--signal);
+    stroke-width: 3.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .success__mark circle {
+    stroke-dasharray: 227;
+  }
+  .success__mark path {
+    stroke-dasharray: 50;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .success:not([hidden]) .success__mark circle {
+      animation: draw-c var(--dur-5) var(--ease-out) both;
+    }
+    .success:not([hidden]) .success__mark path {
+      animation: draw-p var(--dur-4) var(--ease-out) var(--dur-4) both;
+    }
+  }
+  @keyframes draw-c {
+    from {
+      stroke-dashoffset: 227;
+    }
+  }
+  @keyframes draw-p {
+    from {
+      stroke-dashoffset: 50;
+    }
+  }
+  .next {
+    display: grid;
+    gap: var(--s-2);
+  }
+  .next li {
+    display: flex;
+    gap: var(--s-3);
+  }
+  .next .num {
+    color: var(--signal);
+    font-size: var(--fs-label);
+    padding-top: 0.3em;
+  }
+  /* Forced colours (design upgrade Phase 8): the progress bar and the chosen area are fills and lime, which the mode
+     drops; draw them in system colours. */
+  @media (forced-colors: active) {
+    .steps-nav__bar li {
+      forced-color-adjust: none;
+      background: GrayText;
+    }
+    .steps-nav__bar li::after {
+      background: Highlight;
+    }
+    .area:has(input:checked) {
+      border: 2px solid Highlight;
+    }
+  }
+</style>

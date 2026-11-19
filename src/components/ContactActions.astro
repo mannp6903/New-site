@@ -1,0 +1,169 @@
+---
+/**
+ * Direct contact buttons: Email, Call, WhatsApp, Text.
+ * The phone buttons appear when a number is configured (src/lib/contact.ts); their real
+ * links are filled in by src/scripts/reach.ts (without JS they open the contact page).
+ */
+import { contact, emailHref } from '../lib/contact';
+import Icon from './ui/Icon.astro';
+
+interface Props {
+  /** Visible label above the buttons (optional). */
+  label?: string;
+  /** Show the email and the full phone number (tap to call) under the buttons. */
+  showNumber?: boolean;
+  /** Icon-only round buttons (header menu, hero). */
+  compact?: boolean;
+  class?: string;
+}
+const { label, showNumber = false, compact = false, class: cls } = Astro.props;
+const mail = emailHref();
+const phone = contact.phone;
+
+const channels = [
+  ...(mail ? [{ id: 'mail', label: 'Email', name: `Email Mann at ${contact.email}`, href: mail, track: 'email' }] : []),
+  ...(phone
+    ? [
+        { id: 'phone', label: 'Call', name: 'Call Mann', reach: 'call', track: 'phone' },
+        { id: 'whatsapp', label: 'WhatsApp', name: 'Message Mann on WhatsApp', reach: 'whatsapp', track: 'whatsapp' },
+        { id: 'text', label: 'Text', name: 'Send Mann a text message', reach: 'text', track: 'text' },
+      ]
+    : []),
+] as { id: 'mail' | 'phone' | 'whatsapp' | 'text'; label: string; name: string; href?: string; reach?: string; track: string }[];
+---
+
+{
+  channels.length > 0 && (
+    <div class:list={['ca', { 'ca--compact': compact }, cls]}>
+      {label && <p class="ca__label eyebrow eyebrow--plain">{label}</p>}
+      <ul class="ca__list" role="list">
+        {channels.map((c) => (
+          <li>
+            <a
+              class="ca__btn"
+              href={c.href ?? '/contact/#reach'}
+              data-reach={c.reach}
+              data-k={c.reach ? phone!.key : undefined}
+              data-contact={c.track}
+              aria-label={c.name}
+              title={compact ? c.label : undefined}
+              rel={c.id === 'whatsapp' ? 'noopener' : undefined}
+            >
+              <Icon name={c.id} />
+              <span class="ca__text">{c.label}</span>
+            </a>
+          </li>
+        ))}
+        {Astro.slots.has('extra') && (
+          <li class="ca__extra">
+            <slot name="extra" />
+          </li>
+        )}
+      </ul>
+      {showNumber && (
+        <p class="ca__number num">
+          {contact.email && <span>{contact.email}</span>}
+          {phone && (
+            <span class="ca__phone">
+              <a class="link--tap" href={phone.tel} data-contact="phone" data-phone-text>
+                <span class="visually-hidden">Call </span>
+                {phone.display}
+              </a>
+            </span>
+          )}
+        </p>
+      )}
+    </div>
+  )
+}
+
+<style>
+  .ca {
+    display: grid;
+    gap: var(--s-3);
+  }
+  .ca__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2);
+  }
+  .ca__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    min-height: var(--tap);
+    padding: 0.5rem 1rem 0.5rem 0.85rem;
+    border: 1px solid var(--control);
+    border-radius: var(--r-pill);
+    color: var(--text);
+    font-size: var(--fs-sm);
+    font-weight: var(--w-ui);
+    text-decoration: none;
+    transition:
+      background-color var(--dur-1) var(--ease-out),
+      border-color var(--dur-1) var(--ease-out),
+      color var(--dur-1) var(--ease-out),
+      transform var(--dur-1) var(--ease-out);
+  }
+  .ca__btn .icon {
+    width: 1.1rem;
+    height: 1.1rem;
+    transition: transform var(--dur-3) var(--ease-spring);
+  }
+  .ca__btn:hover,
+  .ca__btn:focus-visible {
+    background: var(--text);
+    border-color: var(--text);
+    color: var(--ink);
+  }
+  /* Movement only when the visitor allows it (Website Playbook, 16 Nov 2026); colour feedback stays. */
+  @media (prefers-reduced-motion: no-preference) {
+    .ca__btn:hover .icon,
+    .ca__btn:focus-visible .icon {
+      transform: rotate(-10deg) scale(1.12);
+    }
+    .ca__btn:active {
+      transform: scale(0.96);
+    }
+  }
+  .ca--compact .ca__btn {
+    width: var(--tap);
+    height: var(--tap);
+    padding: 0;
+    justify-content: center;
+  }
+  .ca--compact .ca__text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .ca__number {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-2) var(--s-5);
+    font-size: var(--fs-sm);
+    color: var(--text-3);
+  }
+  .ca__extra {
+    display: contents;
+  }
+  .ca__phone {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-3);
+  }
+  /* The full number, shown as text that dials on tap (SEO audit, 14 Nov 2026: same as Google and directories). */
+  .ca__phone a {
+    color: inherit;
+    text-decoration: none;
+    transition: color var(--dur-1);
+  }
+  .ca__phone a:hover,
+  .ca__phone a:focus-visible {
+    color: var(--text);
+  }
+</style>

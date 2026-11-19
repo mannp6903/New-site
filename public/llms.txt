@@ -1,0 +1,56 @@
+# Mann Patel
+
+> Independent web designer based in Scarborough, Toronto, Ontario, Canada. Builds websites, sets up local SEO and Google Business Profiles, and connects enquiry follow-up and online booking for small service businesses in Toronto and the GTA. All prices are published, in Canadian dollars, plus applicable tax.
+
+## Services and prices (CAD, plus tax)
+- Website Fix: $450 to $850. One defined problem on an existing site, fixed and checked against an agreed test.
+- Website Launch: $1,950. Up to five pages, one enquiry path, the client's own text and photos, two rounds of revisions. Paid half at kickoff, half once launch checks pass.
+- Website + Enquiry System: $3,350. Everything in Website Launch, plus one booking integration and one defined follow-up workflow. The extra $1,400 over Website Launch buys one booking integration plus one workflow.
+- Local Visibility Setup: $650. One eligible Google Business Profile, a short named list of other listings, a review routine and a before-and-after snapshot.
+- Website Care: $149 a month. A monthly test enquiry, booking link check, up to 30 minutes of edits and a note. Cancel any month.
+Domain, hosting and tool subscriptions are billed to the client directly by each provider.
+
+## Where I work
+Based in Scarborough. Working across Toronto and the Greater Toronto Area, including Scarborough and North York.
+
+## Who it's for
+Small service businesses such as cleaning companies, salons and spas, and other local trades.
+
+## Contact
+- Email: info@mannpatel.me
+- Phone: +1-647-978-6903
+- [Project brief form](https://mannpatel.me/contact/): send a short brief, or ask for the free website and Google check
+
+## Key pages
+- [Services](https://mannpatel.me/services/): an overview of every service and add-on
+- [Pricing](https://mannpatel.me/pricing/): published prices in CAD, and what each package includes and leaves out
+- [Web design](https://mannpatel.me/services/web-design/): new websites and redesigns of up to five pages
+- [Local SEO and Google Business Profile](https://mannpatel.me/services/local-visibility/): Business Profile setup, listings and a review routine
+- [AI search optimization](https://mannpatel.me/services/ai-search-optimization/): what ChatGPT, Gemini and Perplexity say about a business, checked and fixed at the source
+- [Enquiry follow-up and booking](https://mannpatel.me/services/enquiry-follow-up/): missed-call text-back, form follow-up and online booking
+- [Website care](https://mannpatel.me/services/website-care/): monthly website maintenance, $149 a month
+- [Website redesign](https://mannpatel.me/services/website-redesign/): a dated or hard-to-use website rebuilt, or one problem fixed
+- [Web design in Scarborough](https://mannpatel.me/web-design-scarborough/): the neighbourhoods I serve in Scarborough, Ontario
+- [Web design in North York](https://mannpatel.me/web-design-north-york/): the neighbourhoods I serve in North York, Toronto
+- [Websites for cleaning companies](https://mannpatel.me/websites-for-cleaning-companies/): the package that fits a cleaning business
+- [Websites for salons and spas](https://mannpatel.me/websites-for-salons-and-spas/): websites with online booking for salons and spas
+- [About](https://mannpatel.me/about/): who I am and how a project runs
+
+## Work
+- [Nest & Rest Cleaning](https://mannpatel.me/work/nest-and-rest-cleaning/): my own business; website live since October 2026, bookings open summer 2027
+- [Samp Hair & Spa](https://mannpatel.me/work/samp-hair-spa/): a client website for a Scarborough salon, in progress
+
+## Guides
+- [How much does a website cost in Toronto?](https://mannpatel.me/guides/how-much-does-a-website-cost-in-toronto/): what a small business website costs, using my published prices
+- [Why isn't my business on Google Maps?](https://mannpatel.me/guides/why-isnt-my-business-on-google-maps/): a checklist of the usual reasons, and what to do
+- [Google Business Profile without a storefront](https://mannpatel.me/guides/google-business-profile-without-a-storefront/): setting up a profile for a home-based or service-area business
+- [How local businesses show up in ChatGPT and Google AI Overviews](https://mannpatel.me/guides/how-to-get-recommended-by-chatgpt/): what AI assistants draw on, and what a business can fix
+- [Missed-call text-back for salons and cleaners](https://mannpatel.me/guides/missed-call-text-back-for-salons-and-cleaners/): how it works, and what Canada's anti-spam law says about it
+- [How to get more Google reviews (within Google's rules)](https://mannpatel.me/guides/how-to-get-more-google-reviews/): what Google allows and bans, and a routine you can keep
+- [How to optimize your Google Business Profile in Toronto](https://mannpatel.me/guides/how-to-optimize-google-business-profile/): a checklist, with Google's own rules
+- [How much does a website redesign cost in Toronto?](https://mannpatel.me/guides/website-redesign-cost-toronto/): redesign or repair, with my published prices
+
+## Profiles
+- [Google Maps](https://www.google.com/maps?cid=5023923139940890210): my Google Business Profile
+- [LinkedIn](https://www.linkedin.com/in/mannp6903/): my professional profile
+- [GitHub](https://github.com/mannp6903): my code

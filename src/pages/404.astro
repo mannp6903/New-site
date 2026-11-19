@@ -1,0 +1,152 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Button from '../components/ui/Button.astro';
+import Icon from '../components/ui/Icon.astro';
+import { businesses } from '../data/site';
+import Field from '../components/fx/Field.astro';
+
+const nest = businesses[0];
+const links = [
+  { href: '/', label: 'Home' },
+  { href: '/services/', label: 'Services' },
+  { href: '/work/', label: 'Work' },
+  { href: '/about/', label: 'About' },
+  { href: '/contact/', label: 'Start a project' },
+];
+---
+
+<BaseLayout title="Page not found" description="This page doesn’t exist." noindex>
+  <section class="nf" data-field-zone>
+    <Field preset="lost" class="nf__field" />
+    <div class="container nf__grid">
+      <figure class="nf__mark" data-portrait>
+        <div class="nf__stage">
+          <img src="/404-mark.svg" alt="" width="900" height="380" class="nf__img" data-portrait-img />
+          <canvas class="nf__canvas" aria-hidden="true" data-portrait-canvas></canvas>
+        </div>
+      </figure>
+      <div class="nf__text">
+        <p class="eyebrow">Error 404</p>
+        <h1 class="nf__title">This page wasn’t <span class="accent">found</span><span class="stop">.</span></h1>
+        <p class="lead">Which is a little ironic, given what I do. The link may be old, or the address mistyped. These pages do exist:</p>
+        <ul class="nf__links" role="list">
+          {
+            links.map((l) => (
+              <li>
+                <a href={l.href}>
+                  <span class="roll">
+                    <span data-text={l.label}>{l.label}</span>
+                  </span>
+                  <Icon name="arrow" />
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+        {nest.siteLive && (
+          <p class="small subtle text-links">
+            Looking for home cleaning? <a href={nest.url} rel="noopener">Visit {nest.name}</a>.
+          </p>
+        )}
+        <div class="btn-row">
+          <Button href="/">Go to the home page</Button>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  import { mountSignalPortrait } from '../scripts/signal-portrait';
+  document.querySelectorAll<HTMLElement>('[data-portrait]').forEach(mountSignalPortrait);
+</script>
+
+<style>
+  .nf {
+    padding-block: clamp(var(--s-6), 6vw, var(--s-9)) var(--section);
+  }
+  /* Radar dots behind the "404": click anywhere to send a ping looking for the page. */
+  .nf :global(.nf__field) {
+    --fx: 50%;
+    --fy: 30%;
+    --fw: 90%;
+    --fh: 70%;
+  }
+  @media (min-width: 64em) {
+    .nf :global(.nf__field) {
+      --fx: 28%;
+      --fy: 50%;
+      --fw: 55%;
+      --fh: 90%;
+    }
+  }
+  .nf__grid {
+    display: grid;
+    gap: var(--s-7);
+    align-items: center;
+  }
+  .nf__mark {
+    cursor: crosshair;
+    touch-action: pan-y;
+  }
+  .nf__stage {
+    position: relative;
+    aspect-ratio: 900 / 380;
+  }
+  .nf__img,
+  .nf__canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    transition: opacity var(--dur-4) var(--ease-out);
+  }
+  .nf__img {
+    opacity: 0.12;
+  }
+  .nf__canvas {
+    opacity: 0;
+  }
+  .nf__mark:global(.is-ready) .nf__canvas {
+    opacity: 1;
+  }
+  .nf__mark:global(.is-ready) .nf__img {
+    opacity: 0;
+  }
+  .nf__text {
+    display: grid;
+    gap: var(--s-5);
+    justify-items: start;
+  }
+  .nf__title {
+    font-size: var(--fs-h1);
+    max-width: 14ch;
+  }
+  .nf__links {
+    width: 100%;
+    max-width: 30rem;
+    border-top: 1px solid var(--line);
+  }
+  .nf__links li {
+    border-bottom: 1px solid var(--line);
+  }
+  .nf__links a {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 3.25rem;
+    text-decoration: none;
+    font-weight: var(--w-ui);
+    transition: color var(--dur-1);
+  }
+  .nf__links a:hover,
+  .nf__links a:focus-visible {
+    color: var(--signal);
+  }
+  @media (min-width: 64em) {
+    .nf__grid {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      gap: var(--s-9);
+    }
+  }
+</style>

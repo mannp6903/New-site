@@ -1,0 +1,140 @@
+---
+/** Frequently asked questions as accordions (native <details>, smooth height where supported). */
+import { faqs } from '../data/faqs';
+import Confirm from './Confirm.astro';
+import Heading from './ui/Heading.astro';
+import Icon from './ui/Icon.astro';
+
+interface Props {
+  id?: string;
+  limit?: number;
+  more?: boolean;
+  /** A lime-tipped hairline above the section (design upgrade task 3.8; Home sets it). */
+  rule?: boolean;
+}
+const { id = 'faq', limit, more = false, rule = false } = Astro.props;
+const items = typeof limit === 'number' ? faqs.slice(0, limit) : faqs;
+// On phones a long list starts with the first few questions and a button for the rest.
+const SHORT = 5;
+const folds = items.length > SHORT + 1;
+---
+
+<section class:list={['faq section', rule && 'rule-signal']} id={id} aria-labelledby={`${id}-title`}>
+  <div class="container faq__grid">
+    <div class="faq__head stack" style="--stack: var(--head-gap-2)">
+      <!-- 16 Nov 2026: a descriptive heading people search for; the slogan is the eyebrow. -->
+      <p class="eyebrow">Straight answers</p>
+      <Heading id={`${id}-title`} lines={['Web design', '<span class="accent">questions.</span>']} />
+      <p class="muted">
+        Something else on your mind? Ask it in your brief, or email me. I answer every message myself.
+      </p>
+      {
+        more && (
+          <a class="link-arrow" href="/pricing/#pr-faq">
+            Prices, payments and ownership <Icon name="arrow" />
+          </a>
+        )
+      }
+    </div>
+    <div class="faq__list" id={`${id}-list`} data-faq-list>
+      {
+        items.map((f, i) => (
+          <details class:list={['acc', folds && i >= SHORT && 'acc--extra']} name={id}>
+            <summary>
+              <h3 class="acc__q">{f.q}</h3>
+              <span class="acc__plus" aria-hidden="true" />
+            </summary>
+            <div class="acc__body">
+              <p>{f.a}</p>
+              {f.confirm && <Confirm note={f.confirm} />}
+            </div>
+          </details>
+        ))
+      }
+      {
+        folds && (
+          <button class="faq__all" type="button" aria-controls={`${id}-list`} aria-expanded="false" data-faq-all hidden>
+            Show all {items.length} questions
+            <span class="acc__plus" aria-hidden="true" />
+          </button>
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<script>
+  // Phones only: fold the questions after the fifth behind one button. Without JavaScript all are shown.
+  const mq = window.matchMedia('(max-width: 47.99em)');
+  document.querySelectorAll<HTMLElement>('[data-faq-list]').forEach((list) => {
+    const btn = list.querySelector<HTMLButtonElement>('[data-faq-all]');
+    if (!btn) return;
+    let opened = false;
+    const apply = () => {
+      const fold = mq.matches && !opened;
+      list.classList.toggle('is-folded', fold);
+      btn.hidden = !fold;
+    };
+    btn.addEventListener('click', () => {
+      opened = true;
+      btn.setAttribute('aria-expanded', 'true');
+      apply();
+      list.querySelector<HTMLElement>('.acc--extra summary')?.focus();
+    });
+    mq.addEventListener('change', apply);
+    apply();
+  });
+</script>
+
+<style>
+  .faq__grid {
+    display: grid;
+    gap: var(--s-7);
+  }
+  /* Phones: tight section padding, so Home stays within 11 screens (gate S4). */
+  @media (max-width: 39.99em) {
+    .faq {
+      padding-block: var(--section-tight);
+    }
+    .faq__grid {
+      gap: var(--s-6);
+    }
+  }
+  .faq__head h2 {
+    max-width: 10ch;
+  }
+  .faq__list:global(.is-folded) .acc--extra {
+    display: none;
+  }
+  .faq__all {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-4);
+    width: 100%;
+    min-height: 3.5rem;
+    padding-block: var(--s-3);
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    background: none;
+    color: var(--text);
+    font: inherit;
+    font-weight: var(--w-head);
+    text-align: left;
+    cursor: pointer;
+  }
+  .faq__all[hidden] {
+    display: none;
+  }
+  @media (min-width: 64em) {
+    .faq__grid {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+      gap: var(--s-8);
+    }
+    .faq__head {
+      position: sticky;
+      top: calc(var(--header-h) + var(--s-6));
+      align-self: start;
+    }
+  }
+</style>

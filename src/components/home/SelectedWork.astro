@@ -1,0 +1,196 @@
+---
+import { getCollection } from 'astro:content';
+import Icon from '../ui/Icon.astro';
+import ProjectMedia from '../work/ProjectMedia.astro';
+import { projectSite } from '../../lib/work';
+
+const work = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
+const fmtDate = (iso: string) =>
+  new Intl.DateTimeFormat('en-CA', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${iso}T12:00:00Z`));
+---
+
+<section class="sw section" id="work" aria-labelledby="work-title">
+  <div class="container">
+    <div class="sw__head">
+      <!-- 16 Nov 2026: a descriptive heading people search for; the slogan is the eyebrow. -->
+      <p class="eyebrow">01 / Work in the wild</p>
+      <h2 id="work-title" class="sw__title">Website projects in Scarborough<span>.</span></h2>
+      <a class="link-arrow sw__all" href="/work/">All work <Icon name="arrow-ne" /></a>
+      <p class="sw__intro">A business I’m building and a client site in progress. See what each project needed and how I approached it.</p>
+    </div>
+
+    <ol class="sw__list" role="list">
+      {
+        work.map((entry, index) => {
+          const project = entry.data;
+          const site = projectSite(project);
+          const href = `/work/${entry.id}/`;
+          return (
+            <li>
+              <article class="sw__card" aria-labelledby={`sw-${entry.id}`} data-spotlight>
+                <a class="sw__media" href={href} tabindex="-1" aria-hidden="true">
+                  <ProjectMedia scene={project.scene} sizes="(min-width: 90em) 700px, (min-width: 64em) 49vw, 84vw" phoneSizes="(min-width: 90em) 168px, (min-width: 64em) 12vw, 22vw" />
+                </a>
+                <div class="sw__body">
+                  <p class="sw__index num" aria-hidden="true">{String(index + 1).padStart(2, '0')} / {String(work.length).padStart(2, '0')}</p>
+                  <h3 class="sw__name" id={`sw-${entry.id}`}>
+                    <a href={href}>{project.title}</a>
+                  </h3>
+                  <p class="sw__labels">
+                    <span>{project.relationship}</span>
+                    <span class:list={['sw__state', { 'sw__state--live': site.live }]}>
+                      {site.websiteStatus}
+                    </span>
+                  </p>
+                  {project.businessStatus && <p class="sw__business">{project.businessStatus}</p>}
+                  <dl class="sw__facts">
+                    <div><dt>The problem</dt><dd>{project.problem}</dd></div>
+                    <div><dt>My role</dt><dd>{project.roleShort}</dd></div>
+                  </dl>
+                  <div class="sw__foot">
+                    <a class="link-arrow" href={href}>
+                      Read the case study <span class="visually-hidden">: {project.title}</span>
+                      <Icon name="arrow-ne" />
+                    </a>
+                    <p class="num sw__date">Checked {fmtDate(project.checked)}</p>
+                  </div>
+                </div>
+              </article>
+            </li>
+          );
+        })
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  /* Paper band. Lime budget (design upgrade Phase 1): no lime or olive text here. Accents are ink; the live tag is a
+     lime fill with ink text. */
+  .sw {
+    --text: var(--paper-text);
+    --text-2: var(--paper-text-2);
+    --text-3: var(--paper-text-3);
+    --line: var(--paper-line);
+    --focus: var(--focus-on-light);
+    --eyebrow-mark: var(--paper-text);
+    /* Real work starts by y=1150 on a 1440px desktop (acceptance target, tests/e2e/site.spec.ts). */
+    padding-block: var(--section-tight);
+    background: var(--paper-section);
+    color: var(--text);
+    color-scheme: light;
+  }
+  .sw__head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: var(--head-gap-2) var(--s-4);
+    margin-bottom: clamp(var(--s-6), 5vw, var(--s-9));
+    /* D9 (design upgrade Phase 2): no hairline above the head; the paper band's own edge divides it from the hero, so
+       the heading starts by y=1,000 at 1440×900. */
+  }
+  .sw__head .eyebrow, .sw__intro { grid-column: 1 / -1; }
+  .sw__head .eyebrow { margin-bottom: calc(var(--head-gap-1) - var(--head-gap-2)); }
+  .sw__title {
+    font-size: var(--fs-h2);
+    letter-spacing: var(--track-head);
+    line-height: 1;
+    font-weight: var(--w-head);
+  }
+  .sw__intro { max-width: 58ch; color: var(--text-2); }
+  .sw__all { white-space: nowrap; }
+  .sw__list { display: grid; }
+  .sw__card {
+    display: grid;
+    gap: var(--s-5);
+    padding-block: clamp(var(--s-4), 3vw, var(--s-7));
+    border-top: 1px solid var(--line);
+  }
+  .sw__list > li:last-child { border-bottom: 1px solid var(--line); }
+  .sw__media {
+    --pm-bg: var(--media-bg-1);
+    position: relative;
+    display: block;
+    align-self: start;
+    text-decoration: none;
+  }
+  .sw__list > li:nth-child(even) .sw__media { --pm-bg: var(--media-bg-2); }
+  .sw__media :global(.pm) { border-radius: 0; }
+  .sw__body {
+    display: grid;
+    align-content: center;
+    justify-items: start;
+    min-width: 0;
+    gap: var(--s-3);
+  }
+  .sw__index, .sw__date {
+    color: var(--text-3);
+    font-size: var(--fs-label);
+  }
+  .sw__name {
+    font-size: var(--fs-h3);
+    font-weight: var(--w-head);
+    letter-spacing: var(--track-head);
+    line-height: 1.1;
+    text-wrap: initial;
+  }
+  .sw__name a { text-decoration: none; }
+  .sw__name a:hover,
+  .sw__name a:focus-visible { text-decoration: underline; text-decoration-thickness: 2px; }
+  .sw__labels {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35em 0.7em;
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    font-weight: var(--w-ui);
+  }
+  .sw__labels > span {
+    padding: 0.32em 0.7em;
+    border: 1px solid var(--line);
+    border-radius: var(--r-pill);
+  }
+  .sw__labels > .sw__state--live {
+    background: var(--signal);
+    border-color: var(--signal);
+    color: var(--ink);
+  }
+  .sw__business { color: var(--text-3); font-size: var(--fs-sm); }
+  .sw__facts { display: grid; gap: var(--s-2); }
+  .sw__facts dt {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    font-weight: var(--w-ui);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+  }
+  .sw__facts dd { color: var(--text-2); max-width: 47ch; }
+  .sw__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-2) var(--s-5);
+  }
+  /* Each card follows its own width (design upgrade Phase 6, task 6.2): picture beside the words from 58rem. */
+  .sw__list > li {
+    container: sw-card / inline-size;
+  }
+  @container sw-card (min-width: 58rem) {
+    .sw__card {
+      grid-template-columns: minmax(0, 1.52fr) minmax(0, 1fr);
+      gap: clamp(var(--s-6), 5vw, var(--s-9));
+    }
+    .sw__list > li:nth-child(even) .sw__card { grid-template-columns: minmax(0, 1fr) minmax(0, 1.52fr); }
+    .sw__list > li:nth-child(even) .sw__media { grid-column: 2; grid-row: 1; }
+    .sw__list > li:nth-child(even) .sw__body { grid-column: 1; grid-row: 1; }
+  }
+  @media (max-width: 39.99em) {
+    .sw__head { grid-template-columns: 1fr; }
+    .sw__intro, .sw__facts dd { font-size: var(--fs-sm); }
+    .sw__index { display: none; }
+    .sw__body { gap: var(--s-2); }
+    .sw__all { grid-row: 4; justify-self: start; }
+  }
+</style>

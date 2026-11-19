@@ -1,0 +1,52 @@
+---
+/** Opening block of inner pages: label, a large line-by-line title, intro, optional extras. */
+import Heading from './ui/Heading.astro';
+
+interface Props {
+  eyebrow: string;
+  lines: string[];
+  lead?: string;
+  class?: string;
+  /** Longer, descriptive titles (a service and a place): a smaller size and a wider measure. */
+  compact?: boolean;
+}
+const { eyebrow, lines, lead, class: cls, compact = false } = Astro.props;
+---
+
+<header class:list={['ph', compact && 'ph--compact', cls]}>
+  <div class="container ph__inner">
+    <p class="eyebrow">{eyebrow}</p>
+    <Heading as="h1" lines={lines} class="ph__title" load />
+    {lead && <p class="lead ph__lead" data-reveal="load" style="--d:4">{lead}</p>}
+    <slot />
+  </div>
+</header>
+
+<style>
+  .ph {
+    position: relative;
+    overflow: clip;
+    padding-block: clamp(var(--s-7), 7vw, var(--s-10)) clamp(var(--s-6), 5vw, var(--s-8));
+  }
+  .ph__inner {
+    position: relative;
+    display: grid;
+    row-gap: var(--head-gap-2);
+    justify-items: start;
+  }
+  .ph__inner > .eyebrow {
+    margin-bottom: calc(var(--head-gap-1) - var(--head-gap-2));
+  }
+  .ph__inner :global(.ph__title) {
+    font-size: var(--fs-h1);
+    max-width: 16ch;
+  }
+  .ph--compact .ph__inner :global(.ph__title) {
+    font-size: var(--fs-h1);
+    max-width: 24ch;
+    line-height: 1;
+  }
+  .ph__lead {
+    max-width: 52ch;
+  }
+</style>

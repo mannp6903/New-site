@@ -1,0 +1,433 @@
+---
+/**
+ * Footer: closing call to action (hidden on the contact page), link columns, the kinetic
+ * MΛNN PΛTEL wordmark (letters lift and turn lime near the pointer) and the bottom bar with the
+ * Toronto clock.
+ */
+import { profile, businesses, gbp, footerPages } from '../data/site';
+import { groups } from '../data/services';
+import { moreServicePages, servicePageForGroup } from '../data/service-pages';
+import { pricesPublished } from '../data/packages';
+import { contact, emailHref } from '../lib/contact';
+import Button from './ui/Button.astro';
+import Heading from './ui/Heading.astro';
+import Icon from './ui/Icon.astro';
+import ContactActions from './ContactActions.astro';
+import SocialLinks from './SocialLinks.astro';
+import Wordmark from './ui/Wordmark.astro';
+import { businessHref } from '../lib/work';
+import { areaHref, visibleAreas, visibleNav } from '../lib/published';
+import { areaPath } from '../data/areas';
+
+interface Props {
+  cta?: boolean;
+}
+const { cta = true } = Astro.props;
+const year = new Date().getFullYear();
+const mail = emailHref();
+const nest = businesses[0];
+// SEO audit Phase 3: the Scarborough page and the guides are linked only once they are public (previews show drafts).
+// Guides is in the main menu since the Nov 2026 audit fixes, so it comes through visibleNav().
+const scarborough = areaHref('scarborough');
+const nav = await visibleNav();
+// Area pages other than the home base (linked in the "Based in …" line): North York once it is published.
+const otherAreas = visibleAreas().filter((a) => a.name !== profile.location);
+// Website Playbook (16 Nov 2026): the two service pages with no group of their own, so every service page is one
+// click from any page.
+const footerMore = moreServicePages.filter((sp) => sp.slug === 'website-care' || sp.slug === 'ai-search-optimization');
+---
+
+<footer class="ftr rule-signal">
+  {
+    cta && (
+      <section class="ftr__cta container" aria-labelledby="ftr-cta-title">
+        <p class="eyebrow">Next step</p>
+        <Heading id="ftr-cta-title" class="ftr__title" lines={['Tell me what isn’t working.', '<span class="accent">I’ll tell you where to start</span><span class="stop">.</span>']} />
+        <div class="ftr__cta-row">
+          <p class="lead ftr__lead">
+            A short brief takes two minutes. I read every one myself and reply by email<span class="ftr__more">, usually with a few questions or a
+            suggested first step</span>.
+          </p>
+          <div class="ftr__actions">
+            <div class="btn-row">
+              <Button href="/contact/" data-magnetic>Start a project</Button>
+              <Button href="/contact/?package=check-up#check" variant="ghost">
+                Request the free check
+              </Button>
+            </div>
+            <ContactActions label="Or reach me directly" class="ftr__reach" />
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <div class="ftr__grid container">
+    <nav class="ftr__col ftr__col--pages" aria-label="Footer">
+      <p class="ftr__h">Pages</p>
+      <ul role="list">
+        <li><a class="link-quiet" href="/">Home</a></li>
+        {[...nav, ...footerPages].map((n) => <li><a class="link-quiet" href={n.href}>{n.label}</a></li>)}
+        <li><a class="link-quiet" href="/contact/">Contact</a></li>
+      </ul>
+    </nav>
+    <div class="ftr__col ftr__col--services">
+      <p class="ftr__h">Services</p>
+      <ul role="list">
+        {groups.map((g) => {
+          const sp = servicePageForGroup(g.id);
+          return <li><a class="link-quiet" href={sp ? `/services/${sp.slug}/` : `/services/#${g.id}`}>{sp ? sp.short : g.title}</a></li>;
+        })}
+        {footerMore.map((sp) => <li><a class="link-quiet" href={`/services/${sp.slug}/`}>{sp.short}</a></li>)}
+        <li><a class="link-quiet" href={pricesPublished ? '/pricing/' : '/services/#packages'}>{pricesPublished ? 'Pricing' : 'Packages'}</a></li>
+        {otherAreas.map((a) => <li><a class="link-quiet" href={areaPath(a)}>Web design in {a.name}</a></li>)}
+        <li><a class="link-quiet" href="/services/#check">Free website and Google check</a></li>
+      </ul>
+    </div>
+    <div class="ftr__col ftr__col--wide">
+      <p class="ftr__h">Contact</p>
+      <ul role="list">
+        {
+          contact.email && (
+            <li class="ftr__email">
+              <a class="link-quiet" href={mail} data-contact="email">
+                {contact.email}
+              </a>
+              <button class="copy" type="button" data-copy={contact.email}>
+                <Icon name="copy" />
+                <span class="visually-hidden">Copy email address</span>
+              </button>
+            </li>
+          )
+        }
+        {
+          contact.phone && (
+            <li class="ftr__phone">
+              <a class="link-quiet num" href={contact.phone.tel} data-reach="call" data-k={contact.phone.key} data-contact="phone">
+                <Icon name="phone" />
+                <span class="visually-hidden">Call </span>
+                {contact.phone.display}
+              </a>
+            </li>
+          )
+        }
+        {
+          contact.phone && (
+            <li class="ftr__phone">
+              <a class="link-quiet" href="/contact/#reach" data-reach="whatsapp" data-k={contact.phone.key} data-contact="whatsapp" rel="noopener">
+                <Icon name="whatsapp" />
+                Message on WhatsApp
+              </a>
+            </li>
+          )
+        }
+        {
+          profile.contact.replyTime && (
+            <li class="subtle" data-reply-time>
+              <span>{profile.contact.replyTime}</span>
+            </li>
+          )
+        }
+        <li class="subtle">
+          <span>Based in {scarborough ? <a class="ftr__area" href={scarborough}>{profile.location}</a> : profile.location}, working across {profile.serviceArea}.</span>
+        </li>
+      </ul>
+    </div>
+    <div class="ftr__col">
+      <p class="ftr__h">Elsewhere</p>
+      <SocialLinks class="ftr__social" />
+      <ul role="list">
+        <li>
+          <a class="link-quiet" href={businessHref(nest)} rel={nest.siteLive ? 'noopener' : undefined}>
+            {nest.name}
+            <Icon name={nest.siteLive ? 'arrow-ne' : 'arrow'} />
+          </a>
+        </li>
+        {
+          // 16 Nov 2026: the Business Profile's review link, once Mann adds it (src/data/site.ts → gbp.reviewUrl).
+          gbp.reviewUrl && (
+            <li>
+              <a class="link-quiet" href={gbp.reviewUrl} rel="noopener" data-review-link>
+                Clients: leave a Google review
+                <Icon name="arrow-ne" />
+              </a>
+            </li>
+          )
+        }
+      </ul>
+    </div>
+  </div>
+
+  <div class="ftr__name container" data-kinetic aria-hidden="true">
+    <Wordmark class="ftr__wm" kinetic />
+  </div>
+
+  <div class="ftr__bottom container">
+    <p>© {year} {profile.name} · Toronto, Canada</p>
+    <p class="num ftr__clock">
+      <span class="status__dot" aria-hidden="true"></span>
+      Toronto time <time data-clock>--:--</time>
+    </p>
+    <p class="ftr__legal">
+      <a class="link-quiet" href="/privacy/">Privacy</a>
+      <a class="link-quiet" href="/terms/">Terms</a>
+      <a class="link-quiet ftr__top" href="#main">Back to top <Icon name="arrow" class="up" /></a>
+    </p>
+  </div>
+</footer>
+
+<style>
+  .ftr {
+    position: relative;
+    margin-top: auto;
+    overflow: clip;
+  }
+  .ftr__cta {
+    padding-block: var(--section) var(--section-tight);
+    display: grid;
+    row-gap: var(--head-gap-2);
+  }
+  .ftr__cta > .eyebrow {
+    margin-bottom: calc(var(--head-gap-1) - var(--head-gap-2));
+  }
+  .ftr__title {
+    font-size: var(--fs-h2);
+    font-weight: var(--w-head);
+    letter-spacing: var(--track-head);
+    line-height: 1;
+    max-width: 18ch;
+  }
+  .ftr__cta-row {
+    display: grid;
+    gap: var(--s-5);
+    align-items: start;
+  }
+  .ftr__actions {
+    display: grid;
+    gap: var(--s-4);
+  }
+  @media (min-width: 64em) {
+    .ftr__cta-row {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: var(--s-8);
+    }
+  }
+
+  .ftr__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s-5) var(--s-5);
+    padding-block: var(--s-6);
+    border-top: 1px solid var(--line);
+  }
+  .ftr__col--wide {
+    grid-column: 1 / -1;
+  }
+    @media (min-width: 48em) {
+    .ftr__grid {
+      gap: var(--s-7) var(--s-5);
+      padding-block: var(--s-8);
+    }
+  }
+  @media (min-width: 56em) {
+    .ftr__grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .ftr__col--wide {
+      grid-column: auto;
+    }
+  }
+  /* Column labels: styled paragraphs, not headings (SEO audit, 14 Nov 2026). */
+  .ftr__h {
+    margin-top: 0;
+    margin-bottom: var(--s-4);
+    line-height: 1;
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    font-weight: var(--w-ui);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  /* Website Playbook (16 Nov 2026): every footer link is at least 44 × 44px (--tap), rows touching. */
+  .ftr__col ul {
+    display: grid;
+    gap: 0;
+    font-size: var(--fs-sm);
+  }
+  .ftr__col li {
+    min-height: var(--tap);
+    display: flex;
+    align-items: center;
+  }
+  .ftr__col li.subtle {
+    font-size: var(--fs-sm);
+    line-height: 1.45;
+    margin-top: var(--s-2);
+  }
+  .link-quiet {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    min-height: var(--tap);
+    min-width: var(--tap);
+    color: var(--text-2);
+    text-decoration: none;
+    transition: color var(--dur-1);
+    overflow-wrap: anywhere;
+  }
+  .link-quiet:hover,
+  .link-quiet:focus-visible {
+    color: var(--signal);
+  }
+  .link-quiet .icon {
+    width: 0.95em;
+    height: 0.95em;
+  }
+  .ftr__email {
+    gap: var(--s-2);
+  }
+  /* The "Based in Scarborough" link, inside the sentence (SEO audit Phase 3, once the page is public). */
+  .ftr__area {
+    color: var(--text-2);
+    text-decoration: underline;
+    text-decoration-color: var(--line);
+    text-underline-offset: 0.2em;
+    transition: color var(--dur-1);
+  }
+  .ftr__area:hover,
+  .ftr__area:focus-visible {
+    color: var(--signal);
+  }
+  .ftr__col :global(.ftr__social) {
+    margin-bottom: var(--s-4);
+  }
+  .copy {
+    display: inline-grid;
+    place-items: center;
+    width: var(--tap);
+    height: var(--tap);
+    flex: none;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-2);
+    transition: border-color var(--dur-1), color var(--dur-1), background-color var(--dur-1);
+  }
+  .copy:hover,
+  .copy:focus-visible {
+    border-color: var(--control);
+    color: var(--text);
+  }
+  .copy:global(.is-copied) {
+    background: var(--signal);
+    border-color: var(--signal);
+    color: var(--on-signal);
+  }
+  .copy .icon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  /* The kinetic name: sized to the viewport; letters respond to the pointer through --g. */
+  .ftr__name {
+    padding-top: clamp(var(--s-2), 2.4vw, var(--s-6));
+    padding-bottom: clamp(var(--s-4), 3.4vw, 3.5rem);
+    user-select: none;
+  }
+  .ftr__name :global(.ftr__wm) {
+    width: 100%;
+    height: auto;
+    color: var(--text);
+  }
+  .ftr__name :global([data-k-ch]) {
+    --g: 0;
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    translate: 0 calc(var(--g) * -9%);
+    transition: translate var(--dur-3) var(--ease-out);
+  }
+  /* The colour change is a lime copy of each letter fading in: opacity, not fill (SEO audit Phase 4). */
+  .ftr__name :global(.wm__lit) {
+    fill: var(--signal);
+    opacity: var(--g);
+    transition: opacity var(--dur-3) var(--ease-out);
+  }
+  .ftr__name :global([data-lam] .wm__lit) {
+    fill: var(--signal-strong);
+  }
+
+  .ftr__bottom {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--s-3) var(--s-6);
+    padding-block: var(--s-5) var(--s-6);
+    border-top: 1px solid var(--line);
+    font-size: var(--fs-sm);
+    color: var(--text-3);
+  }
+  .ftr__clock {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    font-size: var(--fs-label);
+    letter-spacing: 0.04em;
+  }
+  .ftr__legal {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2) var(--s-5);
+  }
+  .ftr__top .up {
+    transform: rotate(-90deg);
+  }
+  /* Phones: contact first, pages as one wrapped line, services left to the menu and Services page. */
+  @media (max-width: 47.99em) {
+    .ftr__col--wide {
+      order: -1;
+    }
+    .ftr__col--services {
+      display: none;
+    }
+    .ftr__col--pages {
+      grid-column: 1 / -1;
+    }
+    .ftr__col--pages ul {
+      display: flex;
+      row-gap: 0;
+      flex-wrap: wrap;
+      column-gap: var(--s-5);
+    }
+    .ftr__more {
+      display: none;
+    }
+    .ftr__actions :global(.ftr__reach .ca__label) {
+      display: none;
+    }
+    .ftr__grid {
+      gap: var(--s-4) var(--s-5);
+      padding-block: var(--s-5);
+    }
+    .ftr__h {
+      margin-bottom: var(--s-2);
+    }
+    /* "Based in Scarborough, working across Toronto and the GTA" stays visible on phones (SEO audit, 14 Nov 2026). */
+    .ftr__col li.subtle {
+      margin-top: var(--s-1);
+    }
+    .ftr__col:not(.ftr__col--wide) {
+      grid-column: 1 / -1;
+    }
+    .ftr__col:not(.ftr__col--wide) ul {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0 var(--s-5);
+    }
+    .ftr__bottom {
+      padding-block: var(--s-4) var(--s-5);
+      gap: var(--s-2) var(--s-5);
+    }
+  }
+</style>

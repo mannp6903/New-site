@@ -1,0 +1,148 @@
+---
+/**
+ * Privacy notice. It describes what the code actually does, and the text adapts to the
+ * configuration: analytics appear only if PUBLIC_GA4_ID is set. The processors named below
+ * (Cloudflare for hosting and email delivery, Google for the inbox) must match the production
+ * setup (ENQUIRY_DELIVERY=cloudflare); update this page if that ever changes.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Legal from '../components/Legal.astro';
+import PreviewNote from '../components/PreviewNote.astro';
+import { profile } from '../data/site';
+import { PUBLIC_GA4_ID, PUBLIC_TURNSTILE_SITE_KEY } from 'astro:env/client';
+
+const updated = '8 November 2026';
+const contactEmail = profile.contact.email;
+---
+
+<BaseLayout
+  title="Privacy Policy"
+  description="Privacy Policy for mannpatel.me: what the website collects through the project brief form, why, where it goes, how long it is kept, cookies, and your choices."
+>
+  <Legal title="Privacy Policy" lead="How your information is handled on mannpatel.me." updated={updated} see={{ href: '/terms/', label: 'Terms of Use' }}>
+
+      <h2>Who is responsible</h2>
+      <p>
+        This website is run by {profile.name}, a sole proprietor in Toronto, Ontario, Canada. I am responsible for the
+        personal information it collects.{contactEmail && <> Questions or requests: <a href={`mailto:${contactEmail}`}>{contactEmail}</a>.</>}
+      </p>
+
+      <h2>The short version</h2>
+      <ul>
+        <li>The only personal information this site collects is what you type into the project brief or the free check form.</li>
+        <li>I use it only to reply to you and, if we work together, to run the project.</li>
+        <li>I don’t sell it, rent it or add you to a mailing list.</li>
+        <li>
+          {PUBLIC_GA4_ID
+            ? 'Visit statistics are collected only if you allow them, and never include what you type into forms.'
+            : 'Visits are counted without cookies, and there are no advertising or tracking cookies.'}
+        </li>
+      </ul>
+
+      <h2>What the forms collect</h2>
+      <p>
+        <strong>Project brief:</strong> your name and email (required); optionally your business name, website, phone
+        number, budget range and timeframe; the services you tick; and your message. <strong>Free check:</strong> your
+        name and email (required), your website or business name (one of the two), and an optional note. The server also uses your IP address briefly, in memory, to
+        limit repeated submissions, and keeps only a one-way hash of it, in memory, for that purpose. Like most websites, the hosting provider’s standard logs may also record IP addresses for security and troubleshooting. Hidden fields record a time
+        check and a random submission number, used to block spam and prevent duplicate messages.
+      </p>
+
+      <h2>Where it goes</h2>
+      <p>
+        <strong>When the form can send directly</strong>, the website’s server checks what you entered and emails it to
+        my inbox; the confirmation you see means the website accepted it and passed it on for delivery.
+        <strong>When direct sending isn’t available</strong>, the form says so before you send. Its button then opens your
+        own email app with your answers filled in (or lets you copy them), and nothing is sent until you send that email
+        yourself: it then goes through your own email provider, under its terms, to my address. The website doesn’t keep
+        a copy either way.
+      </p>
+      <p>Two services handle direct sending, and email to my address, on my behalf, only to do that job:</p>
+      <ul>
+        <li>
+          <strong>Cloudflare</strong> hosts this website, runs the code that checks the form, and delivers the email
+          with your brief (Cloudflare Email). Emails to {contactEmail ?? 'my business address'} pass through Cloudflare
+          Email Routing too.
+        </li>
+        <li><strong>Google</strong> (Gmail) hosts the inbox where those emails arrive.</li>
+      </ul>
+      <p>
+        Both companies are based in the United States and run their networks worldwide. Your information may be
+        processed and stored outside Canada, including in the United States, where it is subject to local laws.
+      </p>
+      <p>
+        If you call, text or message me on WhatsApp, your number and messages are handled by your phone carrier or by
+        WhatsApp (Meta) under their own terms. I use them only to reply to you.
+      </p>
+      {
+        PUBLIC_TURNSTILE_SITE_KEY && (
+          <p>
+            The form uses Cloudflare Turnstile to check that a person, not a bot, is sending it. Cloudflare processes
+            technical information about your browser for that check.
+          </p>
+        )
+      }
+
+      <h2>How long it’s kept</h2>
+      <p>
+        Enquiries that don’t become projects are deleted from my inbox within 12 months. If we work together, project
+        records are kept for as long as needed for the work and for tax and legal requirements. Cloudflare keeps
+        limited email delivery logs under its own policy.
+      </p>
+
+      <h2 id="analytics">Analytics and cookies</h2>
+      <p>
+        Cloudflare, which hosts this site, counts page views with Cloudflare Web Analytics. It doesn’t use cookies or
+        browser storage, doesn’t build a profile of you across websites, and never sees what you type into the form.
+      </p>
+      {
+        PUBLIC_GA4_ID ? (
+          <p>
+            If you choose “Allow”, Google Analytics 4 records usage statistics, such as pages viewed and whether a brief
+            was sent (counted as an event, without its contents), using a cookie that recognises your browser but not
+            your name or email. Advertising features are off. Your choice is stored in
+            your browser’s local storage; clear it to be asked again. If you choose “No thanks”, Analytics doesn’t load.
+          </p>
+        ) : (
+          <p>
+            There are no advertising or tracking cookies, and nothing here asks for your consent because nothing needs
+            it. If that changes, this page will be updated and you will be asked before anything loads.
+          </p>
+        )
+      }
+
+      <h2>Your choices</h2>
+      <p>
+        You can ask to see, correct or delete the information you sent. Canadian privacy law (PIPEDA) gives you these
+        rights.
+        {contactEmail ? (
+          <>
+            {' '}Email <a href={`mailto:${contactEmail}`}>{contactEmail}</a>.
+          </>
+        ) : (
+          ' Reply to any email from me, or send a brief saying what you need.'
+        )}
+      </p>
+      {!contactEmail && <PreviewNote note="a privacy contact email is recommended" />}
+
+      <h2>Security</h2>
+      <p>
+        The site is served only over HTTPS. Form messages are checked by the server and emailed to my inbox; the
+        website itself doesn’t store them. No system is perfectly secure, so please don’t send passwords, payment card
+        numbers or other sensitive details through the form.
+      </p>
+
+      <h2>Children</h2>
+      <p>This website is for business owners. It isn’t aimed at children, and I don’t knowingly collect their information.</p>
+
+      <h2>Links to other sites</h2>
+      <p>
+        Links to other websites, including Nest &amp; Rest Cleaning, have their own privacy policies.
+      </p>
+
+      <h2>Changes to this policy</h2>
+      <p>
+        If the way this site handles information changes, this page is updated and the date at the top changes with it.
+      </p>
+  </Legal>
+</BaseLayout>

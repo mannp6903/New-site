@@ -1,0 +1,600 @@
+---
+import { Picture } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Heading from '../components/ui/Heading.astro';
+import Button from '../components/ui/Button.astro';
+import Icon from '../components/ui/Icon.astro';
+import ContactActions from '../components/ContactActions.astro';
+import SocialLinks from '../components/SocialLinks.astro';
+import Process from '../components/Process.astro';
+import { profile, businesses, gbp, social } from '../data/site';
+import { businessHref } from '../lib/work';
+import Crumbs from '../components/Crumbs.astro';
+import { breadcrumbJsonLd, personJsonLd } from '../lib/seo';
+
+const nest = businesses[0];
+// "Find me elsewhere" (16 Nov 2026): the profiles that are set, so people (and search engines) can match this site to
+// the same Mann Patel elsewhere. YouTube and Facebook appear once their links are added in src/data/site.ts.
+const profileUrl = (id: string) => social.find((s) => s.id === id)?.url ?? null;
+const elsewhere = [
+  { t: 'Google Business Profile', d: 'My business on Google Maps, with my services and the area I work in.', url: gbp.url, me: false },
+  { t: 'LinkedIn', d: 'My professional profile.', url: profileUrl('linkedin'), me: true },
+  { t: 'GitHub', d: 'Code I’ve published.', url: profileUrl('github'), me: true },
+  { t: 'YouTube', d: 'My videos.', url: profileUrl('youtube'), me: true },
+  { t: 'Facebook', d: 'My business page.', url: profileUrl('facebook'), me: false },
+].filter((p): p is typeof p & { url: string } => Boolean(p.url));
+const glance = [
+  {
+    t: 'What I deliver',
+    d: 'Websites of up to five pages with one tested enquiry path, Google Business Profile and listings, follow-up and booking workflows, and monthly website care.',
+    href: '/services/',
+    link: 'Services and packages',
+  },
+  {
+    t: 'Who it’s for',
+    d: 'Owner-run service businesses in Toronto and the GTA, especially in Scarborough and North York: cleaning, salons and personal care, maintenance, trades and other businesses that meet customers in person.',
+  },
+  {
+    t: 'How work is checked',
+    d: 'Every enquiry path is tested end to end before launch, with layout and accessibility checks. The case studies show the dated test results, including what is still open.',
+    href: '/work/',
+    link: 'See the work',
+  },
+  {
+    t: 'Replies and timing',
+    d: 'I read and answer every enquiry myself, by email. Each written scope includes a start date and a dated plan.',
+    href: '/contact/',
+    link: 'Contact',
+  },
+  {
+    t: 'What you keep',
+    d: 'Every account, domain and file in your name, and a written handover. I’m added as a user, not the owner.',
+  },
+];
+const principles = [
+  {
+    title: 'Plain language, written down.',
+    text: 'Every proposal lists the deliverables, what you provide, what’s excluded and who pays any third-party fees. Technical terms come with a one-line explanation.',
+  },
+  {
+    title: 'You own it.',
+    text: 'Domains, accounts, files and logins are created in your name. I’m added as a user, not the owner, and removed at handover if you prefer.',
+  },
+  {
+    title: 'Foundations first.',
+    text: 'Launch a small, working version, check it with real enquiries, then improve, instead of a big project that never ships.',
+  },
+  {
+    title: 'Honest about limits.',
+    text: 'No guaranteed rankings, followers, leads or inbox placement. I’ll tell you what I control, what Google or Meta control, and what you’ll need to keep doing.',
+  },
+];
+// Mann's story, in his words (confirmed for the site). Each chapter is tied to a place.
+const chapters = [
+  {
+    place: 'Palana, Gujarat → Toronto',
+    text: 'I grew up in Palana, a very small rural village in Gujarat, India. After immigrating to Canada, I studied computer programming at Seneca College and paid my way with low-wage jobs: first at Subway in North York, then as a security guard at the Pan Am Sports Centre in Scarborough.',
+  },
+  {
+    place: 'Toronto → Saint John, NB',
+    text: 'I failed C++ three times, and it pushed me into a very dark phase. I kept going and finished my studies, then moved to Saint John, New Brunswick, where I worked at a burrito restaurant and at a bubble tea shop in Rothesay.',
+  },
+  {
+    place: 'Thunder Bay, ON',
+    text: 'Next I moved to Thunder Bay, Ontario, with no job lined up. I worked at Dairy Queen, then got a job as a housekeeper at a casino. That winter I fell into depression. I lost the job after missing shifts while I was unwell, and for about six months after that I was in a very bad place.',
+  },
+  {
+    place: 'North York',
+    text: 'I moved back to North York and struggled to find work. I took jobs at a few gas stations, but none of them lasted long. Slowly I came out of the depression and started learning new skills.',
+  },
+  {
+    place: 'Today',
+    text: 'Today I work overnight at Walmart Canada, with a second role as a modular associate. I was trained on power equipment within my first 45 days, and I’ve been trusted as acting lead for the dairy and frozen department. I still learn something new every day.',
+  },
+];
+// The page about Mann himself is the profile page; the home page carries the WebSite (src/lib/seo.ts).
+const jsonLd = { '@context': 'https://schema.org', '@type': 'ProfilePage', mainEntity: personJsonLd() };
+// SEO report follow-up (19 Nov 2026): a breadcrumb, as on the service, area and guide pages.
+const crumbs = breadcrumbJsonLd([
+  { name: 'Home', path: '/' },
+  { name: 'About', path: '/about/' },
+]);
+---
+
+<BaseLayout
+  title="About"
+  fullTitle="About Mann Patel | Website Designer in Toronto"
+  description="Mann Patel is an independent website designer in Toronto. What he delivers, how the work is checked, and his story from Palana, Gujarat to Toronto."
+  jsonLd={[jsonLd, ...(crumbs ? [crumbs] : [])]}
+>
+  <Crumbs items={[{ label: 'Home', href: '/' }, { label: 'About' }]} />
+  <header class="ab-head">
+    <div class="container ab-head__grid">
+      <div class="ab-head__text">
+        <p class="eyebrow">About</p>
+        <Heading
+          as="h1"
+          class="ab-title"
+          lines={['I’m Mann Patel.', 'I build websites and enquiry follow-up', '<span class="accent">for Toronto service businesses</span><span class="stop">.</span>']}
+          load
+        />
+        <p class="lead" data-reveal="load" style="--d:3">
+          I’m a freelance web designer in Toronto, based in Scarborough: clear websites, Google and Maps listings, and
+          enquiry follow-up for owner-run small businesses across Toronto and the GTA, with a focus on Scarborough and North York. I’m also starting {nest.name}, my own home-cleaning business in
+          {nest.area}, which opens for bookings in summer 2027.
+        </p>
+        <div class="ab-reach" data-reveal="load" style="--d:5">
+          {/* U4 (design upgrade Phase 3): a main button within the first two phone screens (after the photo on phones). */}
+          <div class="btn-row">
+            <Button href="/contact/?package=check-up#check">Get a free website and Google check</Button>
+          </div>
+          <a class="link-arrow" href="#glance">What I deliver and how I work <Icon name="arrow-down" /></a>
+          <a class="link-arrow" href="#story">My story, from Palana to Toronto <Icon name="arrow-down" /></a>
+          <ContactActions label="Say hello" />
+          <SocialLinks label="Find me online" />
+        </div>
+      </div>
+      {
+        profile.portrait && (
+          <figure class="ab-photo" data-reveal="load-media" style="--d:2">
+            <Picture
+              src={profile.portrait.src}
+              alt={profile.portrait.alt}
+              formats={['avif']}
+              fallbackFormat="webp"
+              widths={[360, 400, 480, 560, 680, 800, 1060, 1254]}
+              data-src-w={profile.portrait.src.width}
+              sizes="(min-width: 90em) 512px, (min-width: 64em) 36vw, 93vw"
+              priority
+            />
+            <figcaption class="num">
+              <span>Mann Patel</span>
+              <span>Toronto · 2026</span>
+            </figcaption>
+          </figure>
+        )
+      }
+    </div>
+  </header>
+
+  {/* Round 10 (audit 8 Nov 2026): the buyer's practical questions first; the personal story follows. */}
+  <section class="section section--rule" id="glance" aria-labelledby="glance-title">
+    <div class="container glance">
+      <div class="stack" style="--stack: var(--s-4)">
+        <p class="eyebrow">At a glance</p>
+        <h2 id="glance-title" class="glance__title">What I do, <span class="accent">and how.</span></h2>
+      </div>
+      <dl class="glance__list">
+        {
+          glance.map((g) => (
+            <div>
+              <dt>{g.t}</dt>
+              <dd>
+                {g.d}
+                {g.href && (
+                  <>
+                    {' '}
+                    <a class="link" href={g.href}>
+                      {g.link}
+                    </a>
+                  </>
+                )}
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </section>
+
+  {/* SEO audit Phase 2 (14 Nov 2026): the five steps with what you do and what I do, moved from the old /services/. */}
+  <Process />
+
+  <section class="section section--alt section--rule" aria-labelledby="principles-title">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">How I work</p>
+        <Heading id="principles-title" lines={['Four', '<span class="accent">house rules.</span>']} />
+      </div>
+      <ol class="rules rail" role="list" aria-label="House rules" data-rail>
+        {
+          principles.map((p, i) => (
+            <li>
+              <span class="rules__n" aria-hidden="true">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <h3>{p.title}</h3>
+              <p class="muted">{p.text}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="vision-title">
+    <div class="container vision">
+      <p class="eyebrow">Where I’m going</p>
+      <Heading id="vision-title" lines={['Foundations done properly,', '<span class="accent">explained clearly.</span>']} />
+      <p class="lead vision__lead">
+        My aim is to be the person Toronto’s small-business owners call when they want their Google presence, website and
+        follow-up set up properly and explained in plain language, while I grow {nest.name} into a business that proves those
+        foundations work.
+      </p>
+    </div>
+  </section>
+
+  <section class="section section--rule" id="story" aria-labelledby="story-title">
+    <div class="container story">
+      <div class="story__head">
+        <p class="eyebrow">My story</p>
+        <Heading id="story-title" lines={['Not a straight line.', '<span class="accent">Still going.</span>']} />
+      </div>
+      <ol class="chapters rail" role="list" aria-label="My story, in six chapters" data-rail>
+        {
+          chapters.map((c, i) => (
+            <li class="chapter">
+              <p class="chapter__place num">
+                <span class="chapter__n">{String(i + 1).padStart(2, '0')}</span>
+                {c.place}
+              </p>
+              <p class="chapter__text">{c.text}</p>
+            </li>
+          ))
+        }
+        <li class="chapter chapter--now">
+          <p class="chapter__place num">
+            <span class="chapter__n">06</span>
+            {nest.name}
+          </p>
+          <p class="chapter__text text-links">
+            I also built{' '}
+            {nest.siteLive ? (
+              <a href={nest.url} rel="noopener">nestnrestcleaning.com</a>
+            ) : (
+              <a href={businessHref(nest)}>the {nest.name} website</a>
+            )}{' '}
+            from scratch for my own home-cleaning business{nest.siteLive ? `, ${nest.name}` : ''}. It starts taking clients in summer 2027, and I’ll clean every home myself.
+          </p>
+        </li>
+      </ol>
+
+      <div class="why">
+        <h3 class="why__title">Why I do this</h3>
+        <p>
+          Building {nest.name} showed me how much the basics matter: a clear offer, a website people understand on their phone, a
+          simple way to ask for a booking, and a habit of answering every message. Many owners are stuck with a page they can’t
+          update, enquiries spread across DMs and voicemail, and no idea whether anyone finds them on Google. That’s the work I
+          offer: help small businesses get found on Google, follow up on enquiries before they go cold, and turn website
+          visits into booking requests.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--rule" id="businesses" aria-labelledby="biz-title">
+    <div class="container biz">
+      <div class="stack" style="--stack: var(--s-4)">
+        <p class="eyebrow">My business</p>
+        <h2 id="biz-title" class="biz__title">{nest.name}</h2>
+        <p class="subtle small">{nest.role} · {nest.area}</p>
+        <p class="muted biz__desc">{nest.description}</p>
+      </div>
+      <div class="btn-row">
+        {nest.siteLive && (
+          <Button href={nest.url} variant="ghost" icon="arrow-ne" rel="noopener">
+            Visit {nest.name}
+          </Button>
+        )}
+        <Button href={nest.caseStudy}>Read the case study</Button>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--rule" id="elsewhere" aria-labelledby="elsewhere-title">
+    <div class="container glance">
+      <div class="stack" style="--stack: var(--s-4)">
+        <p class="eyebrow">Profiles</p>
+        <h2 id="elsewhere-title" class="glance__title">Find me <span class="accent">elsewhere.</span></h2>
+      </div>
+      <dl class="glance__list">
+        {
+          elsewhere.map((p) => (
+            <div>
+              <dt>{p.t}</dt>
+              <dd>
+                {p.d}{' '}
+                <a class="link" href={p.url} rel={p.me ? 'me noopener' : 'noopener'}>
+                  {profile.name} on {p.t === 'Google Business Profile' ? 'Google Maps' : p.t}
+                </a>
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .ab-head {
+    overflow: clip;
+    padding-block: clamp(var(--s-6), 6vw, var(--s-9)) var(--section);
+  }
+
+  .ab-head__grid {
+    display: grid;
+    gap: var(--s-7);
+  }
+  .ab-head__text {
+    display: grid;
+    /* Eyebrow → title → intro on the head-gap tokens, as PageHead (gate L4, re-audit 18 Nov 2026; was 24px). */
+    gap: var(--head-gap-2);
+    align-content: start;
+  }
+  .ab-head__text > .eyebrow {
+    margin-bottom: calc(var(--head-gap-1) - var(--head-gap-2));
+  }
+  .ab-head__text :global(.ab-title) {
+    font-size: var(--fs-h1);
+    max-width: 17ch;
+  }
+  .ab-reach {
+    display: grid;
+    gap: var(--s-4);
+  }
+  .ab-photo {
+    display: grid;
+    gap: var(--s-3);
+  }
+  .ab-photo :global(img) {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    object-position: 50% 30%;
+    border-radius: var(--r-lg);
+  }
+  .ab-photo figcaption {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--fs-label);
+    letter-spacing: 0.04em;
+    color: var(--text-3);
+  }
+  @media (min-width: 64em) {
+    /* Design upgrade task 3.7: the photo starts level with the heading (it used to sit about 260px lower). */
+    .ab-head__grid {
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.9fr);
+      gap: var(--s-9);
+      align-items: start;
+    }
+    .ab-head__grid > .ab-photo {
+      margin-top: calc(var(--fs-label) * 1.4 + var(--head-gap-1));
+    }
+  }
+
+  .story {
+    display: grid;
+    gap: var(--s-7);
+  }
+  .chapters {
+    display: grid;
+    border-top: 1px solid var(--line);
+  }
+  .chapter {
+    display: grid;
+    gap: var(--s-3);
+    padding-block: var(--s-6);
+    border-bottom: 1px solid var(--line);
+  }
+  .chapter__place {
+    display: flex;
+    gap: var(--s-3);
+    font-size: var(--fs-label);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-2);
+  }
+  .chapter__n {
+    color: var(--signal);
+  }
+  .chapter__text {
+    overflow-wrap: anywhere;
+    font-size: var(--fs-lead);
+    line-height: 1.55;
+    max-width: 58ch;
+  }
+  .chapter--now .chapter__text {
+    color: var(--text);
+  }
+  .why {
+    display: grid;
+    gap: var(--s-4);
+    max-width: 62ch;
+    color: var(--text-2);
+  }
+  .why__title {
+    color: var(--text);
+  }
+  @media (min-width: 64em) {
+    .story {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr);
+      gap: var(--s-9);
+    }
+    .story__head {
+      position: sticky;
+      top: calc(var(--header-h) + 2rem);
+      align-self: start;
+      display: grid;
+      gap: var(--head-gap-1);
+    }
+    .chapter {
+      grid-template-columns: 11rem minmax(0, 1fr);
+      gap: var(--s-6);
+    }
+    .why {
+      grid-column: 2;
+    }
+  }
+  .story__head {
+    display: grid;
+    gap: var(--head-gap-1);
+  }
+
+  .rules {
+    display: grid;
+    gap: var(--s-6);
+  }
+  .rules li {
+    display: grid;
+    gap: var(--s-3);
+    align-content: start;
+    padding-top: var(--s-5);
+    border-top: 1px solid var(--line);
+  }
+  .rules__n {
+    font-size: var(--fs-h2);
+    font-weight: var(--w-head);
+    letter-spacing: var(--track-head);
+    line-height: 1;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--signal);
+  }
+  @media (min-width: 48em) {
+    .rules {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 80em) {
+    .rules {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  .vision {
+    display: grid;
+    /* Eyebrow → heading → intro on the head-gap tokens (gate L4, re-audit 18 Nov 2026; was 24px). */
+    gap: var(--head-gap-2);
+    justify-items: start;
+  }
+  .vision > .eyebrow {
+    margin-bottom: calc(var(--head-gap-1) - var(--head-gap-2));
+  }
+  .vision :global(h2) {
+    max-width: 18ch;
+  }
+  .vision .lead {
+    max-width: 56ch;
+  }
+
+  .biz {
+    display: grid;
+    gap: var(--s-6);
+  }
+  .biz__title {
+    font-size: var(--fs-h2);
+    font-weight: var(--w-head);
+    letter-spacing: var(--track-head);
+    line-height: 0.95;
+  }
+  .biz__desc {
+    max-width: 56ch;
+  }
+  @media (min-width: 64em) {
+    .biz {
+      grid-template-columns: 1fr auto;
+      align-items: end;
+    }
+  }
+
+  /* Phones: the story and the rules become swipeable cards, so the page reads in a few screens. */
+  @media (max-width: 47.99em) {
+    /* The portrait comes straight after the introduction, before the links and contact buttons,
+       so a visitor checking who Mann is sees him within the first screen or so (11 Nov 2026 audit).
+       The text wrapper dissolves into the grid; the page order in the HTML is unchanged. */
+    .ab-head__grid {
+      gap: var(--head-gap-2);
+    }
+    .ab-head__text {
+      display: contents;
+    }
+    .ab-photo {
+      order: 1;
+    }
+    .ab-reach {
+      order: 2;
+    }
+    .ab-photo :global(img) {
+      aspect-ratio: 4 / 3;
+      object-position: 50% 22%;
+    }
+    .story {
+      gap: var(--s-6);
+    }
+    .chapters {
+      border-top: 0;
+    }
+    .chapter {
+      align-content: start;
+      padding: var(--s-5);
+      border: 1px solid var(--line);
+      border-radius: var(--r-md);
+      background: var(--surface);
+    }
+    .chapter__text {
+      font-size: var(--fs-base);
+      overflow-wrap: break-word;
+    }
+    .rules li {
+      padding: var(--s-5);
+      border: 1px solid var(--line);
+      border-radius: var(--r-md);
+      background: var(--surface);
+    }
+    .rules__n {
+      font-size: var(--fs-h2);
+    }
+  }
+  /* ── At a glance (round 10) ── */
+  .glance {
+    display: grid;
+    gap: var(--s-6);
+  }
+  .glance__title {
+    font-size: var(--fs-h2);
+    max-width: 14ch;
+  }
+  .glance__list {
+    display: grid;
+    gap: var(--s-4);
+  }
+  .glance__list > div {
+    display: grid;
+    gap: var(--s-2);
+    padding-top: var(--s-4);
+    border-top: 1px solid var(--line);
+  }
+  .glance__list dt {
+    font-weight: var(--w-head);
+  }
+  .glance__list dd {
+    color: var(--text-2);
+  }
+  @media (min-width: 64em) {
+    .glance {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+      gap: var(--s-9);
+    }
+    /* The head stays beside its content instead of leaving an empty column (gate L1, re-audit 18 Nov 2026; as on Home,
+       task 3.4). */
+    .glance > :first-child {
+      position: sticky;
+      top: calc(var(--header-h) + var(--s-6));
+      align-self: start;
+    }
+    .glance__list > div {
+      grid-template-columns: 12rem minmax(0, 1fr);
+      gap: var(--s-5);
+    }
+  }
+</style>

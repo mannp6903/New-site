@@ -1,0 +1,721 @@
+---
+/**
+ * Sticky header. Desktop: wordmark + Toronto clock, links, ⌘K quick menu, "Start a project".
+ * Phones: a "Menu" button opens a focused side panel (native <dialog>: focus is contained,
+ * Esc closes, focus returns). Without JavaScript the links show as a plain row instead.
+ */
+import { primaryCta, profile } from '../data/site';
+import { emailHref } from '../lib/contact';
+import { visibleNav } from '../lib/published';
+import Button from './ui/Button.astro';
+import Icon from './ui/Icon.astro';
+import Wordmark from './ui/Wordmark.astro';
+
+const path = Astro.url.pathname;
+const isCurrent = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+// Pricing is in the menu only while at least one price is published, Guides while at least one guide is.
+const nav = await visibleNav();
+const sheetLinks = [{ href: '/', label: 'Home' }, ...nav];
+---
+
+<header class="hdr" data-header>
+  <div class="hdr__bar container">
+    <a class="wordmark" href="/" aria-label={`${profile.name}, home`}>
+      <Wordmark class="wordmark__logo" kinetic cut="small" />
+    </a>
+
+    <p class="hdr__clock num" aria-hidden="true">
+      <span>TOR</span>
+      <time data-clock>--:--</time>
+    </p>
+
+    <nav class="hdr__nav" aria-label="Main">
+      <ul role="list">
+        {
+          nav.map((item) => (
+            <li>
+              <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
+                <span class="roll">
+                  <span data-text={item.label}>{item.label}</span>
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="hdr__actions">
+      <button class="qm-trigger" type="button" data-qm-open aria-haspopup="dialog" aria-keyshortcuts="Control+K Meta+K">
+        <Icon name="search" />
+        <span class="visually-hidden">Open quick menu</span>
+        <kbd aria-hidden="true"><span data-mod>Ctrl</span> K</kbd>
+      </button>
+      {/* D5 (design upgrade Phase 2): on Home the button starts as an outline, so the hero's lime button is the only lime
+          one on the first screen; it turns lime once the hero button scrolls away (script below). */}
+      <Button href={primaryCta.href} size="sm" class:list={['hdr__cta', path === '/' && 'is-quiet']} data-hdr-cta>{primaryCta.label}</Button>
+      <button class="menu-btn" type="button" data-menu-open aria-haspopup="dialog" aria-controls="site-menu" aria-expanded="false">
+        <span class="menu-btn__lines" aria-hidden="true"><i></i><i></i></span>
+        <span class="menu-btn__text">Menu</span>
+      </button>
+    </div>
+  </div>
+
+  <dialog class="sheet" id="site-menu" aria-label="Site menu" data-menu>
+    {/* The menu's contents join the page on first open (design upgrade Phase 7, gate P3); it needs JavaScript anyway. */}
+    <template data-menu-content>
+    <div class="sheet__inner">
+      <div class="sheet__top">
+        <p class="eyebrow">Explore</p>
+        <button class="icon-btn" type="button" data-menu-close>
+          <Icon name="close" />
+          <span class="visually-hidden">Close menu</span>
+        </button>
+      </div>
+      <nav aria-label="Menu">
+        <ol class="sheet__links" role="list">
+          {
+            sheetLinks.map((item, i) => (
+              <li style={`--i:${i}`}>
+                <a href={item.href} aria-current={isCurrent(item.href) && (item.href !== '/' || path === '/') ? 'page' : undefined}>
+                  <span class="sheet__label">{item.label}</span>
+                  <span class="sheet__indicator" aria-hidden="true"></span>
+                </a>
+              </li>
+            ))
+          }
+        </ol>
+      </nav>
+      <div class="sheet__foot">
+        <Button href={primaryCta.href} class="sheet__cta">{primaryCta.label}</Button>
+        {profile.contact.email && (
+          <a class="sheet__email" href={emailHref()!} aria-label={`Email Mann at ${profile.contact.email}`}>
+            {profile.contact.email}
+          </a>
+        )}
+        <p class="sheet__legal small subtle">
+          <a href="/privacy/">Privacy</a><span aria-hidden="true">·</span><a href="/terms/">Terms</a>
+        </p>
+      </div>
+    </div>
+    </template>
+  </dialog>
+</header>
+
+<script>
+  const header = document.querySelector<HTMLElement>('[data-header]');
+  if (header) {
+    // Solid background once the page scrolls.
+    const onScroll = () => header.classList.toggle('is-scrolled', window.scrollY > 8);
+    // The first check waits for an idle moment: reading scrollY at start-up forces a layout here (gate M7). A page
+    // opened part-way down (a link to a section) gets its solid background then, or on its first scroll.
+    if ('requestIdleCallback' in window) requestIdleCallback(onScroll, { timeout: 1000 });
+    else setTimeout(onScroll, 1);
+    addEventListener('scroll', onScroll, { passive: true });
+
+    // Mobile sheet.
+    const sheet = header.querySelector<HTMLDialogElement>('[data-menu]')!;
+    const openBtn = header.querySelector<HTMLButtonElement>('[data-menu-open]')!;
+    const closeSheet = () => {
+      if (!sheet.open || sheet.classList.contains('is-closing')) return;
+      sheet.classList.add('is-closing');
+      const done = () => {
+        sheet.classList.remove('is-closing');
+        sheet.close();
+      };
+      // Close once the exit animation has played (no animation under reduced motion: close straight away).
+      const exit = sheet.getAnimations().find((a) => (a as CSSAnimation).animationName === 'sheet-out');
+      if (!exit) done();
+      else exit.finished.then(done, done);
+    };
+    openBtn.addEventListener('click', () => {
+      const content = sheet.querySelector<HTMLTemplateElement>('template[data-menu-content]');
+      if (content) content.replaceWith(content.content);
+      sheet.showModal();
+      openBtn.setAttribute('aria-expanded', 'true');
+    });
+    sheet.addEventListener('close', () => {
+      sheet.classList.remove('is-closing');
+      openBtn.setAttribute('aria-expanded', 'false');
+      openBtn.focus();
+    });
+    sheet.addEventListener('cancel', (e) => {
+      e.preventDefault();
+      closeSheet();
+    });
+    // Clicks are handled here, on the dialog, so they work for the contents added on first open.
+    sheet.addEventListener('click', (event) => {
+      const target = event.target as Element;
+      if (target.closest('[data-menu-close]')) return closeSheet();
+      if (target.closest('a')) return sheet.close();
+      if (event.target !== sheet) return;
+      const bounds = sheet.getBoundingClientRect();
+      if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom)
+        closeSheet();
+    });
+    // Wider than a phone? The sheet is not needed.
+    matchMedia('(min-width: 64em)').addEventListener('change', (e) => e.matches && sheet.open && sheet.close());
+
+    // D5: on Home, the header button stays an outline while the hero's free-check button is on screen (below the
+    // header), then turns lime. Same box either way (both variants have a 1px border), so nothing moves.
+    const hdrCta = header.querySelector<HTMLElement>('[data-hdr-cta]');
+    const heroCta = document.querySelector<HTMLElement>('[data-hero-cta]');
+    // 18 Nov 2026 (Mann): the full wordmark stays in the header at every scroll position. The Phase 4 "condense" to
+    // "MΛ" after the hero read as the logo disappearing, so it is gone.
+    // The button watches the area below the header, whose height is read in an idle moment, once the page is laid out
+    // (reading it at start-up would force that layout here: gate M7). Until then it keeps its server-rendered state.
+    const watch = () => {
+      if (!('IntersectionObserver' in window)) return;
+      const below = { rootMargin: `-${header.offsetHeight}px 0px 0px 0px` };
+      if (hdrCta && heroCta) new IntersectionObserver(([e]) => hdrCta.classList.toggle('is-quiet', e.isIntersecting), below).observe(heroCta);
+    };
+    if ('requestIdleCallback' in window) requestIdleCallback(watch, { timeout: 1000 });
+    else setTimeout(watch, 1);
+
+    // Mac users see ⌘, everyone else Ctrl.
+    if (/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)) {
+      header.querySelectorAll('[data-mod]').forEach((el) => (el.textContent = '⌘'));
+    }
+  }
+</script>
+
+<style>
+  .hdr {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    /* The desktop layout depends on the header's own width in ems, so enlarged text
+       (browser zoom or text size) falls back to the compact Menu layout instead of overflowing. */
+    container: hdr / inline-size;
+    height: var(--header-h);
+    border-bottom: 1px solid transparent;
+    /* Holds still while the page underneath changes (view transitions in global.css). */
+    view-transition-name: site-header;
+  }
+  /* Once the page scrolls, a solid layer fades in behind the header (opacity only, so it is cheap to animate: SEO audit
+     Phase 4). 18 Nov 2026: fully opaque. It was 82% with a backdrop blur, but the header's view-transition-name stops
+     a blur inside it from seeing the page, so text scrolling under the bar showed through, sharp, behind the logo. */
+  .hdr::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 -1px;
+    z-index: -1;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    opacity: 0;
+    transition: opacity var(--dur-3) var(--ease-out);
+    pointer-events: none;
+  }
+  .hdr.is-scrolled::before {
+    opacity: 1;
+  }
+  /* Reading progress: a lime line along the bottom edge, driven by the scroll position (CSS only). */
+  .hdr::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 2px;
+    background: var(--signal);
+    transform-origin: left;
+    transform: scaleX(0);
+    opacity: 0;
+    transition: opacity var(--dur-3) var(--ease-out);
+    pointer-events: none;
+  }
+  @supports (animation-timeline: scroll()) {
+    @media (prefers-reduced-motion: no-preference) {
+      /* Written out on purpose: the minifier folds a separate animation-timeline into the `animation` shorthand,
+         which browsers reject, and the line never showed (found 15 Nov 2026). Only with JavaScript (html.js): without
+         it the line never shows (it needs .is-scrolled), so nothing runs for it either (gate M6). */
+      :global(.js) .hdr::after {
+        animation-name: read-progress;
+        animation-timing-function: linear;
+        animation-fill-mode: both;
+        animation-timeline: scroll(root block);
+      }
+      .hdr.is-scrolled::after {
+        opacity: 1;
+      }
+    }
+  }
+  @keyframes read-progress {
+    to {
+      transform: scaleX(1);
+    }
+  }
+  .hdr__bar {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    gap: var(--s-5);
+  }
+
+  /* Wordmark: the outlined MΛNN PΛTEL logo (ui/Wordmark.astro), sized by its height. */
+  .wordmark {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    color: var(--text);
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+  /* The logo is a child component, so these selectors reach it with :global(). */
+  .wordmark :global(.wordmark__logo) {
+    display: block;
+    /* The small-size cut (Geist Medium, ui/Wordmark.astro), 13px tall on phones and tablets and 16px from 64em (gate C4,
+       re-audit 18 Nov 2026; was 11–13px and 14px in the Regular cut). On a 320px phone the header holds only the logo
+       and Menu, so 13px (139px wide) leaves about 100px between them. */
+    height: 0.8125rem;
+    width: auto;
+  }
+  /* Design upgrade Phase 4 (task 4.8; DESIGN.md → Motion → Wordmark). Each letter is a group (data-k-ch) with a lime
+     copy on top (.wm__lit). */
+  .wordmark :global([data-k-ch]) {
+    transform-box: fill-box;
+  }
+  .wordmark :global(.wm__lit) {
+    fill: var(--signal);
+    opacity: 0;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    /* Hover or keyboard focus: one lime sweep runs left to right across the letters (replaces the fade to 0.72). */
+    .wordmark:hover :global(.wm__lit),
+    .wordmark:focus-visible :global(.wm__lit) {
+      animation: wm-sweep var(--dur-4) var(--ease-in-out) both;
+      animation-delay: calc(var(--n) * var(--stagger) / 2);
+    }
+    /* "Lock-on", once per visit (html.wm-intro, set in <head> with a sessionStorage flag): the letters settle in from
+       wider spacing while the two Λ's rise from the baseline, a step behind. */
+    :global(html.wm-intro) .wordmark :global([data-k-ch]) {
+      animation: wm-settle var(--dur-5) var(--ease-out) both;
+      animation-delay: calc(var(--n) * var(--stagger) / 4);
+    }
+    :global(html.wm-intro) .wordmark :global([data-k-ch][data-lam]) {
+      transform-origin: 50% 100%;
+      animation: wm-rise var(--dur-4) var(--ease-out) var(--dur-1) both;
+    }
+  }
+  @keyframes wm-sweep {
+    50% {
+      opacity: 1;
+    }
+  }
+  @keyframes wm-settle {
+    from {
+      opacity: 0;
+      translate: calc(var(--dx) * 1px) 0;
+    }
+  }
+  @keyframes wm-rise {
+    from {
+      transform: scaleY(0);
+    }
+  }
+  @media (min-width: 64em) {
+    .wordmark :global(.wordmark__logo) {
+      height: 1rem;
+    }
+  }
+
+  .hdr__clock {
+    display: none;
+    gap: 0.6em;
+    font-size: var(--fs-label);
+    color: var(--text-3);
+    letter-spacing: 0.06em;
+    padding-left: var(--s-4);
+    border-left: 1px solid var(--line);
+  }
+
+  .hdr__nav {
+    display: none;
+    margin-left: auto;
+  }
+  .hdr__nav ul {
+    display: flex;
+    gap: var(--s-1);
+  }
+  .hdr__nav a {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    padding-inline: var(--s-4);
+    border-radius: var(--r-pill);
+    font-size: var(--fs-sm);
+    font-weight: var(--w-ui);
+    text-decoration: none;
+    color: var(--text-2);
+    transition: color var(--dur-1);
+  }
+  @media (hover: hover) {
+    .hdr__nav a:hover,
+    .hdr__nav a:focus-visible {
+      color: var(--text);
+    }
+  }
+  .hdr__nav a[aria-current='page'] {
+    color: var(--text);
+  }
+  .hdr__nav a[aria-current='page']::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0.35rem;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--signal);
+    transform: translateX(-50%);
+  }
+
+  .hdr__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    margin-left: auto;
+  }
+  .qm-trigger {
+    display: none;
+    align-items: center;
+    gap: var(--s-2);
+    min-height: var(--tap);
+    padding: 0 0.6rem 0 0.8rem;
+    border: 1px solid var(--line);
+    border-radius: var(--r-pill);
+    background: transparent;
+    color: var(--text-2);
+    transition: border-color var(--dur-1), color var(--dur-1), background-color var(--dur-1);
+  }
+  .qm-trigger:hover,
+  .qm-trigger:focus-visible {
+    border-color: var(--control);
+    color: var(--text);
+    background: var(--surface);
+  }
+  .qm-trigger .icon {
+    width: 1.05rem;
+    height: 1.05rem;
+  }
+  kbd {
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    padding: 0.1rem 0.4rem;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    color: var(--text-3);
+  }
+  /* Very narrow phones: the Menu button keeps its name for screen readers but shows only lines. */
+  @container hdr (max-width: 26em) {
+    .menu-btn {
+      width: var(--tap);
+      padding: 0;
+      justify-content: center;
+    }
+    .menu-btn__text {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  }
+  .hdr__cta {
+    display: none;
+  }
+  /* D5: the outline state, the same as .btn--ghost (colours only; the size never changes). */
+  .hdr__cta:global(.is-quiet) {
+    --btn-bg: transparent;
+    --btn-fg: var(--text);
+    --btn-icon-bg: var(--surface-2);
+    --btn-icon-fg: var(--text);
+    border-color: var(--control);
+  }
+
+  .menu-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: var(--tap);
+    padding: 0 1rem 0 0.85rem;
+    border: 1px solid var(--control);
+    border-radius: var(--r-pill);
+    background: transparent;
+    font-weight: var(--w-head);
+    font-size: var(--fs-sm);
+  }
+  .menu-btn__lines {
+    display: grid;
+    gap: 5px;
+  }
+  .menu-btn__lines i {
+    display: block;
+    width: 16px;
+    height: 1.5px;
+    background: currentColor;
+    transition: transform var(--dur-3) var(--ease-out);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .menu-btn:hover .menu-btn__lines i:last-child,
+    .menu-btn:focus-visible .menu-btn__lines i:last-child {
+      transform: scaleX(0.6);
+      transform-origin: left;
+    }
+  }
+  /* No JavaScript: no sheet. Show the links as a plain row instead. */
+  :global(html:not(.js)) .menu-btn {
+    display: none;
+  }
+  :global(html:not(.js)) .hdr {
+    height: auto;
+  }
+  :global(html:not(.js)) .hdr__bar {
+    flex-wrap: wrap;
+    padding-block: var(--s-2);
+    height: auto;
+  }
+  :global(html:not(.js)) .hdr__nav {
+    display: block;
+    margin-left: 0;
+    order: 3;
+    width: 100%;
+  }
+  :global(html:not(.js)) .qm-trigger {
+    display: none !important;
+  }
+
+  @container hdr (min-width: 64em) {
+    .hdr__nav {
+      display: block;
+    }
+    .hdr__actions {
+      margin-left: var(--s-2);
+    }
+    .qm-trigger {
+      display: inline-flex;
+    }
+    .hdr__cta {
+      display: inline-flex;
+    }
+    .menu-btn {
+      display: none;
+    }
+    .hdr__clock {
+      display: inline-flex;
+    }
+  }
+  /* Six menu links since Guides joined (Nov 2026 audit fixes): just above the desktop breakpoint there is no room for
+     the (decorative) Toronto clock as well, so it waits until the bar is a little wider. Nothing else changes. */
+  @container hdr (min-width: 64em) and (max-width: 67.5em) {
+    .hdr__clock {
+      display: none;
+    }
+  }
+
+  /* A compact drawer: four destinations, one project action, one direct email link. */
+  :global(html:has(#site-menu[open])) {
+    overflow: hidden;
+  }
+  .sheet {
+    position: fixed;
+    inset: 0;
+    width: min(28rem, calc(100% - 0.75rem));
+    max-width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    margin: 0 0 0 auto;
+    padding: 0;
+    border: 0;
+    border-left: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--text);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .sheet::backdrop {
+    background: rgb(0 0 0 / 0.72);
+    backdrop-filter: blur(5px);
+  }
+  /* Fit short phones, while allowing scrolling for enlarged text and landscape screens. */
+  .sheet__inner {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1.25rem, 4dvh, 2.5rem);
+    padding: max(0.75rem, env(safe-area-inset-top)) clamp(1.25rem, 5vw, 2rem) max(1rem, env(safe-area-inset-bottom));
+  }
+  .sheet__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: var(--tap);
+  }
+  .sheet__top .eyebrow {
+    color: var(--text-3);
+  }
+  .sheet__top .icon-btn {
+    border: 1px solid var(--line);
+    border-radius: 50%;
+  }
+  .sheet__links {
+    display: grid;
+    border-top: 1px solid var(--line);
+  }
+  .sheet__links li {
+    border-bottom: 1px solid var(--line);
+  }
+  .sheet__links a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: var(--tap);
+    padding-block: clamp(0.65rem, 1.65dvh, 1.05rem);
+    text-decoration: none;
+  }
+  /* Six links since Vision joined the menu (14 Nov 2026): tighter rows on short phones. */
+  @media (max-height: 700px) {
+    .sheet__links a {
+      padding-block: 0.2rem;
+    }
+  }
+  .sheet__indicator {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--signal);
+    opacity: 0;
+    transition: opacity var(--dur-1), transform var(--dur-3) var(--ease-out);
+  }
+  .sheet__links a[aria-current='page'] .sheet__indicator,
+  .sheet__links a:hover .sheet__indicator,
+  .sheet__links a:focus-visible .sheet__indicator {
+    opacity: 1;
+  }
+  /* The dot grows in only when movement is allowed; otherwise it just fades (Website Playbook, 16 Nov 2026). */
+  @media (prefers-reduced-motion: no-preference) {
+    .sheet__indicator {
+      transform: scale(0.5);
+    }
+    .sheet__links a[aria-current='page'] .sheet__indicator,
+    .sheet__links a:hover .sheet__indicator,
+    .sheet__links a:focus-visible .sheet__indicator {
+      transform: scale(1);
+    }
+  }
+  .sheet__label {
+    font-size: var(--fs-h2);
+    font-weight: var(--w-head);
+    letter-spacing: var(--track-head);
+    line-height: 1.05;
+    transition: letter-spacing var(--dur-4) var(--ease-out), color var(--dur-1);
+  }
+  .sheet__links a:hover .sheet__label,
+  .sheet__links a:focus-visible .sheet__label {
+    letter-spacing: -0.02em;
+    color: var(--signal);
+  }
+  .sheet__links a[aria-current='page'] .sheet__label {
+    color: var(--signal);
+  }
+  .sheet__foot {
+    margin-top: auto;
+    display: grid;
+    gap: 0.5rem;
+  }
+  .sheet__foot :global(.sheet__cta) {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .sheet__email {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--tap);
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+    text-decoration: none;
+    text-underline-offset: 0.3em;
+  }
+  .sheet__email:hover,
+  .sheet__email:focus-visible {
+    color: var(--text);
+    text-decoration: underline;
+  }
+  .sheet__legal {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    border-top: 1px solid var(--line);
+    padding-top: 0.5rem;
+    margin-top: 0.5rem;
+  }
+  .sheet__legal a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--tap);
+    /* At least 44px wide too ("Terms" is narrower): Website Playbook, 16 Nov 2026. */
+    min-width: var(--tap);
+    color: inherit;
+    text-decoration: none;
+  }
+  .sheet__legal a:hover,
+  .sheet__legal a:focus-visible {
+    color: var(--text);
+  }
+  /* Seven since Guides joined (Nov 2026 audit fixes): on the shortest phones (320 × 568) the spacing between the
+     blocks tightens so the whole menu, down to Privacy and Terms, still fits without scrolling. Rows keep their
+     full tap height. */
+  @media (max-height: 600px) {
+    .sheet__inner {
+      gap: 0.5rem;
+    }
+    .sheet__foot {
+      gap: 0.25rem;
+    }
+    .sheet__legal {
+      margin-top: 0.25rem;
+      padding-top: 0.25rem;
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .sheet[open] {
+      animation: sheet-in var(--dur-3) var(--ease-out);
+    }
+    .sheet[open] .sheet__links li {
+      animation: link-in var(--dur-3) var(--ease-out) both;
+      animation-delay: calc(var(--stagger) * (1 + var(--i)) / 2);
+    }
+    .sheet.is-closing {
+      /* Exits ease in at about 70% of the entrance (DESIGN.md → Motion). */
+      animation: sheet-out var(--dur-2) var(--ease-in) forwards;
+    }
+  }
+  @keyframes sheet-in {
+    from {
+      transform: translateX(100%);
+    }
+  }
+  @keyframes sheet-out {
+    to {
+      transform: translateX(100%);
+    }
+  }
+  @keyframes link-in {
+    from {
+      opacity: 0;
+      transform: translateX(0.75rem);
+    }
+  }
+  /* Forced colours (design upgrade Phase 8): the Menu lines are fills, which the mode drops; draw them in the button
+     text colour. */
+  @media (forced-colors: active) {
+    .menu-btn__lines i {
+      forced-color-adjust: none;
+      background: ButtonText;
+    }
+  }
+</style>

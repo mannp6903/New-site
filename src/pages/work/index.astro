@@ -1,0 +1,222 @@
+---
+import Button from '../../components/ui/Button.astro';
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHead from '../../components/PageHead.astro';
+import Status from '../../components/work/Status.astro';
+import ProjectMedia from '../../components/work/ProjectMedia.astro';
+import Icon from '../../components/ui/Icon.astro';
+import { breadcrumbJsonLd } from '../../lib/seo';
+import { projectSite } from '../../lib/work';
+import { industryPages } from '../../data/industry-pages';
+
+const work = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
+const crumbs = breadcrumbJsonLd([
+  { name: 'Home', path: '/' },
+  { name: 'Work', path: '/work/' },
+]);
+---
+
+<BaseLayout
+  title="Toronto Small Business Website Projects"
+  description="See the Nest & Rest Cleaning website case study and Samp Hair & Spa preview, with dated work, project status and documented checks."
+  jsonLd={crumbs ?? undefined}
+>
+  <PageHead
+    eyebrow="Work"
+    compact
+    lines={['Website projects', '<span class="accent">for Toronto service businesses</span>']}
+    lead="Real projects, honest labels. Every project says whether it’s live or in progress and what I actually did. No invented results, no stock photos passed off as real work."
+
+  >
+    {/* U4 (design upgrade Phase 3): a main button within the first two phone screens. */}
+    <div class="btn-row" data-reveal="load" style="--d:5"><Button href="/contact/?package=check-up#check">Get a free website and Google check</Button></div>
+  </PageHead>
+
+  <section class="section section--tight" aria-label="Projects">
+    <div class="container">
+      <ol class="rows" role="list">
+        {
+          work.map((w, i) => (
+            <li class="row">
+              <a class="row__link" href={`/work/${w.id}/`} data-spotlight data-cursor="Open">
+                <div class="row__text">
+                  <div class="row__meta">
+                    <span class="num subtle">{String(i + 1).padStart(2, '0')}</span>
+                    <Status status={w.data.status} paused={projectSite(w.data).paused} />
+                  </div>
+                  {/* "Hair & Spa" stays together, so a name never leaves one short word on a line (gate R6). */}
+                  <h2 class="row__title">{w.data.title.replace(/ & /g, '\u00a0&\u00a0')}</h2>
+                  <p class="subtle small">
+                    {w.data.kind} · {w.data.year}
+                  </p>
+                  <p class="muted">{w.data.summary}</p>
+                  {(w.data.industry || w.data.location || w.data.result) && (
+                    <dl class="row__facts small">
+                      {w.data.industry && (
+                        <div>
+                          <dt>Industry</dt>
+                          <dd>{w.data.industry}</dd>
+                        </div>
+                      )}
+                      {w.data.location && (
+                        <div>
+                          <dt>Location</dt>
+                          <dd>{w.data.location}</dd>
+                        </div>
+                      )}
+                      {w.data.result && (
+                        <div>
+                          <dt>Result</dt>
+                          <dd>{w.data.result}</dd>
+                        </div>
+                      )}
+                    </dl>
+                  )}
+                  <span class="row__cta">
+                    Read the case study <Icon name="arrow" />
+                  </span>
+                </div>
+                <ProjectMedia scene={w.data.scene} eager={i === 0} />
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+
+      <!-- SEO audit Phase 3 (14 Nov 2026): each project leads an industry page. Nov 2026 audit: the section labels
+           are real H2s (styled exactly as before), so the page outline lists every section. -->
+      <div class="trades small">
+        <h2 class="trades__h subtle">By trade:</h2>{' '}
+        <p class="trades__links">
+          {industryPages.map((ip, i) => (
+            <>
+              {i > 0 && ' · '}
+              <a class="link" href={`/${ip.slug}/`}>{ip.linkLabel}</a>
+            </>
+          ))}
+        </p>
+      </div>
+
+      <aside class="note" aria-labelledby="work-note-title">
+        <h2 id="work-note-title" class="eyebrow eyebrow--plain">What you won’t see here</h2>
+        <p>
+          Made-up results, borrowed client logos, or concept mock-ups dressed up as clients. When there’s more real work to
+          show, it goes here with the same labels.
+        </p>
+      </aside>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .rows {
+    display: grid;
+    gap: var(--s-5);
+  }
+  .row__link {
+    display: grid;
+    gap: var(--s-6);
+    padding: clamp(1.25rem, 3vw, 2.5rem);
+    border-radius: var(--r-lg);
+    border: 1px solid var(--line);
+    background: var(--surface);
+    text-decoration: none;
+    transition: border-color var(--dur-3), background-color var(--dur-3);
+  }
+  .row__link:hover,
+  .row__link:focus-visible {
+    border-color: var(--control);
+    background: var(--surface-2);
+  }
+  .row__text {
+    display: grid;
+    gap: var(--s-4);
+    align-content: center;
+  }
+  .row__meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: var(--fs-label);
+  }
+  .row__title {
+    font-size: var(--fs-h2);
+    font-weight: var(--w-head);
+    letter-spacing: var(--track-head);
+    line-height: 0.95;
+    transition: letter-spacing var(--dur-4) var(--ease-out), color var(--dur-3);
+  }
+  .row__link:hover .row__title,
+  .row__link:focus-visible .row__title {
+    letter-spacing: -0.025em;
+    color: var(--signal);
+  }
+  /* Industry, location and result (SEO audit Phase 2, 14 Nov 2026). */
+  .row__facts {
+    display: grid;
+    gap: var(--s-2);
+    padding-top: var(--s-3);
+    border-top: 1px dashed var(--line);
+  }
+  .row__facts div {
+    display: grid;
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+    gap: var(--s-3);
+  }
+  .row__facts dt {
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--text-3);
+    padding-top: 0.15em;
+  }
+  .row__facts dd {
+    color: var(--text-2);
+  }
+  .row__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    font-weight: var(--w-head);
+    margin-top: var(--s-2);
+  }
+  .row__cta .icon {
+    transition: transform var(--dur-3) var(--ease-out);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .row__link:hover .row__cta .icon,
+    .row__link:focus-visible .row__cta .icon {
+      transform: translateX(5px);
+    }
+  }
+  .note {
+    margin-top: var(--s-8);
+    padding-top: var(--s-6);
+    border-top: 1px solid var(--line);
+    display: grid;
+    gap: var(--s-3);
+    max-width: 60ch;
+    color: var(--text-2);
+  }
+  @media (min-width: 64em) {
+    .row__link {
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+      gap: var(--s-8);
+    }
+  }
+  .trades {
+    margin-top: var(--s-6);
+  }
+  /* A heading in the run of text: the same size, weight and colour as the line around it. */
+  .trades__h,
+  .trades__links {
+    display: inline;
+  }
+  .trades__h {
+    font: inherit;
+    letter-spacing: inherit;
+    text-wrap: inherit;
+  }
+</style>

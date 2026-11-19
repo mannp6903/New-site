@@ -1,0 +1,1454 @@
+@import './tokens.css';
+
+/* ═══════════════ Reset ═══════════════ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+* {
+  margin: 0;
+}
+/* `hidden` always wins, even over component display rules. */
+[hidden] {
+  display: none !important;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* The sticky header's height plus 8px, so an anchor's heading lands just below it (Website Playbook, 16 Nov 2026). */
+  scroll-padding-top: calc(var(--header-h) + 0.5rem);
+  interpolate-size: allow-keywords;
+}
+body {
+  min-height: 100svh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+img,
+svg,
+video,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+img {
+  height: auto;
+}
+/* A <picture> (AVIF with a WebP fallback, design upgrade Phase 5) stays out of the layout: its image is sized and placed
+   exactly as a bare <img> would be. */
+picture {
+  display: contents;
+}
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+button {
+  cursor: pointer;
+}
+p,
+li,
+dd,
+figcaption {
+  overflow-wrap: break-word;
+}
+ul[role='list'],
+ol[role='list'] {
+  list-style: none;
+  padding: 0;
+}
+a {
+  color: inherit;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+::selection {
+  background: var(--signal);
+  color: var(--on-signal);
+}
+:focus-visible {
+  /* 2px ring, 2px off the element: lime (#d4f84a) on the dark site, near-black (#0b0b0c) on light surfaces, which set
+     --focus to var(--focus-on-light) (Website Playbook, 16 Nov 2026). Buttons keep 4px so the ring clears their fill. */
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+/* Breadcrumb links (src/components/Crumbs.astro and the service and case-study trails): a 44 × 44px hit area around
+   the small text, without moving anything (Website Playbook, 16 Nov 2026). */
+.crumbs a {
+  display: inline-block;
+  padding: 0.85rem 0.45rem;
+  margin: -0.85rem -0.45rem;
+}
+main:focus,
+[tabindex='-1']:focus {
+  outline: none;
+}
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+/* ═══════════════ Type ═══════════════ */
+h1,
+h2,
+h3,
+h4 {
+  font-weight: var(--w-head);
+  letter-spacing: var(--track-head);
+  line-height: var(--lh-snug);
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--fs-h1);
+  font-weight: var(--w-head);
+  line-height: 0.95;
+  letter-spacing: var(--track-hero);
+}
+h2 {
+  font-size: var(--fs-h2);
+  line-height: 1;
+}
+h3 {
+  font-size: var(--fs-h3);
+  font-weight: var(--w-ui);
+  letter-spacing: var(--track-head);
+}
+h4 {
+  font-size: var(--fs-base);
+  letter-spacing: -0.01em;
+}
+/* Three weights only (gate T3): bold text and table headings use the heading weight, not the browser's 700. */
+b,
+strong,
+th {
+  font-weight: var(--w-head);
+}
+/* Mono text is always medium (gate T3). */
+.mono,
+.num,
+code,
+kbd {
+  font-weight: var(--w-ui);
+}
+p {
+  text-wrap: pretty;
+}
+/* Two-tone headlines: the second half of a heading steps back to grey, same face and weight, the way tech product sites
+   set them (replaced the serif italic, Nov 2026). Lime budget (design upgrade Phase 1): a heading's only lime mark is
+   its full stop, <span class="stop">.</span>; whole phrases are never lime. */
+.accent {
+  color: var(--text-3);
+}
+.stop {
+  color: var(--signal);
+}
+.lead {
+  font-size: var(--fs-lead);
+  line-height: 1.45;
+  color: var(--text-2);
+  max-width: 44ch;
+}
+.muted {
+  color: var(--text-2);
+}
+.subtle {
+  color: var(--text-3);
+}
+.small {
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+}
+.measure {
+  max-width: var(--measure);
+}
+.mono {
+  font-family: var(--font-mono);
+}
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  font-weight: var(--w-ui);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--text-3);
+  line-height: 1.4;
+}
+/* The Λ from the wordmark marks every eyebrow (design upgrade Phase 1, task 1.8): the brand's own glyph instead of a
+   generic dot. The round dot stays only where it means "live" (.status__dot). */
+.eyebrow::before {
+  content: '';
+  width: 0.62em;
+  height: 0.7em;
+  flex: none;
+  margin-top: -0.1em;
+  /* Lime on dark; light sections set --eyebrow-mark to ink, since lime on paper is about 1.2:1. */
+  background: var(--eyebrow-mark, var(--signal));
+  -webkit-mask: var(--lambda) center / contain no-repeat;
+  mask: var(--lambda) center / contain no-repeat;
+}
+.eyebrow--plain::before {
+  content: none;
+}
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ═══════════════ Layout ═══════════════ */
+.container {
+  width: 100%;
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+.section {
+  padding-block: var(--section);
+  position: relative;
+}
+.section--tight {
+  padding-block: var(--section-tight);
+}
+.section--alt {
+  background: var(--bg-2);
+}
+.section--rule {
+  border-top: 1px solid var(--line);
+}
+/* A hairline with a lime tip between two dark sections (design upgrade task 3.8): at most three on Home (prices,
+   questions, footer). It spans the container's content width. */
+.rule-signal {
+  position: relative;
+}
+.rule-signal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  inset-inline: max(var(--gutter), calc((100% - var(--container)) / 2 + var(--gutter)));
+  height: 1px;
+  background: linear-gradient(90deg, rgb(212 248 74 / 0.6), var(--line) 18%, var(--line));
+  pointer-events: none;
+}
+.stack > * + * {
+  margin-top: var(--stack, var(--s-5));
+}
+/* An eyebrow sits --head-gap-1 above its heading wherever heads are stacked (design upgrade Phase 1, task 1.6). */
+.stack > .eyebrow + * {
+  margin-top: var(--head-gap-1);
+}
+/* Block-level in a stack, so it doesn't sit in a line box as tall as the body text's (that added 3–4px above the
+   heading: gate L4, re-audit 18 Nov 2026). */
+.stack > .eyebrow {
+  display: flex;
+  width: fit-content;
+}
+/* What follows an eyebrow and its heading (the intro) sits --head-gap-2 below the heading, whatever the stack's own
+   gap (gate L4, re-audit 18 Nov 2026: stacks at a fixed 16px left it short on wide screens). */
+.stack > .eyebrow + * + * {
+  margin-top: var(--head-gap-2);
+}
+.cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cluster, var(--s-3));
+}
+/* Section heads: eyebrow, heading, then a lead or intro, spaced by the two head gaps everywhere (design upgrade
+   Phase 1, task 1.6). Rows sit --head-gap-2 apart; the eyebrow pulls its heading up to --head-gap-1. */
+.section-head {
+  display: grid;
+  row-gap: var(--head-gap-2);
+  column-gap: var(--s-5);
+  margin-bottom: clamp(var(--s-6), 5vw, var(--s-9));
+}
+.section-head > .eyebrow,
+.head-eyebrow {
+  margin-bottom: calc(var(--head-gap-1) - var(--head-gap-2));
+}
+/* A note under a section heading keeps the body measure (gate T6, re-audit 18 Nov 2026: the area and trade pages'
+   price notes ran to 112 characters a line). :where() keeps it below .lead's own 44ch. */
+:where(.section-head) > p {
+  max-width: var(--measure);
+}
+
+/* ═══════════════ Swipe rail (phones) ═══════════════ */
+/* A row of cards you swipe sideways on phones (scroll snap, the next card peeks in).
+   Wider screens keep the component's own grid. Dots are added by src/scripts/motion.ts. */
+@media (max-width: 47.99em) {
+  .rail {
+    display: flex !important;
+    gap: var(--s-3);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--gutter);
+    padding-inline: var(--gutter);
+    margin-inline: calc(var(--gutter) * -1);
+    scrollbar-width: none;
+  }
+  .rail::-webkit-scrollbar {
+    display: none;
+  }
+  .rail > * {
+    flex: 0 0 min(86%, 22rem);
+    min-width: 0;
+    scroll-snap-align: start;
+  }
+  .rail--wide > * {
+    flex-basis: 90%;
+  }
+}
+.rail-dots {
+  display: none;
+}
+@media (max-width: 47.99em) {
+  .rail-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: var(--s-4);
+  }
+  .rail-dots i {
+    width: 6px;
+    height: 6px;
+    border-radius: var(--r-pill);
+    background: var(--control);
+    transition: width var(--dur-3) var(--ease-out), background-color var(--dur-3);
+  }
+  .rail-dots i.is-on {
+    width: 20px;
+    background: var(--text);
+  }
+}
+@media (min-width: 64em) {
+  .section-head--split {
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    align-items: end;
+    column-gap: var(--s-8);
+  }
+}
+.section-head h2 {
+  max-width: 16ch;
+}
+
+/* ═══════════════ Accessibility helpers ═══════════════ */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.skip-link {
+  position: fixed;
+  left: var(--s-4);
+  top: var(--s-4);
+  z-index: 200;
+  padding: var(--s-3) var(--s-4);
+  background: var(--signal);
+  color: var(--on-signal);
+  font-weight: var(--w-head);
+  border-radius: var(--r-pill);
+  text-decoration: none;
+  transform: translateY(-200%);
+}
+.skip-link:focus {
+  transform: none;
+}
+
+/* ═══════════════ Icons ═══════════════ */
+.icon {
+  width: 1.25em;
+  height: 1.25em;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ═══════════════ Label roll (nav links, list rows) ═══════════════ */
+.roll {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  line-height: 1.3;
+}
+.roll > span {
+  display: block;
+  transition: transform var(--dur-4) var(--ease-out);
+}
+.roll > span::after {
+  content: attr(data-text);
+  content: attr(data-text) / '';
+  position: absolute;
+  left: 0;
+  top: 100%;
+}
+/* Hover and press movement only when the visitor allows it (Website Playbook, 16 Nov 2026). Under reduced motion
+   the links and buttons keep their instant colour feedback. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  :hover > .roll > span,
+  :focus-visible > .roll > span {
+    transform: translateY(-100%);
+  }
+}
+
+/* ═══════════════ Buttons ═══════════════ */
+.btn {
+  --btn-bg: var(--signal);
+  --btn-fg: var(--on-signal);
+  --btn-icon-bg: var(--on-signal);
+  --btn-icon-fg: var(--signal);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  min-height: 3.5rem;
+  padding: 0.375rem 0.375rem 0.375rem 1.5rem;
+  border: 1px solid transparent;
+  border-radius: var(--r-pill);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-size: var(--fs-ui);
+  font-weight: var(--w-ui);
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  text-decoration: none;
+  /* Long labels wrap on small phones instead of widening the page. */
+  max-width: 100%;
+  text-align: left;
+  text-wrap: balance;
+  isolation: isolate;
+  overflow: hidden;
+  transition:
+    transform var(--dur-1) var(--ease-out),
+    background-color var(--dur-3) var(--ease-out),
+    color var(--dur-3) var(--ease-out),
+    border-color var(--dur-3) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .btn:active {
+    transform: scale(0.97);
+  }
+}
+.btn:focus-visible {
+  outline-offset: 4px;
+  border-radius: var(--r-pill);
+}
+.btn[disabled],
+.btn[aria-disabled='true'] {
+  opacity: 0.45;
+  pointer-events: none;
+}
+/* Lime buttons: a lime glow fades in on hover and keyboard focus (opacity only; design upgrade Phase 4, task 4.9). They
+   may draw outside their box for it; the outline button keeps its clip for the fill that rises on hover. */
+.btn:not(.btn--ghost, .btn--ink) {
+  overflow: visible;
+}
+.btn:not(.btn--ghost, .btn--ink)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  box-shadow: var(--signal-glow);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-3) var(--ease-out);
+}
+@media (hover: hover) {
+  .btn:not(.btn--ghost, .btn--ink, .is-quiet):hover::after {
+    opacity: 1;
+  }
+}
+.btn:not(.btn--ghost, .btn--ink, .is-quiet):focus-visible::after {
+  opacity: 1;
+}
+/* Label roll: the visible label slides up, an identical copy follows from below. */
+.btn__label {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  padding-block: 0.15em;
+}
+.btn__label > span {
+  display: block;
+  transition: transform var(--dur-4) var(--ease-out);
+}
+.btn__label > span::after {
+  /* The copy is decorative: empty alt text keeps the accessible name single. */
+  content: attr(data-text);
+  content: attr(data-text) / '';
+  position: absolute;
+  left: 0;
+  top: 100%;
+  padding-block: 0.15em;
+}
+.btn__icon {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: none;
+  border-radius: 50%;
+  background: var(--btn-icon-bg);
+  color: var(--btn-icon-fg);
+  transition: transform var(--dur-4) var(--ease-out), background-color var(--dur-3) var(--ease-out), color var(--dur-3) var(--ease-out);
+}
+.btn__icon .icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  stroke-width: 2;
+  transition: transform var(--dur-4) var(--ease-out);
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .btn:hover .btn__label > span,
+  .btn:focus-visible .btn__label > span {
+    transform: translateY(-100%);
+  }
+  .btn:hover .btn__icon,
+  .btn:focus-visible .btn__icon {
+    transform: rotate(-45deg) scale(1.04);
+  }
+}
+.btn--ghost {
+  --btn-bg: transparent;
+  --btn-fg: var(--text);
+  --btn-icon-bg: var(--surface-2);
+  --btn-icon-fg: var(--text);
+  border-color: var(--control);
+}
+/* Fill rises from the bottom on hover. */
+.btn--ghost::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--text);
+  border-radius: inherit;
+  transform: translateY(101%);
+  transition: transform var(--dur-4) var(--ease-out);
+}
+@media (hover: hover) {
+  .btn--ghost:hover,
+  .btn--ghost:focus-visible {
+    --btn-fg: var(--ink);
+    --btn-icon-bg: var(--ink);
+    --btn-icon-fg: var(--text);
+    border-color: var(--text);
+  }
+  .btn--ghost:hover::before,
+  .btn--ghost:focus-visible::before {
+    transform: none;
+  }
+}
+.btn--ink {
+  --btn-bg: var(--ink);
+  --btn-fg: var(--paper);
+  --btn-icon-bg: var(--signal);
+  --btn-icon-fg: var(--ink);
+}
+.btn--sm {
+  min-height: 2.75rem;
+  padding: 0.25rem 0.25rem 0.25rem 1.1rem;
+  gap: var(--s-3);
+  font-size: var(--fs-sm);
+}
+.btn--sm .btn__icon {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+.btn--plain {
+  padding-inline: 1.5rem;
+  justify-content: center;
+}
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  align-items: center;
+}
+
+/* Small round icon button (copy, close, menu). */
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: var(--tap);
+  height: var(--tap);
+  border-radius: 50%;
+  border: 1px solid var(--control);
+  background: transparent;
+  color: var(--text);
+  transition: background-color var(--dur-1) var(--ease-out), border-color var(--dur-1) var(--ease-out);
+}
+.icon-btn:hover,
+.icon-btn:focus-visible {
+  background: var(--surface-2);
+  border-color: var(--text-3);
+}
+
+/* ═══════════════ Links ═══════════════ */
+.link {
+  position: relative;
+  display: inline;
+  color: var(--text);
+  font-weight: var(--w-ui);
+  text-decoration: none;
+  background: linear-gradient(currentColor, currentColor) no-repeat 0 100% / 100% 1px;
+  transition: color var(--dur-1) var(--ease-out);
+  padding-bottom: 2px;
+}
+/* A text link that stands on its own (not inside a sentence): a 44px target on touch screens (design upgrade Phase 6,
+   gate R4). */
+.link--tap {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+}
+/* 18 Nov 2026: its underline is a text decoration, so a link that wraps is underlined under each line. The background
+   underline sat once across the whole 44px box and ran through the second line like a strike-through (the case
+   studies' "Services shown"). Hover fades it instead of the swipe, which would move it to the box's bottom edge. */
+.link.link--tap {
+  background: none;
+  text-decoration: underline 1px;
+  text-underline-offset: 0.3em;
+  text-decoration-skip-ink: none;
+  transition:
+    color var(--dur-1) var(--ease-out),
+    text-decoration-color var(--dur-2) var(--ease-out);
+}
+/* Keyboard focus matches hover (gate M8, re-audit 18 Nov 2026), and also shows the focus ring. */
+.link.link--tap:focus-visible {
+  text-decoration-color: transparent;
+}
+@media (hover: hover) {
+  .link.link--tap:hover {
+    text-decoration-color: transparent;
+  }
+}
+/* The underline leaves to the right, then draws back in from the left. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .link:not(.link--tap):hover,
+  .link:not(.link--tap):focus-visible {
+    animation: link-swipe var(--dur-5) var(--ease-in-out);
+  }
+}
+@keyframes link-swipe {
+  0% {
+    background-size: 100% 1px;
+    background-position: 100% 100%;
+  }
+  45% {
+    background-size: 0 1px;
+    background-position: 100% 100%;
+  }
+  46% {
+    background-size: 0 1px;
+    background-position: 0 100%;
+  }
+  100% {
+    background-size: 100% 1px;
+    background-position: 0 100%;
+  }
+}
+.link--signal {
+  color: var(--signal);
+}
+.link-arrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  font-weight: var(--w-head);
+  text-decoration: none;
+  color: var(--text);
+  min-height: var(--tap);
+}
+.link-arrow .icon {
+  transition: transform var(--dur-3) var(--ease-out);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .link-arrow:hover .icon,
+  .link-arrow:focus-visible .icon {
+    transform: translateX(4px);
+  }
+  .link-arrow:hover .icon--ne,
+  .link-arrow:focus-visible .icon--ne {
+    transform: translate(3px, -3px);
+  }
+}
+.prose a:not([class]),
+.text-links a:not([class]) {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: var(--signal);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.22em;
+  transition: text-decoration-color var(--dur-1);
+}
+.prose a:not([class]):hover,
+.text-links a:not([class]):hover,
+.prose a:not([class]):focus-visible,
+.text-links a:not([class]):focus-visible {
+  text-decoration-color: var(--text);
+}
+
+/* ═══════════════ Status chip ═══════════════ */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55em;
+  padding: 0.35em 0.8em 0.35em 0.65em;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  font-weight: var(--w-ui);
+  letter-spacing: 0.04em;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.status__dot {
+  position: relative;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--signal);
+}
+.status__dot::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1px solid var(--signal);
+  opacity: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .js .status--live .status__dot::after {
+    /* A few pulses, then still: nothing on the page moves forever. With JavaScript only, like every entrance (M6). */
+    animation: ping calc(var(--dur-loop) / 2) var(--ease-out) 4;
+  }
+}
+@keyframes ping {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  80%,
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+.status--progress .status__dot {
+  background: var(--warn);
+}
+.status--progress .status__dot::after {
+  border-color: var(--warn);
+}
+
+/* ═══════════════ Forms ═══════════════ */
+.field {
+  display: grid;
+  gap: var(--s-2);
+  align-content: start;
+}
+.field > label,
+.legend {
+  font-weight: var(--w-head);
+  font-size: var(--fs-ui);
+  line-height: 1.35;
+  color: var(--text);
+}
+.req {
+  color: var(--signal);
+  margin-left: 0.15em;
+}
+.input,
+.textarea,
+.select {
+  width: 100%;
+  min-height: 3.5rem;
+  padding: 0.85rem 1rem;
+  background: var(--bg-2);
+  border: 1px solid var(--control);
+  border-radius: var(--r-md);
+  color: var(--text);
+  font-size: var(--fs-base);
+  line-height: 1.4;
+  transition: border-color var(--dur-1) var(--ease-out), box-shadow var(--dur-1) var(--ease-out), background-color var(--dur-1);
+}
+.textarea {
+  min-height: 9rem;
+  resize: vertical;
+}
+.select {
+  appearance: none;
+  padding-right: 2.75rem;
+  /* The chevron, drawn from two gradients in a token colour (no colour baked into an image). */
+  background-image: linear-gradient(45deg, transparent 50%, var(--text-2) 50%), linear-gradient(135deg, var(--text-2) 50%, transparent 50%);
+  background-repeat: no-repeat;
+  background-position: right 1.35rem center, right 1rem center;
+  background-size: 0.35rem 0.35rem;
+}
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--text-3);
+}
+.input:hover,
+.textarea:hover,
+.select:hover {
+  border-color: var(--text-3);
+}
+.input:focus,
+.textarea:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--signal);
+  box-shadow: 0 0 0 3px var(--signal-wash), 0 0 0 1px var(--signal);
+  background: var(--surface);
+}
+.input[aria-invalid='true'],
+.textarea[aria-invalid='true'],
+.select[aria-invalid='true'] {
+  border-color: var(--error);
+}
+.hint {
+  font-size: var(--fs-sm);
+  color: var(--text-3);
+  line-height: 1.45;
+}
+.error-text {
+  display: flex;
+  gap: 0.4em;
+  align-items: flex-start;
+  font-size: var(--fs-sm);
+  font-weight: var(--w-ui);
+  color: var(--error);
+}
+.error-text:empty {
+  display: none;
+}
+.error-text::before {
+  content: '!';
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-top: 0.12em;
+  border-radius: 50%;
+  background: var(--error);
+  color: var(--ink);
+  font-size: var(--fs-label);
+  font-weight: var(--w-head);
+}
+fieldset {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+/* Legends behave like ordinary headings (grid gaps and margins apply). */
+fieldset > legend {
+  float: left;
+  width: 100%;
+  padding: 0;
+}
+fieldset > legend + * {
+  clear: both;
+}
+
+/* Choice chips: real checkboxes/radios inside a pill label. */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+.chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55em;
+  min-height: var(--tap);
+  padding: 0.55rem 1rem 0.55rem 0.8rem;
+  border: 1px solid var(--control);
+  border-radius: var(--r-pill);
+  font-size: var(--fs-sm);
+  font-weight: var(--w-ui);
+  line-height: 1.25;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color var(--dur-1) var(--ease-out), border-color var(--dur-1) var(--ease-out), color var(--dur-1);
+}
+.chip input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.chip__box {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 1.15rem;
+  height: 1.15rem;
+  border: 1.5px solid var(--control);
+  border-radius: 6px;
+  transition: background-color var(--dur-1), border-color var(--dur-1);
+}
+.chip--radio .chip__box {
+  border-radius: 50%;
+}
+.chip__box svg {
+  width: 0.8rem;
+  height: 0.8rem;
+  stroke: var(--on-signal);
+  stroke-width: 3;
+  fill: none;
+  stroke-dasharray: 20;
+  stroke-dashoffset: 20;
+  transition: stroke-dashoffset var(--dur-3) var(--ease-out);
+}
+.chip:hover,
+.chip:focus-within {
+  border-color: var(--text-3);
+  background: var(--surface);
+}
+.chip:has(input:checked) {
+  border-color: var(--signal);
+  background: var(--signal-wash);
+}
+.chip:has(input:checked) .chip__box {
+  background: var(--signal);
+  border-color: var(--signal);
+}
+.chip:has(input:checked) .chip__box svg {
+  stroke-dashoffset: 0;
+}
+.chip:has(input:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.chip:has(input[aria-invalid='true']) {
+  border-color: var(--error);
+}
+
+/* Notices */
+.notice {
+  padding: var(--s-4) var(--s-5);
+  border-radius: var(--r-md);
+  border: 1px solid currentColor;
+  font-weight: var(--w-ui);
+  line-height: 1.5;
+}
+.notice:focus {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.notice a {
+  color: inherit;
+  font-weight: var(--w-head);
+}
+.notice--error {
+  color: var(--error);
+  background: var(--error-wash);
+}
+.notice--warn {
+  color: var(--warn);
+  background: var(--warn-wash);
+}
+
+/* ═══════════════ Accordion ═══════════════ */
+.acc {
+  border-top: 1px solid var(--line);
+}
+.acc:last-child {
+  border-bottom: 1px solid var(--line);
+}
+.acc > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-5);
+  min-height: 4.25rem;
+  padding-block: var(--s-4);
+  cursor: pointer;
+  list-style: none;
+  font-weight: var(--w-head);
+  font-size: var(--fs-lead);
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  transition: color var(--dur-1);
+}
+/* The question is a real heading (16 Nov 2026), set exactly like the summary text around it. */
+.acc__q {
+  margin: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  line-height: inherit;
+  color: inherit;
+  text-wrap: inherit;
+}
+.acc > summary::-webkit-details-marker {
+  display: none;
+}
+.acc > summary:hover,
+.acc > summary:focus-visible {
+  color: var(--signal);
+}
+.acc__plus {
+  position: relative;
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--control);
+  border-radius: 50%;
+  transition: transform var(--dur-3) var(--ease-out), background-color var(--dur-3), border-color var(--dur-3);
+}
+.acc__plus::before,
+.acc__plus::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0.8rem;
+  height: 1.5px;
+  background: currentColor;
+  transform: translate(-50%, -50%);
+  transition: transform var(--dur-3) var(--ease-out);
+}
+.acc__plus::after {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+.acc[open] > summary .acc__plus {
+  background: var(--signal);
+  border-color: var(--signal);
+  color: var(--on-signal);
+  transform: rotate(180deg);
+}
+.acc[open] > summary .acc__plus::after {
+  transform: translate(-50%, -50%) rotate(0deg);
+}
+.acc__body {
+  padding-bottom: var(--s-6);
+  color: var(--text-2);
+  max-width: var(--measure);
+}
+.acc::details-content {
+  block-size: 0;
+  overflow: clip;
+  transition: block-size var(--dur-4) var(--ease-out), content-visibility var(--dur-4) allow-discrete;
+}
+.acc[open]::details-content {
+  block-size: auto;
+}
+
+/* ═══════════════ Prose ═══════════════ */
+.prose {
+  max-width: var(--measure);
+  color: var(--text-2);
+}
+.prose > * + * {
+  margin-top: 1.1em;
+}
+.prose h2 {
+  font-size: var(--fs-h3);
+  color: var(--text);
+  margin-top: 2.2em;
+}
+.prose h3 {
+  font-size: var(--fs-lead);
+  color: var(--text);
+  margin-top: 1.8em;
+}
+.prose h2:first-child,
+.prose h3:first-child {
+  margin-top: 0;
+}
+.prose strong {
+  color: var(--text);
+  font-weight: var(--w-head);
+}
+.prose ul,
+.prose ol {
+  padding-left: 1.25em;
+}
+.prose li + li {
+  margin-top: 0.45em;
+}
+.prose li::marker {
+  color: var(--signal);
+}
+.prose ol li::marker {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+}
+
+/* ═══════════════ Toast (created by src/scripts/motion.ts) ═══════════════ */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: max(1.25rem, env(safe-area-inset-bottom));
+  z-index: 120;
+  max-width: calc(100% - 2rem);
+  padding: 0.8rem 1.2rem;
+  border-radius: var(--r-pill);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: var(--fs-sm);
+  font-weight: var(--w-head);
+  box-shadow: var(--shadow-pop);
+  transform: translate(-50%, 160%);
+  opacity: 0;
+  transition: transform var(--dur-3) var(--ease-out), opacity var(--dur-3) var(--ease-out);
+  pointer-events: none;
+}
+.toast.is-on {
+  transform: translate(-50%, 0);
+  opacity: 1;
+}
+
+/* ═══════════════ Preview markers ═══════════════ */
+.confirm-flag {
+  display: inline-block;
+  margin-block: var(--s-2);
+  padding: 0.3em 0.7em;
+  border: 1px dashed var(--warn);
+  border-radius: var(--r-sm);
+  background: var(--warn-wash);
+  color: var(--warn);
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  font-weight: var(--w-ui);
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+}
+
+/* ═══════════════ Motion ═══════════════ */
+/* Design upgrade Phase 4 (17 Nov 2026; DESIGN.md → Motion). Reveals are for section heads and media only, and they are
+   scroll-driven CSS (no script), inside @supports so browsers without scroll timelines show everything at once.
+   Paragraphs, lists and buttons never start hidden. html.js-motion (set in <head> when motion is allowed) opts in, so
+   with JavaScript off nothing is hidden or moved (gate M6).
+   Every property is written out on purpose: given the `animation` shorthand plus `animation-timeline`, the CSS minifier
+   folds the timeline into the shorthand, which browsers reject (found 15 Nov 2026). */
+/* Headings split into lines (ui/Heading.astro): each line rises out of a mask. */
+.line-mask {
+  display: block;
+  overflow: clip;
+  overflow-clip-margin: 0.12em;
+  padding-bottom: 0.06em;
+  margin-bottom: -0.06em;
+}
+.line-mask > span {
+  display: block;
+}
+/* The last mask's negative margin stays inside its heading, so the next element sits exactly its own gap below (it
+   collapsed into that gap in stacked heads: gate L4, re-audit 18 Nov 2026). */
+[data-split] {
+  display: flow-root;
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .js-motion [data-split]:not([data-split='load']) .line-mask > span {
+      animation-name: line-up;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: view();
+      animation-range: entry 5% entry 55%;
+    }
+    .js-motion [data-reveal='media'] {
+      animation-name: reveal-media;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: view();
+      animation-range: entry 5% entry 55%;
+    }
+  }
+}
+@keyframes reveal-media {
+  from {
+    opacity: 0;
+    translate: 0 16px;
+  }
+}
+
+/* Page transitions between pages (supporting browsers): the old page leaves fast and eases in (220ms), the new one
+   rises into place (420ms); opacity and transform only. The header holds still across the change. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+}
+::view-transition-group(root) {
+  animation-duration: var(--dur-page-in);
+}
+::view-transition-old(root) {
+  animation-name: vt-out;
+  animation-duration: var(--dur-page-out);
+  animation-timing-function: var(--ease-in);
+  animation-fill-mode: both;
+}
+::view-transition-new(root) {
+  animation-name: vt-in;
+  animation-duration: var(--dur-page-in);
+  animation-timing-function: var(--ease-out);
+  animation-fill-mode: both;
+}
+::view-transition-group(site-header) {
+  animation-duration: 0s;
+}
+::view-transition-old(site-header) {
+  display: none;
+}
+::view-transition-new(site-header) {
+  animation: none;
+}
+@keyframes vt-out {
+  to {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+}
+@keyframes vt-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0s !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+  header,
+  footer,
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* ═══════════════ Live Signal effects (round 6, src/scripts/fx/) ═══════════════ */
+
+/* Signal field: a static dot map in CSS; the WebGL canvas fades in over it once it has drawn.
+   It sits under the section's content (the zone is its own stacking context). */
+[data-field-zone] {
+  position: relative;
+  isolation: isolate;
+}
+.fx-field {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  -webkit-mask-image: radial-gradient(ellipse var(--fw, 72%) var(--fh, 80%) at var(--fx, 74%) var(--fy, 45%), black 25%, transparent 78%);
+  mask-image: radial-gradient(ellipse var(--fw, 72%) var(--fh, 80%) at var(--fx, 74%) var(--fy, 45%), black 25%, transparent 78%);
+}
+.fx-field::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at center, rgb(242 241 236 / 0.13) 0 1px, transparent 1.6px);
+  background-size: 22px 22px;
+  transition: opacity var(--dur-5) var(--ease-out);
+}
+.fx-field__gl {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity var(--dur-5) var(--ease-out);
+}
+.fx-field.is-gl::before {
+  opacity: 0;
+}
+.fx-field.is-gl .fx-field__gl {
+  opacity: 1;
+}
+
+/* Magnetic pull (fx/pointer.ts sets `translate`; it composes with hover and press transforms). Design upgrade Phase 4:
+   only the hero and footer buttons ([data-magnetic]), at most 6px. */
+[data-magnetic] {
+  translate: 0 0;
+}
+[data-magnetic],
+[data-magnetic] .btn__icon {
+  transition-property: transform, background-color, color, border-color, translate;
+}
+[data-magnetic] {
+  transition-duration: var(--dur-1), var(--dur-3), var(--dur-3), var(--dur-3), var(--dur-4);
+  transition-timing-function: var(--ease-out), var(--ease-out), var(--ease-out), var(--ease-out), var(--ease-spring);
+}
+[data-magnetic] .btn__icon {
+  transition-duration: var(--dur-4), var(--dur-3), var(--dur-3), var(--dur-3), var(--dur-4);
+  transition-timing-function: var(--ease-out), var(--ease-out), var(--ease-out), var(--ease-out), var(--ease-spring);
+}
+.is-pulled,
+.is-pulled .btn__icon {
+  transition-duration: var(--dur-1), var(--dur-3), var(--dur-3), var(--dur-3), var(--dur-2);
+  transition-timing-function: var(--ease-out);
+}
+
+/* Spotlight panels: a light and a lit border follow the pointer (fx/pointer.ts sets --mx/--my).
+   One layer: the mask shows the gradient fully on a 1px ring and at 14% inside, under the content. */
+[data-spotlight] {
+  position: relative;
+  isolation: isolate;
+}
+[data-spotlight]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  padding: 1px;
+  border-radius: inherit;
+  background: radial-gradient(22rem circle at var(--mx, 50%) var(--my, 0%), rgb(212 248 74 / 0.72), transparent 70%);
+  -webkit-mask: linear-gradient(rgb(0 0 0 / 0.86) 0 0) content-box, linear-gradient(black 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(rgb(0 0 0 / 0.86) 0 0) content-box exclude, linear-gradient(black 0 0);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-4) var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  [data-spotlight]:hover::after {
+    opacity: 1;
+  }
+}
+
+/* Images that open from a frame as they scroll into view (CSS scroll-driven, no JavaScript). Transform only (SEO
+   audit Phase 4): the frame grows from 86% while the screenshot inside settles from 116% to 100% (1.349 = 1.16 / 0.86),
+   both on the frame's own view timeline so they move together. Design upgrade Phase 4: only with html.js-motion, so
+   with JavaScript off nothing is moved (gate M6).
+   Every property is written out on purpose: given the `animation` shorthand plus `animation-timeline`, the CSS
+   minifier folds the timeline into the shorthand, which browsers reject, and the effect never ran (found 15 Nov 2026). */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .js-motion .reveal-clip {
+      view-timeline-name: --reveal-clip;
+      animation-name: clip-open;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: --reveal-clip;
+      animation-range: entry 0% cover 40%;
+    }
+    .js-motion .reveal-clip img {
+      animation-name: clip-settle;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: --reveal-clip;
+      animation-range: entry 0% cover 40%;
+    }
+  }
+}
+@keyframes clip-open {
+  from {
+    scale: 0.86;
+  }
+}
+@keyframes clip-settle {
+  from {
+    scale: 1.349;
+  }
+}
+
+/* First-screen content animates on load in CSS, so it never waits for a script (fast LCP). Design upgrade Phase 4
+   (Mann's choice, 17 Nov 2026): page-head text and buttons are visible from the first frame and only rise into place;
+   the H1's lines rise out of their mask, and media settles. --d is a step count of --stagger. */
+@media (prefers-reduced-motion: no-preference) {
+  .js [data-reveal='load'] {
+    animation: rise-in var(--dur-4) var(--ease-out) both;
+    animation-delay: calc(var(--d, 0) * var(--stagger));
+  }
+  .js [data-split='load'] .line-mask > span {
+    animation: line-up var(--dur-5) var(--ease-out) both;
+    animation-delay: calc((var(--i, 0) + var(--d, 0)) * var(--stagger));
+  }
+  .js [data-reveal='load-media'] {
+    animation: media-in var(--dur-5) var(--ease-out) both;
+    animation-delay: calc(var(--d, 0) * var(--stagger));
+  }
+}
+@keyframes rise-in {
+  from {
+    transform: translateY(12px);
+  }
+}
+@keyframes line-up {
+  from {
+    transform: translateY(105%);
+  }
+}
+@keyframes media-in {
+  from {
+    transform: translateY(24px) scale(0.98);
+  }
+}
+
+/* Forced colours (Windows contrast themes; design upgrade Phase 8, task 8.2, gate A5). The mode swaps the palette for
+   the visitor's system colours and drops background fills, so anything drawn only with a fill, or marked only in lime,
+   gets an edge or an outline here. Components add their own rules for their own marks (the Menu lines, selected
+   cards, progress bars). */
+@media (forced-colors: active) {
+  .btn {
+    border-color: ButtonText;
+  }
+  :focus-visible {
+    outline-color: Highlight;
+  }
+  /* Display headings set their lines closer than the type's height; the mode paints a backplate behind each line,
+     which would cut the foot of the line above ("local SEO"). Important: the hero and page heads set their own. */
+  h1,
+  h2 {
+    line-height: 1.15 !important;
+  }
+  /* A chosen chip: its lime fill is gone, so a heavier border in the highlight colour marks it. */
+  .chip:has(input:checked) {
+    border: 2px solid Highlight;
+  }
+}
+
+/* Presenter mode (?present=1, src/scripts/present.ts): larger type for a projector, steady visuals. */
+html[data-present] {
+  font-size: 112.5%;
+  scroll-padding-top: 0;
+}
+html[data-present] .hdr__clock {
+  display: none;
+}

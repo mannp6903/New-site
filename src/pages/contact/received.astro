@@ -1,0 +1,81 @@
+---
+// Confirmation page for the no-JavaScript form path (the API redirects here after acceptance).
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Button from '../../components/ui/Button.astro';
+---
+
+<BaseLayout title="Brief accepted" description="Your brief was accepted by the website." noindex footerCta={false}>
+  <section class="rc">
+    <div class="container rc__inner">
+      <svg class="rc__mark" viewBox="0 0 80 80" aria-hidden="true">
+        <circle cx="40" cy="40" r="36"></circle>
+        <path d="m25 41 10 10 21-23"></path>
+      </svg>
+      <p class="eyebrow">Accepted</p>
+      <h1 class="rc__title">Thanks, your brief <span class="accent">is on its way</span><span class="stop">.</span></h1>
+      <p class="lead">
+        The website accepted it and the email service took it for delivery to my inbox. I read every one myself and will reply
+        by email.
+      </p>
+      <div class="btn-row">
+        <Button href="/work/">See my work</Button>
+        <Button href="/" variant="ghost">Back to the home page</Button>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .rc {
+    padding-block: clamp(var(--s-7), 8vw, var(--s-10)) var(--section);
+  }
+  .rc__inner {
+    display: grid;
+    /* Eyebrow → title → intro on the head-gap tokens, as PageHead (gate L4, re-audit 18 Nov 2026; was 24px). */
+    gap: var(--head-gap-2);
+    justify-items: start;
+  }
+  .rc__inner > .eyebrow {
+    margin-bottom: calc(var(--head-gap-1) - var(--head-gap-2));
+  }
+  .rc__title {
+    font-size: var(--fs-h1);
+    max-width: 14ch;
+  }
+  .rc__mark {
+    width: 5rem;
+    height: 5rem;
+    fill: none;
+    stroke: var(--signal);
+    stroke-width: 3.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  /* The ring settles in, then the tick pops in: transform and opacity only (SEO audit Phase 4). */
+  .rc__mark circle,
+  .rc__mark path {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  /* Only with JavaScript (html.js), like every entrance: without it the tick is simply there (gate M6). */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js) .rc__mark circle {
+      animation: ring-in var(--dur-5) var(--ease-out) both;
+    }
+    :global(.js) .rc__mark path {
+      animation: tick-in var(--dur-4) var(--ease-spring) var(--dur-4) both;
+    }
+  }
+  @keyframes ring-in {
+    from {
+      opacity: 0;
+      transform: scale(0.82) rotate(-40deg);
+    }
+  }
+  @keyframes tick-in {
+    from {
+      opacity: 0;
+      transform: scale(0.5);
+    }
+  }
+</style>

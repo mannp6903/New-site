@@ -1,0 +1,812 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Heading from '../../components/ui/Heading.astro';
+import Button from '../../components/ui/Button.astro';
+import Icon from '../../components/ui/Icon.astro';
+import Status from '../../components/work/Status.astro';
+import ProjectMedia from '../../components/work/ProjectMedia.astro';
+import MediaFrame from '../../components/work/MediaFrame.astro';
+import Confirm from '../../components/Confirm.astro';
+import { serviceById } from '../../data/services';
+import { captures } from '../../data/captures';
+import { servicePageForGroup, serviceHref, type ServicePage } from '../../data/service-pages';
+import { breadcrumbJsonLd } from '../../lib/seo';
+import { projectSite } from '../../lib/work';
+import { industryPageForWork } from '../../data/industry-pages';
+
+export async function getStaticPaths() {
+  const work = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
+  return work.map((entry, i) => ({ params: { id: entry.id }, props: { entry, next: work[(i + 1) % work.length] } }));
+}
+
+interface Props {
+  entry: CollectionEntry<'work'>;
+  next: CollectionEntry<'work'>;
+}
+const { entry, next } = Astro.props;
+const { Content } = await render(entry);
+const d = entry.data;
+const c = captures[d.scene];
+const services = d.serviceIds.map((id) => serviceById(id)).filter((s) => s !== undefined);
+const crumbs = breadcrumbJsonLd([
+  { name: 'Home', path: '/' },
+  { name: 'Work', path: '/work/' },
+  { name: d.title, path: `/work/${entry.id}/` },
+]);
+const gallery = [c.desktop, c.mobile, ...(c.earlier ? [c.earlier] : [])];
+const host = new URL(c.url).host;
+// How wide each capture is drawn (measured 320–1920 px, Nov 2026 audit fixes), so phones never download desktop files.
+// Phones: a sideways rail. From 64em: the main capture beside an 18rem phone column; the earlier one at most 40rem.
+const railSizes = '(min-width: 48em) 93vw, (min-width: 28em) 352px, 78vw';
+const gallerySizes = {
+  main: `(min-width: 90em) 1030px, (min-width: 64em) calc(100vw - 25rem), ${railSizes}`,
+  earlier: `(min-width: 64em) 640px, ${railSizes}`,
+  phone: '(min-width: 48em) 276px, 52vw',
+};
+const checked = new Intl.DateTimeFormat('en-CA', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(
+  new Date(`${d.checked}T12:00:00Z`),
+);
+const where = d.status === 'launched' ? 'the live site' : 'the preview';
+const site = projectSite(d);
+// The focused service pages this project is evidence for (each named once).
+const servicePagesShown = [...new Set(services.map((s) => servicePageForGroup(s.group)).filter(Boolean))] as ServicePage[];
+// The industry page this project leads (SEO audit Phase 3, 14 Nov 2026).
+const industry = industryPageForWork(entry.id);
+---
+
+<BaseLayout
+  title={d.seoTitle}
+  description={d.description}
+  jsonLd={crumbs ?? undefined}
+  ogImage={`/og/work-${entry.id}.png`}
+  ogAlt={`Case study: ${d.title}. ${[d.relationship, site.websiteStatus, d.businessStatus].filter(Boolean).join(', ')}.`}
+>
+  <article>
+    <header class="cs-head">
+      <div class="container cs-head__inner">
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <ol role="list">
+            <li><a href="/work/">Work</a></li>
+            <li aria-current="page">{d.title}</li>
+          </ol>
+        </nav>
+        <div class="cs-meta">
+          <Status status={d.status} paused={site.paused} />
+          <span class="subtle small">{d.kind} · {d.year}</span>
+        </div>
+        {d.statusConfirm && <Confirm note={d.statusConfirm} />}
+        <Heading as="h1" lines={[d.title]} class="cs-title" load />
+        <p class="lead" data-reveal="load" style="--d:2">{d.summary}</p>
+        {site.note && <p class="cs-paused small" data-reveal="load" style="--d:3">{site.note}</p>}
+        {/* U4 (design upgrade Phase 3): the free check is the main button, beside the link to the live site. */}
+        <div class="btn-row" data-reveal="load" style="--d:4">
+          <Button href="/contact/?package=check-up#check">Get a free website and Google check</Button>
+          {site.links.map((l) => (
+            <Button href={l.url} variant="ghost" icon="arrow-ne" rel="noopener">
+              {l.label}
+            </Button>
+          ))}
+        </div>
+      </div>
+    </header>
+
+    <div class="container cs-hero" data-reveal="load-media" style="--d:2">
+      <ProjectMedia scene={d.scene} eager sizes="(min-width: 80em) 1130px, 86vw" phoneSizes="(min-width: 64em) 168px, 22vw" />
+    </div>
+
+    <!-- The short version first (round 7): relationship, status, role and the problem. -->
+    <section class="container glance" aria-labelledby="glance-title">
+      <h2 id="glance-title" class="visually-hidden">At a glance</h2>
+      <dl class="glance__grid">
+        <div>
+          <dt>Relationship</dt>
+          <dd>{d.relationship}</dd>
+        </div>
+        <div>
+          <dt>Website</dt>
+          <dd>{site.websiteStatus}</dd>
+        </div>
+        {
+          d.businessStatus && (
+            <div>
+              <dt>Business</dt>
+              <dd>{d.businessStatus}</dd>
+            </div>
+          )
+        }
+        <div>
+          <dt>Checked</dt>
+          <dd><time datetime={d.checked}>{checked}</time></dd>
+        </div>
+        <div class="glance__wide">
+          <dt>My role</dt>
+          <dd>{d.roleShort}</dd>
+        </div>
+        <div class="glance__wide">
+          <dt>The problem</dt>
+          <dd>{d.problem}</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="section cs-body-wrap" aria-label="Case study">
+      <div class="container cs-body">
+        <aside class="facts" aria-label="Project facts">
+          <dl>
+            <div>
+              <dt>Role</dt>
+              <dd>
+                {d.role}
+                {d.roleConfirm && <Confirm note={d.roleConfirm} />}
+              </dd>
+            </div>
+            <div>
+              <dt>Services shown</dt>
+              <dd>
+                <ul role="list">
+                  {services.map((s) => (
+                    <li>
+                      <a class="link link--tap" href={serviceHref(s.id)}>
+                        {s.name}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+                {servicePagesShown.length > 0 && (
+                  <p class="cs-offered small">
+                    <span class="subtle">Offered as:</span>{' '}
+                    {servicePagesShown.map((sp, i) => (
+                      <>
+                        {i > 0 && ' · '}
+                        <a class="link" href={`/services/${sp.slug}/`}>
+                          {sp.short} service
+                        </a>
+                      </>
+                    ))}
+                  </p>
+                )}
+                {industry && (
+                  <p class="cs-offered small">
+                    <span class="subtle">For your trade:</span>{' '}
+                    <a class="link" href={`/${industry.slug}/`}>
+                      {industry.linkLabel}
+                    </a>
+                  </p>
+                )}
+              </dd>
+            </div>
+            <div>
+              <dt>Highlights</dt>
+              <dd>
+                <ul role="list" class="hl">
+                  {d.highlights.map((h) => (
+                    <li>
+                      <Icon name="check" />
+                      <span>{h}</span>
+                    </li>
+                  ))}
+                </ul>
+              </dd>
+            </div>
+          </dl>
+        </aside>
+        <div class="cs-story">
+          <div class="prose" id="cs-story" data-fold>
+            <Content />
+          </div>
+          <button class="fold-btn" type="button" aria-controls="cs-story" aria-expanded="false" data-fold-btn hidden>
+            Read the full case study
+            <Icon name="arrow" class="fold-btn__icon" />
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--alt" aria-labelledby="closer-title">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Look closer</p>
+          <Heading id="closer-title" lines={['The decisions,', '<span class="accent">up close.</span>']} />
+        </div>
+        <ol class="closer rail rail--wide" role="list" aria-label="Design decisions" data-rail>
+          {
+            c.details.map((x, i) => (
+              <li>
+                <figure>
+                  <MediaFrame
+                    kind="plain"
+                    class="closer__img reveal-clip"
+                    src={x.src}
+                    alt={x.alt}
+                    widths={[320, 400, 480, 640, 800, 960, 1320]}
+                    sizes="(min-width: 90em) 660px, (min-width: 56em) 46vw, 90vw"
+                  />
+                  <figcaption>
+                    <span class="num closer__n">{String(i + 1).padStart(2, '0')}</span>
+                    <span>
+                      <b>{x.title}.</b> {x.note}
+                    </span>
+                  </figcaption>
+                </figure>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+    </section>
+
+    <section class="section tested" aria-labelledby="tested-title">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Evidence</p>
+          <h2 id="tested-title" class="cap-title">Tested on {where}.</h2>
+          <p class="muted tested__note">
+            Checked on <time datetime={d.checked}>{checked}</time> with automated browser tests (Playwright) and an automated
+            accessibility scan (axe-core). Only what was actually run is listed.
+          </p>
+        </div>
+        <div class="tested__body" id="cs-tests" data-fold="tight">
+        {
+          d.verification.length > 0 && (
+            <div class="table-wrap">
+              {/* Explicit roles keep it a table for screen readers when phones stack the rows. */}
+              <table class="tests" role="table" aria-labelledby="tested-title">
+                <thead role="rowgroup">
+                  <tr role="row">
+                    <th scope="col" role="columnheader">Behaviour</th>
+                    <th scope="col" role="columnheader">How it was checked</th>
+                    <th scope="col" role="columnheader">Result</th>
+                  </tr>
+                </thead>
+                <tbody role="rowgroup">
+                  {d.verification.map((v) => (
+                    <tr role="row">
+                      <th scope="row" role="rowheader">{v.behaviour}</th>
+                      <td role="cell" data-label="How">{v.how}</td>
+                      <td role="cell" data-label="Result">{v.result}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
+        }
+        <div class="tested__more">
+          <div>
+            <h3 class="tested__h">Limitations</h3>
+            <ul class="tested__list" role="list">
+              {d.limitations.map((l) => <li>{l}</li>)}
+            </ul>
+          </div>
+          <div>
+            <h3 class="tested__h">Outcomes</h3>
+            <p>{d.outcomes}</p>
+            <h3 class="tested__h">Next step</h3>
+            <p>{d.nextStep}</p>
+          </div>
+        </div>
+        </div>
+        <button class="fold-btn" type="button" aria-controls="cs-tests" aria-expanded="false" data-fold-btn hidden>
+          Show all checks and limitations
+          <Icon name="arrow" class="fold-btn__icon" />
+        </button>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="captures-title">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Captures</p>
+          <h2 id="captures-title" class="cap-title">Screens, dated.</h2>
+        </div>
+        <div class="gallery rail" role="group" aria-label="Screen captures" data-rail>
+          {
+            gallery.map((g, i) => (
+              <figure class:list={['g', i === 1 && 'g--phone', i === 2 && 'g--earlier']} data-reveal="media">
+                <MediaFrame
+                  kind={i === 1 ? 'phone' : 'browser'}
+                  class="g__frame reveal-clip"
+                  src={g.src}
+                  alt={g.alt}
+                  host={i === 1 ? undefined : host}
+                  widths={i === 1 ? [160, 240, 320, 460, 560, 720] : [400, 560, 720, 960, 1280, 1440, 2060]}
+                  sizes={gallerySizes[i === 1 ? 'phone' : i === 2 ? 'earlier' : 'main']}
+                />
+                <figcaption class="small subtle">{g.caption}</figcaption>
+              </figure>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <nav class="next section--rule" aria-label="Next project">
+      <a class="next__link container" href={`/work/${next.id}/`}>
+        <span class="eyebrow eyebrow--plain">Next project</span>
+        <span class="next__title">
+          {next.data.title}
+          <Icon name="arrow" />
+        </span>
+      </a>
+    </nav>
+  </article>
+</BaseLayout>
+
+<script>
+  // Phones: show the opening of the write-up with a button for the rest. Without JavaScript, or
+  // when keyboard focus moves into it, the whole text is shown.
+  const mq = window.matchMedia('(max-width: 47.99em)');
+  document.querySelectorAll<HTMLElement>('[data-fold]').forEach((prose) => {
+    const btn = prose.parentElement?.querySelector<HTMLButtonElement>('[data-fold-btn]');
+    if (!btn) return;
+    let opened = false;
+    const apply = () => {
+      prose.classList.remove('is-folded');
+      // The evidence ("tight") folds sooner than the story: its first check is enough as a preview.
+      const limit = prose.dataset.fold === 'tight' ? 0.6 : 1.4;
+      const fold = mq.matches && !opened && prose.scrollHeight > window.innerHeight * limit;
+      prose.classList.toggle('is-folded', fold);
+      btn.hidden = !fold;
+    };
+    const open = () => {
+      if (opened) return;
+      opened = true;
+      btn.setAttribute('aria-expanded', 'true');
+      apply();
+    };
+    btn.addEventListener('click', () => {
+      const cut = prose.clientHeight * 0.6;
+      open();
+      const top = prose.getBoundingClientRect().top;
+      // Keep keyboard and screen-reader users in place: focus the first heading that was hidden.
+      const next = [...prose.querySelectorAll<HTMLElement>('h2, h3, tbody th')].find((h) => h.getBoundingClientRect().top - top > cut);
+      if (next) {
+        next.tabIndex = -1;
+        next.focus({ preventScroll: true });
+      }
+    });
+    prose.addEventListener('focusin', open);
+    mq.addEventListener('change', apply);
+    apply();
+  });
+</script>
+
+<style>
+  .cs-head {
+    padding-block: clamp(var(--s-6), 6vw, var(--s-9)) var(--s-7);
+  }
+  .cs-head__inner {
+    display: grid;
+    gap: var(--s-5);
+    justify-items: start;
+  }
+  .cs-paused {
+    max-width: 62ch;
+    padding: var(--s-3) var(--s-4);
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    color: var(--text-2);
+  }
+  .cs-offered {
+    margin-top: var(--s-3);
+  }
+  .crumbs ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2);
+    font-size: var(--fs-sm);
+    color: var(--text-3);
+  }
+  .crumbs li + li::before {
+    content: '/';
+    margin-right: var(--s-2);
+  }
+  .crumbs a {
+    color: var(--text-2);
+  }
+  .cs-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-3);
+    align-items: center;
+  }
+  .cs-head__inner :global(.cs-title) {
+    font-size: var(--fs-h1);
+    font-weight: var(--w-head);
+    letter-spacing: var(--track-hero);
+    line-height: 0.9;
+  }
+  .cs-head .lead {
+    max-width: 50ch;
+  }
+  .cs-hero {
+    max-width: 82rem;
+  }
+
+  .cs-body {
+    display: grid;
+    gap: var(--s-7);
+  }
+  .facts dl {
+    display: grid;
+    gap: var(--s-5);
+  }
+  .facts dt {
+    margin-bottom: var(--s-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .facts dd {
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+  }
+  .facts ul {
+    display: grid;
+    gap: var(--s-2);
+  }
+  .hl li {
+    display: flex;
+    gap: var(--s-2);
+    align-items: flex-start;
+  }
+  .hl .icon {
+    margin-top: 0.12em;
+    color: var(--signal);
+  }
+  @media (min-width: 64em) {
+    .cs-body {
+      grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
+      gap: var(--s-9);
+    }
+    .facts {
+      position: sticky;
+      top: calc(var(--header-h) + 2rem);
+      align-self: start;
+    }
+  }
+
+  .closer {
+    display: grid;
+    gap: var(--s-6);
+  }
+  .closer figure {
+    display: grid;
+    gap: var(--s-4);
+  }
+  .closer figcaption {
+    display: grid;
+    grid-template-columns: 2.5rem 1fr;
+    gap: var(--s-3);
+    color: var(--text-2);
+  }
+  .closer figcaption b {
+    color: var(--text);
+  }
+  .closer__n {
+    font-size: var(--fs-label);
+    color: var(--signal);
+    padding-top: 0.25em;
+  }
+  @media (min-width: 56em) {
+    .closer {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  /* ── At a glance ── */
+  .glance {
+    margin-top: clamp(var(--s-6), 4vw, var(--s-8));
+  }
+  .glance__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s-4) var(--s-5);
+    padding-block: var(--s-5);
+    border-block: 1px solid var(--line);
+  }
+  .glance__grid dt {
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 0.2rem;
+  }
+  .glance__grid dd {
+    font-weight: var(--w-ui);
+  }
+  .glance__wide {
+    grid-column: 1 / -1;
+  }
+  .glance__wide dd {
+    font-weight: var(--w-body);
+    color: var(--text-2);
+    max-width: 60ch;
+  }
+  /* Wide screens: one row where it fits; short facts take their width, role and problem share the
+     rest (and drop to a second row when a longer status leaves them too little room). */
+  @media (min-width: 64em) {
+    .glance__grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--s-5) var(--s-7);
+    }
+    .glance__grid > div {
+      flex: 0 0 auto;
+      max-width: 14rem;
+    }
+    .glance__grid > .glance__wide {
+      flex: 1 1 16rem;
+      max-width: none;
+    }
+  }
+
+  /* ── Evidence ── */
+  .tested__note {
+    max-width: 60ch;
+  }
+  .table-wrap {
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    overflow: hidden;
+  }
+  .tests {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-sm);
+    line-height: 1.5;
+  }
+  .tests th,
+  .tests td {
+    padding: var(--s-3) var(--s-4);
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid var(--line);
+  }
+  .tests tbody tr:last-child > * {
+    border-bottom: 0;
+  }
+  .tests thead th {
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    font-weight: var(--w-ui);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--text-3);
+    background: var(--bg-2);
+  }
+  .tests tbody th {
+    font-weight: var(--w-head);
+    width: 22%;
+  }
+  .tests td {
+    color: var(--text-2);
+  }
+  /* Phones: each check becomes a small block (behaviour, then how and result with labels). */
+  @media (max-width: 47.99em) {
+    .tests thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+    .tests tr,
+    .tests th,
+    .tests td {
+      display: block;
+    }
+    .tests tbody tr {
+      padding: var(--s-4);
+      border-bottom: 1px solid var(--line);
+    }
+    .tests tbody tr:last-child {
+      border-bottom: 0;
+    }
+    .tests tbody th,
+    .tests td {
+      width: auto;
+      padding: 0;
+      border: 0;
+    }
+    .tests td {
+      margin-top: var(--s-2);
+    }
+    .tests td::before {
+      content: attr(data-label) ': ';
+      font-family: var(--font-mono);
+      font-size: var(--fs-label);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-3);
+    }
+  }
+  .tested__more {
+    display: grid;
+    gap: var(--s-6);
+    margin-top: var(--s-7);
+  }
+  .tested__h {
+    font-family: var(--font-mono);
+    font-size: var(--fs-label);
+    font-weight: var(--w-ui);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: var(--s-2);
+  }
+  .tested__more p + .tested__h {
+    margin-top: var(--s-5);
+  }
+  .tested__more p {
+    color: var(--text-2);
+    max-width: 60ch;
+  }
+  .tested__list {
+    display: grid;
+    gap: var(--s-2);
+    color: var(--text-2);
+  }
+  .tested__list li {
+    padding-left: 1.1em;
+    position: relative;
+  }
+  .tested__list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.7em;
+    width: 0.4rem;
+    height: 1px;
+    background: var(--signal);
+  }
+  @media (min-width: 56em) {
+    .tested__more {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--s-8);
+    }
+  }
+
+  .cap-title {
+    font-size: var(--fs-h2);
+  }
+  .gallery {
+    display: grid;
+    gap: var(--s-6);
+    align-items: start;
+  }
+  .g {
+    display: grid;
+    gap: var(--s-3);
+  }
+  /* The frames are MediaFrame.astro (design upgrade Phase 5): browser frames for the desktop captures, a phone frame
+     for the phone capture, plain cards for the close-ups. The gallery's phone is larger, so its bezel is too. */
+  .g--phone {
+    max-width: 18rem;
+    --frame-phone-r: 1.6rem;
+    --frame-phone-bezel: 6px;
+  }
+  @media (min-width: 64em) {
+    .gallery {
+      grid-template-columns: minmax(0, 1fr) 18rem;
+    }
+    .g--earlier {
+      grid-column: 1;
+      max-width: 40rem;
+    }
+  }
+
+  .next {
+    border-top: 1px solid var(--line);
+  }
+  .next__link {
+    display: grid;
+    gap: var(--s-3);
+    padding-block: var(--s-8);
+    text-decoration: none;
+  }
+  .next__title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25em;
+    font-size: var(--fs-h2);
+    font-weight: var(--w-head);
+    letter-spacing: var(--track-head);
+    line-height: 1;
+    transition: letter-spacing var(--dur-4) var(--ease-out), color var(--dur-3);
+  }
+  .next__title .icon {
+    width: 0.7em;
+    height: 0.7em;
+    stroke-width: 1.5;
+    transition: transform var(--dur-4) var(--ease-out);
+  }
+  .next__link:hover .next__title,
+  .next__link:focus-visible .next__title {
+    letter-spacing: -0.02em;
+    color: var(--signal);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .next__link:hover .next__title .icon,
+    .next__link:focus-visible .next__title .icon {
+      transform: translateX(0.15em);
+    }
+  }
+
+  /* Phones: decisions and captures swipe sideways instead of stacking. */
+  @media (max-width: 47.99em) {
+    .cs-head {
+      padding-bottom: var(--s-6);
+    }
+    .cs-body {
+      gap: var(--s-6);
+    }
+    .facts dl {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--s-4) var(--s-5);
+    }
+    .facts dl > div:last-child {
+      grid-column: 1 / -1;
+    }
+    .closer figcaption {
+      grid-template-columns: 1.75rem 1fr;
+      font-size: var(--fs-sm);
+    }
+    .gallery {
+      align-items: start;
+    }
+    .gallery > .g--phone {
+      flex-basis: 58%;
+      max-width: none;
+    }
+    .next__link {
+      padding-block: var(--s-7);
+    }
+  }
+
+  .fold-btn {
+    display: none;
+  }
+  @media (max-width: 47.99em) {
+    [data-fold]:global(.is-folded) {
+      max-height: 34rem;
+      overflow: hidden;
+      -webkit-mask-image: linear-gradient(black 62%, transparent);
+      mask-image: linear-gradient(black 62%, transparent);
+    }
+    /* The evidence previews its first check; the button shows the rest. */
+    .tested__body:global(.is-folded) {
+      max-height: 17rem;
+    }
+    .fold-btn:not([hidden]) {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s-2);
+      min-height: 3rem;
+      margin-top: var(--s-2);
+      padding: 0 var(--s-5);
+      border: 1px solid var(--control);
+      border-radius: var(--r-pill);
+      background: none;
+      color: var(--text);
+      font: inherit;
+      font-weight: var(--w-head);
+      cursor: pointer;
+    }
+    .fold-btn :global(.fold-btn__icon) {
+      transform: rotate(90deg);
+      color: var(--signal);
+    }
+    /* Keep each close-up's own shape (wide crops would lose their sides in a fixed box); cap tall ones. */
+    .closer :global(.closer__img img) {
+      width: 100%;
+      max-height: 18rem;
+      object-fit: cover;
+      object-position: top;
+    }
+  }
+</style>
