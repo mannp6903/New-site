@@ -23,6 +23,9 @@ implementation of every public route, media, and QA. Not deployed: production is
   npm run build && npm run preview      # http://localhost:4321 (the form saves enquiries to .data/enquiries.jsonl)
   ```
 
+- **Hosted preview (private to Mann):** https://claude.ai/artifact/VeeFLYy2eggXCLLHQyps1R — every page, the demos and
+  the motion. Built with `node scripts/export-static-preview.mjs preview-artifact --artifact`; the enquiry form shows its
+  "not connected" notice there, because a static preview has no server.
 - **The live repository was not changed** and nothing was deployed.
 
 ## What was built (the strongest decisions)
@@ -87,11 +90,69 @@ choices only, never form text, emails or URLs a visitor typed (tested).
 
 ## QA results
 
-RESULTS_PLACEHOLDER
+Measured 19 Nov 2026 on the final build (commit after `a8dae70`), Chromium 1243 via Playwright 1.63 (headless), local
+Node preview server. Lab numbers, not field data.
+
+### Tests
+
+| Check | Result |
+|---|---|
+| Types (`astro check`) | 0 errors, 0 warnings |
+| Unit tests (Vitest, including the design-token gates) | **177 / 177 passed** |
+| Browser tests (Playwright: `site`, `redesign`, `design-gates`) | **260 / 260 passed** (13.0 min) |
+| Accessibility (axe-core, every built page, Motion on and off, in the browser suite) | 0 violations |
+| Visual matrix (39 routes × 320, 360, 390, 768, 1440, 1920 px) | no sideways scrolling, no console errors, one H1 per page |
+| Forced colours, 200% text, keyboard-only, no JavaScript, reduced motion | covered by the design gates; all pass |
+| Gate M7 (4× CPU slowdown: no frame with the site's scripts over 50 ms from first paint to 3 s) | passes (3 / 3 repeats, then in the full run) |
+
+### Lighthouse 12.8 (mobile, simulated throttling)
+
+| Page | Performance | Accessibility | Best practices | LCP | CLS | TBT | Old site (performance / LCP) |
+|---|---|---|---|---|---|---|---|
+| `/` | 94 | 100 | 100 | 2.7 s | 0 | 0 ms | 94 / 2.7 s |
+| `/work/` | 94 | 100 | 100 | 2.9 s | 0 | 30 ms | 98 / 2.1 s |
+| `/services/web-design/` | 96 | 100 | 100 | 2.6 s | 0 | 0 ms | 96 / 2.2 s |
+| `/contact/` | 96 | 100 | 100 | 2.4 s | 0 | 20 ms | 96 / 2.3 s |
+
+SEO reads 63–66 on both the old and the new site in this run: preview builds carry `noindex, nofollow` on purpose
+(so previews never reach Google), which fails the "is crawlable" audit. The production build (`npm run build:cloudflare`)
+removes it.
+
+### Page weight, DOM and loading (first view, no interaction)
+
+Transfer from the local server, which does not compress (Cloudflare serves HTML with Brotli, so production is lighter).
+
+| Page | Phone KB (old → new) | Desktop KB (old → new) | DOM elements (old → new) | Local LCP | CLS |
+|---|---|---|---|---|---|
+| `/` | 299 → 360 | 340 → 398 | 922 → 1,019 | 140 ms (the line under the H1 on phones, the portrait on desktop) | 0 |
+| `/work/` | 195 → 320 | 219 → 345 | 426 → 435 | 116 ms | 0 |
+| `/services/` | 200 → 221 | 200 → 221 | 612 → 599 | 68 ms | 0 |
+| `/services/web-design/` | 233 → 295 | 233 → 333 | 1,005 → 1,023 | 80 ms | 0 |
+| `/about/` | 196 → 217 | 199 → 220 | 632 → 619 | 104 ms | 0 |
+| `/contact/` | 235 → 255 | 235 → 255 | 713 → 699 | 68 ms | 0 |
+| `/work/nest-and-rest-cleaning/` | 231 → 252 | 257 → 278 | 618 → 605 | 96 ms | 0 |
+
+Where the extra weight comes from: the display face (22 KB, on every page), the before/after demo images on service
+pages, the work films' captures and the studio reel poster on `/work/` (the reel itself, 1.7 MB, loads only on Play).
+JavaScript stays at 19–49 KB per page, as before.
+
+### Home length
+
+14.0 phone screens at 390 × 844 (old site: 10.9). See decision 1 below.
+
+### Fixes made during QA (this round)
+
+- Load performance: start-up scripts no longer read layout or restyle the page (the stage line is drawn after layout,
+  the work reel and Back to top are in their final state from the first paint), the hidden stage scenes no longer
+  animate, line drawings repaint in their own layer, and the playground starts when it comes near. MOTION.md →
+  Performance.
+- Forced colours: every button keeps a visible edge; the menu icon lines stay visible.
+- Layout: the person scene's portrait and copy are balanced on wide screens; heading-to-intro spacing matches every other
+  section; real work starts right after the first screen at 1440 × 900.
 
 ## Decisions for Mann
 
-1. **Home length on phones.** About 14 phone screens (390 × 844), against the 11 you chose on 17 Nov (D9). The brief's
+1. **Home length on phones.** 14.0 phone screens (390 × 844), against the 11 you chose on 17 Nov (D9). The brief's
    playground and work films are the difference. To bring it back towards 11 without losing the idea: show only the
    demo matching the chosen need on phones (about −2 screens), or drop the person scene from Home (it is on About; −1.3).
 2. **Your photo now appears twice on Home:** the cut-out on the stage and the portrait scene (Scene D of the brief). On
